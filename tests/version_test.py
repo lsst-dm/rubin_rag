@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from rubinrag import __version__
+from rubin.rag import __version__
 
 
 def test_version() -> None:
