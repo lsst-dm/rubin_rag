@@ -97,7 +97,7 @@ jobs:
           github.event_name != 'merge_group'
           && (github.event_name != 'pull_request'
               || startsWith(github.head_ref, 'tickets/'))
-  
+
   test-packaging:
 
     name: Test packaging
