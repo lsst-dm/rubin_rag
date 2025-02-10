@@ -5,7 +5,7 @@ __all__ = ["__version__"]
 from importlib.metadata import PackageNotFoundError, version
 
 __version__: str
-"""The version string of rubinrag
+"""The version string of rubin.rag
 (PEP 440 / SemVer compatible).
 """
 
