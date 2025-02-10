@@ -116,7 +116,7 @@ python_files = ["tests/*.py", "tests/*/*.py"]
 extend = "ruff-shared.toml"
 
 [tool.ruff.lint.isort]
-known-first-party = ["rubinrag", "tests"]
+known-first-party = ["rubin.rag", "tests"]
 split-on-trailing-comma = false
 
 [tool.scriv]
