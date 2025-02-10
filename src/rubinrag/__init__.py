@@ -1,4 +1,4 @@
-"""Rubin RAG-basd LLM Application"""
+"""Rubin RAG-basd LLM Application."""
 
 __all__ = ["__version__"]
 
