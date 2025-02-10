@@ -82,22 +82,6 @@ jobs:
           # tox-envs: "docs,docs-linkcheck"
           tox-plugins: tox-uv
 
-      # Only attempt documentation uploads for tagged releases and pull
-      # requests from ticket branches in the same repository.  This avoids
-      # version clutter in the docs and failures when a PR doesn't have access
-      # to secrets.
-      - name: Upload to LSST the Docs
-        uses: lsst-sqre/ltd-upload@v1
-        with:
-          project: "rubin_rag"
-          dir: "docs/_build/html"
-          username: ${{ secrets.LTD_USERNAME }}
-          password: ${{ secrets.LTD_PASSWORD }}
-        if: >
-          github.event_name != 'merge_group'
-          && (github.event_name != 'pull_request'
-              || startsWith(github.head_ref, 'tickets/'))
-
   test-packaging:
 
     name: Test packaging
