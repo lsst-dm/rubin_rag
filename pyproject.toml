@@ -52,8 +52,8 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-where = ["src"]
-include = ["rubinrag*"]
+where = ["python"]
+include = ["rubin"]
 
 [tool.black]
 line-length = 79
@@ -62,10 +62,10 @@ target-version = ["py312"]
 [tool.coverage.run]
 parallel = true
 branch = true
-source = ["rubinrag"]
+source = ["rubin"]
 
 [tool.coverage.paths]
-source = ["src", ".tox/*/site-packages"]
+source = ["python", ".tox/*/site-packages"]
 
 [tool.coverage.report]
 show_missing = true
@@ -116,7 +116,7 @@ python_files = ["tests/*.py", "tests/*/*.py"]
 extend = "ruff-shared.toml"
 
 [tool.ruff.lint.isort]
-known-first-party = ["rubinrag", "tests"]
+known-first-party = ["rubin.rag", "tests"]
 split-on-trailing-comma = false
 
 [tool.scriv]

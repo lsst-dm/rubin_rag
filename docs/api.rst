@@ -1,8 +1,8 @@
-:og:description: Comprehensive API documentation for rubinrag.
+:og:description: Comprehensive API documentation for rubin.rag.
 
 ####################
 Python API reference
 ####################
 
-.. automodapi:: rubinrag
+.. automodapi:: rubin.rag
    :include-all-objects:
