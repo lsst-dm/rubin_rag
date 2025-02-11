@@ -1,3 +1,5 @@
+"""Python setup."""
+
 import setuptools
 import setuptools_scm
 
