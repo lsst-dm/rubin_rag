@@ -96,10 +96,10 @@ select = ["ALL"]
 "noxfile.py" = [
     "T201",    # print makes sense as output from nox rules
 ]
-"src/*/handlers/**" = [
+"python/*/handlers/**" = [
     "D103",    # FastAPI handlers should not have docstrings
 ]
-"*/src/*/handlers/**" = [
+"*/python/*/handlers/**" = [
     "D103",    # FastAPI handlers should not have docstrings
 ]
 "tests/**" = [

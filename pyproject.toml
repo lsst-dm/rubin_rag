@@ -52,7 +52,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
-where = ["src"]
+where = ["python"]
 include = ["rubin"]
 
 [tool.black]
@@ -65,7 +65,7 @@ branch = true
 source = ["rubin"]
 
 [tool.coverage.paths]
-source = ["src", ".tox/*/site-packages"]
+source = ["python", ".tox/*/site-packages"]
 
 [tool.coverage.report]
 show_missing = true
