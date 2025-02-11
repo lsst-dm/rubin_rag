@@ -21,4 +21,4 @@ rubin_rag is developed on GitHub at https://github.com/lsst-dm/rubin_rag.
    User guide <user-guide/index>
    API <api>
    Change log <changelog>
-   Contributing <dev/index>
+   Contributing <developer-guide/index>
