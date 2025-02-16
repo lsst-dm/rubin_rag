@@ -2,22 +2,26 @@
 import os
 
 import weaviate
-from dotenv import \
-    load_dotenv  # For loading environment variables from .env file
-from langchain.document_loaders import Docx2txtLoader  # For loading DOCX files
-from langchain.document_loaders import PyMuPDFLoader  # For loading PDF files
-from langchain.document_loaders import \
-    TextLoader  # For loading plain text files
-from langchain.document_loaders import \
-    UnstructuredExcelLoader  # For loading XLSX files
+from dotenv import (
+    load_dotenv,  # For loading environment variables from .env file
+)
 from langchain.document_loaders import (  # For loading files from a directory; For loading PPTX files
-    DirectoryLoader, UnstructuredPowerPointLoader)
-from langchain.document_loaders.csv_loader import \
-    CSVLoader  # For loading CSV files
-from langchain.retrievers.weaviate_hybrid_search import \
-    WeaviateHybridSearchRetriever
-from langchain.text_splitter import \
-    RecursiveCharacterTextSplitter  # For splitting text into smaller chunks
+    DirectoryLoader,
+    Docx2txtLoader,  # For loading DOCX files
+    PyMuPDFLoader,  # For loading PDF files
+    TextLoader,  # For loading plain text files
+    UnstructuredExcelLoader,  # For loading XLSX files
+    UnstructuredPowerPointLoader,
+)
+from langchain.document_loaders.csv_loader import (
+    CSVLoader,  # For loading CSV files
+)
+from langchain.retrievers.weaviate_hybrid_search import (
+    WeaviateHybridSearchRetriever,
+)
+from langchain.text_splitter import (
+    RecursiveCharacterTextSplitter,  # For splitting text into smaller chunks
+)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -118,7 +122,9 @@ def get_documents():
 raw_docs, csv_docs = get_documents()
 
 # Split the documents into smaller chunks
-text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+text_splitter = RecursiveCharacterTextSplitter(
+    chunk_size=1000, chunk_overlap=50
+)
 
 docs = text_splitter.split_documents(raw_docs)
 
@@ -138,7 +144,9 @@ for doc in docs:
 
     # Replace 'Documents\\' with an empty string in the source key
     if "source" in doc.metadata:
-        doc.metadata["source"] = doc.metadata["source"].replace("Documents\\", "")
+        doc.metadata["source"] = doc.metadata["source"].replace(
+            "Documents\\", ""
+        )
 
 print(f"Total chunks: {len(docs)}")
 

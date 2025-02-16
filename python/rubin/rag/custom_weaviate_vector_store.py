@@ -38,7 +38,8 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
             k (int): The number of results to return (default: 4).
             **kwargs: Additional keyword arguments to pass.
 
-        Returns:
+        Returns
+        -------
             List[Tuple[Document, float]]: A list of tuples where each tuple contains a
             document and its corresponding similarity score.
         """

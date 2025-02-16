@@ -30,7 +30,9 @@ def push_docs_to_weaviate(raw_docs, do_chunk=False):
 
         if do_chunk:
             # Split the documents into smaller chunks
-            text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+            text_splitter = CharacterTextSplitter(
+                chunk_size=1000, chunk_overlap=50
+            )
             docs = text_splitter.split_documents(raw_docs)
 
         else:

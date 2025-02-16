@@ -2,17 +2,18 @@ import os
 
 import streamlit as st
 import weaviate
+from custom_weaviate_vector_store import CustomWeaviateVectorStore
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.prompts.chat import (ChatPromptTemplate,
-                                    HumanMessagePromptTemplate,
-                                    SystemMessagePromptTemplate)
+from langchain.prompts.chat import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    SystemMessagePromptTemplate,
+)
 from langchain_core.prompts import MessagesPlaceholder
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from weaviate.classes.init import Auth
-
-from custom_weaviate_vector_store import CustomWeaviateVectorStore
 from streamlit_callback import get_streamlit_cb
+from weaviate.classes.init import Auth
 
 
 def submit_text():
@@ -27,17 +28,17 @@ def configure_retriever():
     grpc_host = os.getenv("GRPC_HOST")
 
     client = weaviate.connect_to_custom(
-        http_host=http_host,      # Hostname for the HTTP API connection
-        http_port=80,              # Default is 80, WCD uses 443
-        http_secure=False,           # Whether to use https (secure) for the HTTP API connection
-        grpc_host=grpc_host,   # Hostname for the gRPC API connection
-        grpc_port=50051,              # Default is 50051, WCD uses 443
-        grpc_secure=False,           # Whether to use a secure channel for the gRPC API connection
-        auth_credentials=Auth.api_key(weaviate_api_key),    # The API key to use for authentication
-        headers={
-            "X-OpenAI-Api-Key": openai_api_key
-        },
-        skip_init_checks=True
+        http_host=http_host,  # Hostname for the HTTP API connection
+        http_port=80,  # Default is 80, WCD uses 443
+        http_secure=False,  # Whether to use https (secure) for the HTTP API connection
+        grpc_host=grpc_host,  # Hostname for the gRPC API connection
+        grpc_port=50051,  # Default is 50051, WCD uses 443
+        grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
+        auth_credentials=Auth.api_key(
+            weaviate_api_key
+        ),  # The API key to use for authentication
+        headers={"X-OpenAI-Api-Key": openai_api_key},
+        skip_init_checks=True,
     )
 
     retriever = CustomWeaviateVectorStore(
@@ -47,7 +48,8 @@ def configure_retriever():
         embedding=OpenAIEmbeddings(),
         attributes=["source", "source_key"],
     ).as_retriever(
-        search_type="similarity", search_kwargs={"k": 6, "return_metadata": ["score"]}
+        search_type="similarity",
+        search_kwargs={"k": 6, "return_metadata": ["score"]},
     )
 
     return retriever
@@ -58,10 +60,10 @@ def create_qa_chain(retriever):
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
 
     # Define the system message template
-    system_template = """You are VERA, a helpful assistant at Vera C Rubin Observatory. 
-    Do your best to answer the questions in as much detail as possible. 
+    system_template = """You are VERA, a helpful assistant at Vera C Rubin Observatory.
+    Do your best to answer the questions in as much detail as possible.
     Do not attempt to provide an answer if you do not know the answer.
-    In your response, do not recommend reading elsewhere. 
+    In your response, do not recommend reading elsewhere.
     Use the following pieces of context to answer the user's question at the end.
     ----------------
     {context}
@@ -96,12 +98,14 @@ def handle_user_input(qa_chain, msgs):
     }
 
     for msg in msgs.messages:
-        st.chat_message(avatars[msg.type], avatar=avatar_images[msg.type]).write(
-            msg.content
-        )
+        st.chat_message(
+            avatars[msg.type], avatar=avatar_images[msg.type]
+        ).write(msg.content)
 
     # Handle new user input
-    if user_query := st.chat_input(placeholder="Message Vera", on_submit=submit_text):
+    if user_query := st.chat_input(
+        placeholder="Message Vera", on_submit=submit_text
+    ):
         with st.chat_message("user", avatar=avatar_images["human"]):
             st.write(user_query)
         msgs.add_user_message(user_query)
@@ -110,12 +114,17 @@ def handle_user_input(qa_chain, msgs):
             stream_handler = get_streamlit_cb(st.empty())
 
             filters = [
-                source.lower() for source in st.session_state["required_sources"]
+                source.lower()
+                for source in st.session_state["required_sources"]
             ]
             where_filter = {
                 "operator": "Or",
                 "operands": [
-                    {"path": ["source_key"], "operator": "Equal", "valueText": source}
+                    {
+                        "path": ["source_key"],
+                        "operator": "Equal",
+                        "valueText": source,
+                    }
                     for source in filters
                 ],
             }
@@ -133,7 +142,9 @@ def handle_user_input(qa_chain, msgs):
 
             # Display source documents in an expander
             with st.expander("See sources"):
-                scores = [chunk.metadata["score"] for chunk in result["context"]]
+                scores = [
+                    chunk.metadata["score"] for chunk in result["context"]
+                ]
 
                 if scores:
                     max_score = max(scores)

@@ -3,7 +3,6 @@ import os
 import weaviate
 from weaviate.classes.init import Auth
 
-
 client = weaviate.connect_to_weaviate_cloud(
     cluster_url=weaviate_url,
     auth_credentials=Auth.api_key(weaviate_api_key),

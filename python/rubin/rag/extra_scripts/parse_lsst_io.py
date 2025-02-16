@@ -36,7 +36,9 @@ try:
                     content = element.get_text()
                     print(content)
                     docs.append(
-                        Document(page_content=content, metadata={"source": url})
+                        Document(
+                            page_content=content, metadata={"source": url}
+                        )
                     )
 
             else:
@@ -76,7 +78,9 @@ try:
                         print(f"Error loading documents from PDF: {pdf_err}")
 
             else:
-                print(f"\nNo PDF links found on the page for ticket {ticket_number}.")
+                print(
+                    f"\nNo PDF links found on the page for ticket {ticket_number}."
+                )
 
         except requests.exceptions.RequestException as url_err:
             print(

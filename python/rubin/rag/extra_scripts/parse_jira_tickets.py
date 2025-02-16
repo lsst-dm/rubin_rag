@@ -10,11 +10,11 @@ def get_jira_issue(issue_name, email, api_token):
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
     response = requests.get(url, auth=auth, headers=headers)
-    
+
     if response.status_code == 200:
         return response.json(), None
     if response.status_code == 429:
-        return [],  f"{issue_name}: {response.status_code}"
+        return [], f"{issue_name}: {response.status_code}"
     else:
         return None, f"{issue_name}: {response.status_code}"
 
@@ -25,7 +25,8 @@ def extract_reviewer_from_customfield(jira_data):
     if reviewers:
         # Extract the display name(s) of the reviewer(s) into a list
         return [
-            reviewer.get("displayName", "Reviewer not found") for reviewer in reviewers
+            reviewer.get("displayName", "Reviewer not found")
+            for reviewer in reviewers
         ]
     return ["No reviewer assigned"]
 
@@ -39,20 +40,28 @@ def extract_related_issues(jira_data):
         if "inwardIssue" in link:
             issue_relation = {
                 "key": link["inwardIssue"].get("key", ""),
-                "summary": link["inwardIssue"]["fields"].get("summary", "No summary"),
+                "summary": link["inwardIssue"]["fields"].get(
+                    "summary", "No summary"
+                ),
                 "status": link["inwardIssue"]["fields"]["status"].get(
                     "name", "Unknown status"
                 ),
-                "relationship": link["type"].get("outward", "Unknown relation"),
+                "relationship": link["type"].get(
+                    "outward", "Unknown relation"
+                ),
             }
         elif "outwardIssue" in link:
             issue_relation = {
                 "key": link["outwardIssue"].get("key", ""),
-                "summary": link["outwardIssue"]["fields"].get("summary", "No summary"),
+                "summary": link["outwardIssue"]["fields"].get(
+                    "summary", "No summary"
+                ),
                 "status": link["outwardIssue"]["fields"]["status"].get(
                     "name", "Unknown status"
                 ),
-                "relationship": link["type"].get("outward", "Unknown relation"),
+                "relationship": link["type"].get(
+                    "outward", "Unknown relation"
+                ),
             }
         related_issues.append(issue_relation)
 
@@ -81,9 +90,12 @@ def extract_parent_issue(jira_data):
         return {
             "key": parent_issue.get("key", ""),
             "summary": parent_issue["fields"].get("summary", "No summary"),
-            "status": parent_issue["fields"]["status"].get("name", "Unknown status"),
+            "status": parent_issue["fields"]["status"].get(
+                "name", "Unknown status"
+            ),
         }
     return None
+
 
 def safe_get(d, path, default=None):
     for key in path:
@@ -92,6 +104,7 @@ def safe_get(d, path, default=None):
         else:
             return default
     return d
+
 
 def reformat_jira_data(jira_data, ticket):
     if jira_data is None:
@@ -144,12 +157,18 @@ def reformat_jira_data(jira_data, ticket):
         "summary": jira_data["fields"].get("summary", ""),
         "description": jira_data["fields"].get("description", ""),
         "status": jira_data["fields"]["status"].get("name", "Unknown"),
-        "assignee": safe_get(jira_data["fields"], ["assignee", "displayName"], "Unassigned"),
+        "assignee": safe_get(
+            jira_data["fields"], ["assignee", "displayName"], "Unassigned"
+        ),
         "reviewers": extract_reviewer_from_customfield(jira_data),
-        "reporter": safe_get(jira_data["fields"], ["reporter", "displayName"], "Unknown"),
+        "reporter": safe_get(
+            jira_data["fields"], ["reporter", "displayName"], "Unknown"
+        ),
         "created": jira_data["fields"].get("created", ""),
         "updated": jira_data["fields"].get("updated", ""),
-        "resolution": safe_get(jira_data["fields"], ["resolution", "name"], "Unresolved"),
+        "resolution": safe_get(
+            jira_data["fields"], ["resolution", "name"], "Unresolved"
+        ),
         "labels": jira_data["fields"].get("labels", []),
         "attachments": [
             {
@@ -159,22 +178,30 @@ def reformat_jira_data(jira_data, ticket):
             for attachment in jira_data["fields"].get("attachment", [])
         ],
         "comments": extract_comments(jira_data),
-        "parent_issue": extract_parent_issue(jira_data),  # Parent issue extraction
+        "parent_issue": extract_parent_issue(
+            jira_data
+        ),  # Parent issue extraction
         "related_issues": extract_related_issues(
             jira_data
         ),  # Related issues extraction
         "components": extract_components(jira_data),  # Extract components
-        "team": safe_get(jira_data["fields"], ["customfield_10056", "value"], "No team"),
-        "project": safe_get(jira_data["fields"], ["project", "name"], "No project")
+        "team": safe_get(
+            jira_data["fields"], ["customfield_10056", "value"], "No team"
+        ),
+        "project": safe_get(
+            jira_data["fields"], ["project", "name"], "No project"
+        ),
     }
 
     return simplified_data
 
 
-def write_to_file(results, folder="/Users/gmegias/Desktop/LSST_Developer/JIRA tickets"):
+def write_to_file(
+    results, folder="/Users/gmegias/Desktop/LSST_Developer/JIRA tickets"
+):
     # Extract the prefix from the key (letters before '-')
     ticket_key = results["key"]  # Assuming 'key' is something like 'DM-12345'
-    prefix = ticket_key.split('-')[0]  # Get the letters before the '-'
+    prefix = ticket_key.split("-")[0]  # Get the letters before the '-'
 
     # Construct the new folder path by appending the prefix
     folder_with_prefix = os.path.join(folder, prefix)
@@ -184,11 +211,15 @@ def write_to_file(results, folder="/Users/gmegias/Desktop/LSST_Developer/JIRA ti
         os.makedirs(folder_with_prefix)
 
     ticket_key = results["key"]  # Assuming 'key' is the Jira ticket key
-    file_path = os.path.join(folder_with_prefix, f"{ticket_key}.json")  # Create the JSON file path
+    file_path = os.path.join(
+        folder_with_prefix, f"{ticket_key}.json"
+    )  # Create the JSON file path
 
     # Write the individual result to a JSON file
     with open(file_path, "w") as f:
-        json.dump(results, f, indent=4)  # Writing with indentation for readability
+        json.dump(
+            results, f, indent=4
+        )  # Writing with indentation for readability
 
 
 def fetch_ticket(ticket, email, api_token):

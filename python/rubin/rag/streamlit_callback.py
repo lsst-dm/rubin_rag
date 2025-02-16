@@ -1,12 +1,15 @@
 import inspect
 import os
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 import streamlit as st
 from langchain_core.callbacks.base import BaseCallbackHandler
 from streamlit.delta_generator import DeltaGenerator
-from streamlit.runtime.scriptrunner import (add_script_run_ctx,
-                                            get_script_run_ctx)
+from streamlit.runtime.scriptrunner import (
+    add_script_run_ctx,
+    get_script_run_ctx,
+)
 
 
 # Define a function to create a callback handler for Streamlit that updates the UI dynamically
@@ -15,7 +18,9 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     Creates a Streamlit callback handler that updates the provided Streamlit container with new tokens.
     Args:
         parent_container (DeltaGenerator): The Streamlit container where the text will be rendered.
-    Returns:
+
+    Returns
+    -------
         BaseCallbackHandler: An instance of a callback handler configured for Streamlit.
     """
 
@@ -26,7 +31,9 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
         """
 
         def __init__(
-            self, container: st.delta_generator.DeltaGenerator, initial_text: str = ""
+            self,
+            container: st.delta_generator.DeltaGenerator,
+            initial_text: str = "",
         ):
             """
             Initializes the StreamHandler with a Streamlit container and optional initial text.
@@ -63,13 +70,15 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
 
     # Decorator function to add the Streamlit execution context to a function
     def add_streamlit_context(
-        fn: Callable[..., fn_return_type]
+        fn: Callable[..., fn_return_type],
     ) -> Callable[..., fn_return_type]:
         """
         Decorator to ensure that the decorated function runs within the Streamlit execution context.
         Args:
             fn (Callable[..., fn_return_type]): The function to be decorated.
-        Returns:
+
+        Returns
+        -------
             Callable[..., fn_return_type]: The decorated function that includes the Streamlit context setup.
         """
         ctx = (
@@ -82,13 +91,17 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             Args:
                 *args: Positional arguments to pass to the original function.
                 **kwargs: Keyword arguments to pass to the original function.
-            Returns:
+
+            Returns
+            -------
                 fn_return_type: The result from the original function.
             """
             add_script_run_ctx(
                 ctx=ctx
             )  # Add the Streamlit context to the current execution
-            return fn(*args, **kwargs)  # Call the original function with its arguments
+            return fn(
+                *args, **kwargs
+            )  # Call the original function with its arguments
 
         return wrapper
 
