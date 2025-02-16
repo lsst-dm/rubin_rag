@@ -30,7 +30,10 @@ def setup_landing_page() -> None:
                 unsafe_allow_html=True,
             )
             st.markdown(
-                "<h4 class='h4-landing-page'>Your dedicated Rubin Observatory bot.</h4>",
+                (
+                    "<h4 class='h4-landing-page'>Your dedicated"
+                    "Rubin Observatory bot.</h4>"
+                ),
                 unsafe_allow_html=True,
             )
 

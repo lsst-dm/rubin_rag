@@ -1,7 +1,7 @@
 import inspect
 import os
 from collections.abc import Callable
-from typing import TypeVar
+from typing import Any, TypeVar
 
 import streamlit as st
 from langchain_core.callbacks.base import BaseCallbackHandler
@@ -56,14 +56,14 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             self.instance_id = os.urandom(4).hex()
 
         def on_llm_start(
-            self, serialized: dict, prompts: list, **kwargs
+            self, serialized: dict, prompts: list, **kwargs: Any
         ) -> None:
             """Trigger when the language model starts generating tokens."""
             # Workaround to prevent showing the rephrased question as output
             if prompts[0].startswith("Human"):
                 self.run_id_ignore_token = kwargs.get("run_id")
 
-        def on_llm_new_token(self, token: str, **kwargs) -> None:
+        def on_llm_new_token(self, token: str, **kwargs: Any) -> None:
             """
             Trigger when a new token is
             received (e.g., from a language model).
@@ -101,7 +101,7 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             get_script_run_ctx()
         )  # Retrieve the current Streamlit script execution context
 
-        def wrapper(*args, **kwargs) -> fn_return_type:
+        def wrapper(*args: Any, **kwargs: Any) -> fn_return_type:
             """
             Add the Streamlit context and
             then calls the original function.

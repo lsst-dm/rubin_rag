@@ -1,24 +1,26 @@
+from collections.abc import Callable
 from typing import Any
 
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 
 
 class CustomWeaviateVectorStore(WeaviateVectorStore):
-    """
-    Custom Weaviate Vector Store that overrides the similarity search function.
-    """
+    """Custom Vector Store overrides the similarity search function."""
 
     def __init__(
         self,
-        client,  # Weaviate client
+        client: Any,
         index_name: str,
         text_key: str,
-        embedding=None,
-        attributes=None,
-        relevance_score_fn=None,
-        use_multi_tenancy: bool = False,
-    ):
-        # Initialize the parent WeaviateVectorStore class using super()
+        embedding: Any,
+        attributes: list | None = None,
+        relevance_score_fn: Callable | None = None,
+        use_multi_tenancy: bool | None = None,
+    ) -> None:
+        """Initialize the CustomWeaviateVectorStore class."""
+        if use_multi_tenancy is None:
+            use_multi_tenancy = False
+
         super().__init__(
             client=client,
             index_name=index_name,
@@ -29,9 +31,10 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
             use_multi_tenancy=use_multi_tenancy,
         )
 
-    def similarity_search(self, query: str, k: int = 4, **kwargs: Any):
+    def similarity_search(self, query: str, k: int = 4, **kwargs: Any) -> list:
         """
-        Perform a similarity search and return documents along with their similarity scores.
+        Perform a similarity search and return documents
+        along with their similarity scores.
 
         Args:
             query (str): The query text to search for.
@@ -40,7 +43,8 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
 
         Returns
         -------
-            List[Tuple[Document, float]]: A list of tuples where each tuple contains a
+            List[Tuple[Document, float]]: A list of tuples
+            where each tuple contains a
             document and its corresponding similarity score.
         """
         docs = self._perform_search(query, k, return_score=True, **kwargs)

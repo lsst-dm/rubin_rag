@@ -16,7 +16,8 @@ from streamlit_callback import get_streamlit_cb
 from weaviate.classes.init import Auth
 
 
-def submit_text():
+def submit_text() -> None:
+    """Submit the user input."""
     st.session_state.message_sent = True
 
 
@@ -42,7 +43,7 @@ def configure_retriever() -> CustomWeaviateVectorStore:
         skip_init_checks=True,
     )
 
-    retriever = CustomWeaviateVectorStore(
+    return CustomWeaviateVectorStore(
         client=client,
         index_name="LangChain_9787ec4b92d3438a8de3ff04ead7ead6",
         text_key="text",
@@ -53,9 +54,6 @@ def configure_retriever() -> CustomWeaviateVectorStore:
         search_kwargs={"k": 6, "return_metadata": ["score"]},
     )
 
-    return retriever
-
-
 def create_qa_chain(
     retriever: CustomWeaviateVectorStore,
 ) -> ChatPromptTemplate:
@@ -64,11 +62,13 @@ def create_qa_chain(
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
 
     # Define the system message template
-    system_template = """You are VERA, a helpful assistant at Vera C Rubin Observatory.
+    system_template = """You are VERA, a helpful assistant at 
+    Vera C Rubin Observatory.
     Do your best to answer the questions in as much detail as possible.
     Do not attempt to provide an answer if you do not know the answer.
     In your response, do not recommend reading elsewhere.
-    Use the following pieces of context to answer the user's question at the end.
+    Use the following pieces of context to answer the user's 
+    question at the end.
     ----------------
     {context}
     ----------------"""
@@ -84,9 +84,7 @@ def create_qa_chain(
 
     # Create the QA chain
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-    qa_chain = create_retrieval_chain(retriever, question_answer_chain)
-
-    return qa_chain
+    return create_retrieval_chain(retriever, question_answer_chain)
 
 
 def handle_user_input(
@@ -163,6 +161,7 @@ def handle_user_input(
                     for chunk in result["context"]:
                         score = chunk.metadata["score"]
 
-                        # Only show sources with scores significantly higher (above the threshold)
+                        # Only show sources with scores
+                        # significantly higher (above the threshold)
                         if score >= threshold:
                             st.info(f"Source: {chunk.metadata['source']}")

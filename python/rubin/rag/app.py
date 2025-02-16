@@ -5,6 +5,7 @@ from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
 from layout import setup_header_and_footer, setup_landing_page, setup_sidebar
+from pathlib import Path
 
 # Load environment variables from .env file
 load_dotenv()

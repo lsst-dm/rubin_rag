@@ -1,6 +1,6 @@
 import json
-import os
 import time
+from pathlib import Path
 
 import requests
 
@@ -10,7 +10,7 @@ def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
-    response = requests.get(url, auth=auth, headers=headers)
+    response = requests.get(url, auth=auth, headers=headers, timeout=10)
 
     if response.status_code == 200:
         return response.json(), None
@@ -103,7 +103,7 @@ def extract_parent_issue(jira_data: dict) -> dict:
     return None
 
 
-def safe_get(d: dict, path: list, default=None) -> dict:
+def safe_get(d: dict, path: list, default: str | None = None) -> str:
     """Safely get a value from a nested dictionary."""
     for key in path:
         if isinstance(d, dict):
@@ -116,7 +116,8 @@ def safe_get(d: dict, path: list, default=None) -> dict:
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
     """Reformat the JIRA data into a simplified dictionary."""
     if jira_data is None:
-        # If jira_data is None, return a default dictionary with the error message
+        # If jira_data is None, return a default
+        # dictionary with the error message
         return {
             "key": ticket,
             "summary": "No data available",
@@ -138,7 +139,8 @@ def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
             "project": "No project",
         }
     if jira_data == []:
-        # If jira_data is None, return a default dictionary with the error message
+        # If jira_data is None, return a default
+        # dictionary with the error message
         return {
             "key": ticket,
             "summary": "No data available because of JIRA rate limits",
@@ -160,7 +162,7 @@ def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
             "project": "No project",
         }
 
-    simplified_data = {
+    return {
         "key": jira_data.get("key", ""),
         "summary": jira_data["fields"].get("summary", ""),
         "description": jira_data["fields"].get("description", ""),
@@ -201,8 +203,6 @@ def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
         ),
     }
 
-    return simplified_data
-
 
 def write_to_file(
     results: dict,
@@ -214,19 +214,19 @@ def write_to_file(
     prefix = ticket_key.split("-")[0]  # Get the letters before the '-'
 
     # Construct the new folder path by appending the prefix
-    folder_with_prefix = os.path.join(folder, prefix)
+    folder_with_prefix = Path(folder / prefix)
 
     # Ensure the folder exists
-    if not os.path.exists(folder_with_prefix):
-        os.makedirs(folder_with_prefix)
+    if not Path.exists(folder_with_prefix):
+        Path.mkdir(folder_with_prefix)
 
     ticket_key = results["key"]  # Assuming 'key' is the Jira ticket key
-    file_path = os.path.join(
-        folder_with_prefix, f"{ticket_key}.json"
+    file_path = Path(
+        folder_with_prefix / f"{ticket_key}.json"
     )  # Create the JSON file path
 
     # Write the individual result to a JSON file
-    with open(file_path, "w") as f:
+    with Path.open(file_path, "w") as f:
         json.dump(
             results, f, indent=4
         )  # Writing with indentation for readability
@@ -247,7 +247,6 @@ def retry_fetch_ticket(
             result, error_message = fetch_ticket(ticket, email, api_token)
             return result, error_message
         except Exception:
-            # print(f"Error fetching ticket {ticket}: {exc}")
             if attempt + 1 == max_retries:
                 raise  # Raise the error if max retries reached
             time.sleep(2**attempt + 2)  # Exponential backoff

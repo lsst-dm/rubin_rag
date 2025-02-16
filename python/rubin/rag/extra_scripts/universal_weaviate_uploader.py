@@ -7,8 +7,13 @@ from langchain_text_splitters import CharacterTextSplitter
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 
 
-def push_docs_to_weaviate(raw_docs: list, do_chunk: bool = False) -> None:
-    """Uploads documents to Weaviate using the OpenAI embeddings."""
+def push_docs_to_weaviate(
+    raw_docs: list, do_chunk: bool | None = None
+) -> None:
+    """Upload documents to Weaviate using the OpenAI embeddings."""
+    if do_chunk is None:
+        do_chunk = False
+
     # Load environment variables from .env file
     load_dotenv()
 
