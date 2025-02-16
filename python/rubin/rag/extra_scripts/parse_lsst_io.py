@@ -52,9 +52,8 @@ try:
                         content = element.get_text()
                         print(content)
                 else:
-                    print(
-                        f"No relevant content found on"
-                        f"the page for ticket {ticket_number}."
+                    raise ValueError(
+                        'No "document" or "lander-info-item" elements found.'
                     )
 
             # Look for PDF links in the complete HTML page and display their source URLs
@@ -64,26 +63,24 @@ try:
                 if a["href"].endswith(".pdf")
             ]
             if pdf_links:
-                print("\nPDF Links found on the page:")
                 for pdf_link in pdf_links:
                     try:
                         loader = PyMuPDFLoader(pdf_link)
                         pdf_docs = loader.load()
-                        print(f"Documents loaded from PDF: {pdf_docs[0]}")
                         if docs:
                             docs = docs + pdf_docs
                         else:
                             docs = pdf_docs
                     except Exception as pdf_err:
-                        print(f"Error loading documents from PDF: {pdf_err}")
+                        raise ValueError(
+                            f"Error loading documents from PDF: {pdf_err}"
+                        )
 
             else:
-                print(
-                    f"\nNo PDF links found on the page for ticket {ticket_number}."
-                )
+                warnings.warn("No PDF links found in the webpage.")
 
         except requests.exceptions.RequestException as url_err:
-            print(
+            warnings.warn(
                 f"Failed to retrieve the webpage for ticket {ticket_number}. Error: {url_err}"
             )
             continue  # Skip to the next URL on error
@@ -95,7 +92,6 @@ try:
 
     # Push documents to Weaviate
     push_docs_to_weaviate(docs)
-    print("Document loading and pushing to Weaviate completed.")
 
 except Exception as e:
-    print(f"An unexpected error occurred: {e}")
+    raise ValueError(f"An unexpected error occurred: {e}")

@@ -7,11 +7,6 @@ load_dotenv()
 
 WEAVIATE_URL = os.getenv("WEAVIATE_URL")
 
-# auth_client_secret=weaviate.AuthClientPassword(
-#     username = os.getenv("WCS_USERNAME"),
-#     password = os.getenv("WCS_PASSWORD"),
-# )
-
 client = weaviate.connect_to_custom(
     http_host="localhost",
     http_port="8080",
@@ -27,5 +22,3 @@ client = weaviate.connect_to_custom(
 )
 
 client.collections.delete_all()  # deletes all classes along with all data
-
-print("All classes inside the schema were deleted successfully!")

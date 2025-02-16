@@ -5,7 +5,7 @@ import weaviate
 from dotenv import (
     load_dotenv,  # For loading environment variables from .env file
 )
-from langchain.document_loaders import (  # For loading files from a directory; For loading PPTX files
+from langchain.document_loaders import (
     DirectoryLoader,
     Docx2txtLoader,  # For loading DOCX files
     PyMuPDFLoader,  # For loading PDF files
@@ -40,10 +40,10 @@ data_directory = "Documents"
 
 
 # Load your documents from different sources
-def get_documents():
-    print("Loading documents...")
-
-    # Create loaders for PDF, text, CSV, DOCX, PPTX, XLSX files in the specified directory
+def get_documents() -> tuple:
+    """Load documents from different sources."""
+    # Create loaders for PDF, text, CSV, DOCX, PPTX, XLSX
+    # files in the specified directory
     pdf_loader = DirectoryLoader(
         data_directory,
         glob="**/*.pdf",
@@ -109,8 +109,6 @@ def get_documents():
     # Combine all loaded data into a single list
     docs = pdf_data + txt_data + docx_data + pptx_data + xlsx_data
 
-    print(f"Total {len(docs)} documents loaded.")
-
     # Return all loaded data
     if csv_data:
         return docs, csv_data
@@ -137,7 +135,8 @@ for doc in docs:
     # List of keys you want to keep
     keys_to_keep = ["source", "page"]
 
-    # Create a new dictionary with only the required keys, ignoring keys not found
+    # Create a new dictionary with only the required keys,
+    # ignoring keys not found
     doc.metadata = {key: data[key] for key in keys_to_keep if key in data}
 
     doc.metadata["source_key"] = "localdocs"
@@ -148,9 +147,6 @@ for doc in docs:
             "Documents\\", ""
         )
 
-print(f"Total chunks: {len(docs)}")
-
-print("Pushing docs to Weaviate...")
 
 retriever = WeaviateHybridSearchRetriever(
     client=client,
@@ -163,27 +159,8 @@ retriever = WeaviateHybridSearchRetriever(
 chunk_size = 1000
 total_docs = len(docs)
 
-try:
-    for start in range(0, total_docs, chunk_size):
-        end = min(start + chunk_size, total_docs)
-        chunk = docs[start:end]
+for start in range(0, total_docs, chunk_size):
+    end = min(start + chunk_size, total_docs)
+    chunk = docs[start:end]
 
-        # Print some information about the current chunk
-        print(
-            f"Pushing chunk {start // chunk_size + 1} of {total_docs // chunk_size + 1}"
-        )
-        print(f"Chunk size: {len(chunk)} documents")
-
-        try:
-            retriever.add_documents(chunk)
-
-            # Print a message after each chunk is pushed
-            print(f"Chunk {start // chunk_size + 1} pushed successfully.")
-
-        except Exception as e:
-            # Print a message after each chunk is pushed
-            print(f"Chunk {start // chunk_size + 1} wasn't pushed. Error: {e}")
-
-    print("All docs processed.")
-except Exception as e:
-    print(f"Error: {e}")
+    retriever.add_documents(chunk)

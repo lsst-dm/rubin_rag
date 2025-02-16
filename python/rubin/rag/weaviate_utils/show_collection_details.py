@@ -24,6 +24,3 @@ client = weaviate.connect_to_custom(
 )
 
 collection_details = client.collections.get(collection_name)
-
-print(f"The class details for class {collection_name} are:")
-print(collection_details)

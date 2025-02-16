@@ -5,7 +5,8 @@ import time
 import requests
 
 
-def get_jira_issue(issue_name, email, api_token):
+def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
+    """Get the JIRA issue data from the JIRA API."""
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
@@ -19,7 +20,8 @@ def get_jira_issue(issue_name, email, api_token):
         return None, f"{issue_name}: {response.status_code}"
 
 
-def extract_reviewer_from_customfield(jira_data):
+def extract_reviewer_from_customfield(jira_data: dict) -> list:
+    """Extract the reviewer(s) from the customfield_10048."""
     # Extract reviewer information from customfield_10048 if available
     reviewers = jira_data["fields"].get("customfield_10048", [])
     if reviewers:
@@ -31,7 +33,8 @@ def extract_reviewer_from_customfield(jira_data):
     return ["No reviewer assigned"]
 
 
-def extract_related_issues(jira_data):
+def extract_related_issues(jira_data: dict) -> list:
+    """Extract the related issues from the JIRA data."""
     related_issues = []
     issue_links = jira_data["fields"].get("issuelinks", [])
 
@@ -68,12 +71,14 @@ def extract_related_issues(jira_data):
     return related_issues
 
 
-def extract_components(jira_data):
+def extract_components(jira_data: dict) -> list:
+    """Extract the components from the JIRA data."""
     components = jira_data["fields"].get("components", [])
     return [component.get("name", "No component") for component in components]
 
 
-def extract_comments(jira_data):
+def extract_comments(jira_data: dict) -> list:
+    """Extract the comments from the JIRA data."""
     comments = jira_data["fields"].get("comment", {}).get("comments", [])
     return [
         {
@@ -84,7 +89,8 @@ def extract_comments(jira_data):
     ]
 
 
-def extract_parent_issue(jira_data):
+def extract_parent_issue(jira_data: dict) -> dict:
+    """Extract the parent issue from the JIRA data."""
     parent_issue = jira_data["fields"].get("parent", None)
     if parent_issue:
         return {
@@ -97,7 +103,8 @@ def extract_parent_issue(jira_data):
     return None
 
 
-def safe_get(d, path, default=None):
+def safe_get(d: dict, path: list, default=None) -> dict:
+    """Safely get a value from a nested dictionary."""
     for key in path:
         if isinstance(d, dict):
             d = d.get(key, default)
@@ -106,7 +113,8 @@ def safe_get(d, path, default=None):
     return d
 
 
-def reformat_jira_data(jira_data, ticket):
+def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
+    """Reformat the JIRA data into a simplified dictionary."""
     if jira_data is None:
         # If jira_data is None, return a default dictionary with the error message
         return {
@@ -197,8 +205,10 @@ def reformat_jira_data(jira_data, ticket):
 
 
 def write_to_file(
-    results, folder="/Users/gmegias/Desktop/LSST_Developer/JIRA tickets"
-):
+    results: dict,
+    folder: str = "/Users/gmegias/Desktop/LSST_Developer/JIRA tickets",
+) -> None:
+    """Write the JIRA ticket data to a JSON file."""
     # Extract the prefix from the key (letters before '-')
     ticket_key = results["key"]  # Assuming 'key' is something like 'DM-12345'
     prefix = ticket_key.split("-")[0]  # Get the letters before the '-'
@@ -222,12 +232,15 @@ def write_to_file(
         )  # Writing with indentation for readability
 
 
-def fetch_ticket(ticket, email, api_token):
+def fetch_ticket(ticket: str, email: str, api_token: str) -> tuple:
+    """Fetch the ticket data from JIRA."""
     jira_data, error_message = get_jira_issue(ticket, email, api_token)
     return reformat_jira_data(jira_data, ticket), error_message
 
 
-def retry_fetch_ticket(ticket, email, api_token, max_retries):
+def retry_fetch_ticket(
+    ticket: str, email: str, api_token: str, max_retries: int = 5
+) -> tuple:
     """Fetch the ticket with retry logic."""
     for attempt in range(max_retries):
         try:

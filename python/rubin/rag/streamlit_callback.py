@@ -12,48 +12,61 @@ from streamlit.runtime.scriptrunner import (
 )
 
 
-# Define a function to create a callback handler for Streamlit that updates the UI dynamically
+# Define a function to create a callback handler
+# for Streamlit that updates the UI dynamically
 def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
     """
-    Creates a Streamlit callback handler that updates the provided Streamlit container with new tokens.
+    Create a Streamlit callback handler that updates the provided
+    Streamlit container with new tokens.
     Args:
-        parent_container (DeltaGenerator): The Streamlit container where the text will be rendered.
+        parent_container (DeltaGenerator): The Streamlit container
+        where the text will be rendered.
 
     Returns
     -------
-        BaseCallbackHandler: An instance of a callback handler configured for Streamlit.
+        BaseCallbackHandler: An instance of a callback handler
+        configured for Streamlit.
     """
 
-    # Define a custom callback handler class for managing and displaying stream events in Streamlit
+    # Define a custom callback handler class for managing and
+    # displaying stream events in Streamlit
     class StreamHandler(BaseCallbackHandler):
         """
-        Custom callback handler for Streamlit that updates a Streamlit container with new tokens.
+        Custom callback handler for Streamlit that updates a
+        Streamlit container with new tokens.
         """
 
         def __init__(
             self,
             container: st.delta_generator.DeltaGenerator,
             initial_text: str = "",
-        ):
+        ) -> None:
             """
-            Initializes the StreamHandler with a Streamlit container and optional initial text.
+            Initialize the StreamHandler with a Streamlit container and
+            optional initial text.
             Args:
-                container (st.delta_generator.DeltaGenerator): The Streamlit container where text will be rendered.
-                initial_text (str): Optional initial text to start with in the container.
+                container (st.delta_generator.DeltaGenerator):
+                    The Streamlit container where text will be rendered.
+                initial_text (str): Optional initial text to
+                start with in the container.
             """
             self.container = container
             self.text = initial_text
             self.run_id_ignore_token = None
             self.instance_id = os.urandom(4).hex()
 
-        def on_llm_start(self, serialized: dict, prompts: list, **kwargs):
+        def on_llm_start(
+            self, serialized: dict, prompts: list, **kwargs
+        ) -> None:
+            """Trigger when the language model starts generating tokens."""
             # Workaround to prevent showing the rephrased question as output
             if prompts[0].startswith("Human"):
                 self.run_id_ignore_token = kwargs.get("run_id")
 
         def on_llm_new_token(self, token: str, **kwargs) -> None:
             """
-            Callback method triggered when a new token is received (e.g., from a language model).
+            Trigger when a new token is
+            received (e.g., from a language model).
             Args:
                 token (str): The new token received.
                 **kwargs: Additional keyword arguments.
@@ -64,7 +77,8 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             self.text += token
             self.container.markdown(self.text)
 
-    # Define a type variable for generic type hinting in the decorator, to maintain
+    # Define a type variable for generic type hinting in
+    # the decorator, to maintain
     # input function and wrapped function return type
     fn_return_type = TypeVar("fn_return_type")
 
@@ -73,13 +87,15 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
         fn: Callable[..., fn_return_type],
     ) -> Callable[..., fn_return_type]:
         """
-        Decorator to ensure that the decorated function runs within the Streamlit execution context.
+        Ensure that the decorated function runs within
+        the Streamlit execution context.
         Args:
             fn (Callable[..., fn_return_type]): The function to be decorated.
 
         Returns
         -------
-            Callable[..., fn_return_type]: The decorated function that includes the Streamlit context setup.
+            Callable[..., fn_return_type]: The decorated function
+            that includes the Streamlit context setup.
         """
         ctx = (
             get_script_run_ctx()
@@ -87,7 +103,8 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
 
         def wrapper(*args, **kwargs) -> fn_return_type:
             """
-            Wrapper function that adds the Streamlit context and then calls the original function.
+            Add the Streamlit context and
+            then calls the original function.
             Args:
                 *args: Positional arguments to pass to the original function.
                 **kwargs: Keyword arguments to pass to the original function.
@@ -105,7 +122,8 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
 
         return wrapper
 
-    # Create an instance of the custom StreamHandler with the provided Streamlit container
+    # Create an instance of the custom StreamHandler with
+    # the provided Streamlit container
     st_cb = StreamHandler(parent_container)
 
     # Iterate over all methods of the StreamHandler instance
@@ -117,5 +135,6 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
                 st_cb, method_name, add_streamlit_context(method_func)
             )  # Wrap and replace the method
 
-    # Return the fully configured StreamHandler instance with the context-aware callback methods
+    # Return the fully configured StreamHandler instance with
+    # the context-aware callback methods
     return st_cb

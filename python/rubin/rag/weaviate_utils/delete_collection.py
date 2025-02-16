@@ -24,5 +24,3 @@ client = weaviate.connect_to_custom(
 )
 
 class_details = client.collections.delete(collection_name)
-
-print(f"The class {class_name} was deleted successfully!")

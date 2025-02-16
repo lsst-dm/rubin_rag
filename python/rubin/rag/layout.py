@@ -1,7 +1,8 @@
 import streamlit as st
 
 
-def setup_sidebar():
+def setup_sidebar() -> None:
+    """Set up the sidebar for the Streamlit app."""
     st.sidebar.markdown("Select sources to search:")
     st.session_state["required_sources"] = []
     if st.sidebar.checkbox("Confluence", value=True):
@@ -14,11 +15,13 @@ def setup_sidebar():
         st.session_state["required_sources"].append("localdocs")
 
 
-def setup_landing_page():
+def setup_landing_page() -> None:
+    """Set up the landing page for the Streamlit app."""
     # Display the landing page until the first message is sent
     if not st.session_state.message_sent:
         with st.container():
-            # Add logo (Make sure the logo is in your working directory or provide the full path)
+            # Add logo (Make sure the logo is in your
+            # working directory or provide the full path)
             st.image("./static/rubin_avatar_bw.png", clamp=True)
 
             # Centered title and message
@@ -32,13 +35,19 @@ def setup_landing_page():
             )
 
 
-def setup_header_and_footer(msgs):
-    def clear_text():
+def setup_header_and_footer(msgs: object) -> None:
+    """Set up the header and footer for the Streamlit app."""
+
+    def clear_text() -> None:
+        """Clear the text area."""
         msgs.clear()
         st.session_state.message_sent = False
 
     st.button(":material/edit_square:", on_click=clear_text)
     st.markdown(
-        "<footer class='footer-fixed'>Vera aims for clarity, but can make mistakes.</footer>",
+        (
+            "<footer class='footer-fixed'>Vera aims for clarity,"
+            "but can make mistakes.</footer>"
+        ),
         unsafe_allow_html=True,
     )

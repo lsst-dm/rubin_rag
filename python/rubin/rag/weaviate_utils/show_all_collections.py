@@ -4,8 +4,8 @@ import weaviate
 from weaviate.classes.init import Auth
 
 client = weaviate.connect_to_weaviate_cloud(
-    cluster_url=weaviate_url,
-    auth_credentials=Auth.api_key(weaviate_api_key),
+    cluster_url=os.getenv("WEAVIATE_URL"),
+    auth_credentials=Auth.api_key(os.getenv("WEAVIATE_API_KEY")),
     headers={
         "X-OpenAI-Api-Key": os.getenv(
             "OPENAI_API_KEY"
@@ -13,12 +13,4 @@ client = weaviate.connect_to_weaviate_cloud(
     },
 )
 
-print(client.is_ready())
-
 collections = client.collections.list_all()
-
-print("The collections inside your Weaviate cluster are:")
-for index, iter in enumerate(collections):
-    print(f"{index}. {iter}")
-
-print("All collections were shown successfully!")

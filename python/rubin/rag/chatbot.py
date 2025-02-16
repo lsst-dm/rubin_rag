@@ -21,7 +21,8 @@ def submit_text():
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever():
+def configure_retriever() -> CustomWeaviateVectorStore:
+    """Configure the Weaviate retriever."""
     openai_api_key = os.getenv("OPENAI_API_KEY")
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
     http_host = os.getenv("HTTP_HOST")
@@ -30,10 +31,10 @@ def configure_retriever():
     client = weaviate.connect_to_custom(
         http_host=http_host,  # Hostname for the HTTP API connection
         http_port=80,  # Default is 80, WCD uses 443
-        http_secure=False,  # Whether to use https (secure) for the HTTP API connection
+        http_secure=False,  # Whether to use https (secure) for HTTP
         grpc_host=grpc_host,  # Hostname for the gRPC API connection
         grpc_port=50051,  # Default is 50051, WCD uses 443
-        grpc_secure=False,  # Whether to use a secure channel for the gRPC API connection
+        grpc_secure=False,  # Whether to use a secure channel for gRPC
         auth_credentials=Auth.api_key(
             weaviate_api_key
         ),  # The API key to use for authentication
@@ -55,7 +56,10 @@ def configure_retriever():
     return retriever
 
 
-def create_qa_chain(retriever):
+def create_qa_chain(
+    retriever: CustomWeaviateVectorStore,
+) -> ChatPromptTemplate:
+    """Create a QA chain for the chatbot."""
     # Setup ChatOpenAI (Language Model)
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
 
@@ -85,8 +89,12 @@ def create_qa_chain(retriever):
     return qa_chain
 
 
-def handle_user_input(qa_chain, msgs):
-    # Check if the message history is empty or the user clicked the "Clear message history" button
+def handle_user_input(
+    qa_chain: ChatPromptTemplate, msgs: MessagesPlaceholder
+) -> None:
+    """Handle user input and chat history."""
+    # Check if the message history is empty or the user
+    # clicked the "Clear message history" button
     if len(msgs.messages) == 0:
         msgs.clear()
 
