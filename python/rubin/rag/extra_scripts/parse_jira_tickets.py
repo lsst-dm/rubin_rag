@@ -110,7 +110,7 @@ def safe_get(d: dict, path: list, default: str | None = None) -> str:
     for key in path:
         if isinstance(d, dict):
             d = d.get(key, default)
-    return d
+    return d if isinstance(d, str) else default
 
 
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
