@@ -105,12 +105,14 @@ def extract_parent_issue(jira_data: dict) -> dict:
     return {}
 
 
-def safe_get(d: dict, path: list, default: str = "Not found") -> str:
+def safe_get(d: dict[str, any], path: list[str], default: any = None) -> any:
     """Safely get a value from a nested dictionary."""
     for key in path:
         if isinstance(d, dict):
             d = d.get(key, default)
-    return d if isinstance(d, str) else default
+        else:
+            return default
+    return d
 
 
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
