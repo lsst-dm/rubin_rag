@@ -102,7 +102,7 @@ def extract_parent_issue(jira_data: dict) -> dict:
                 "name", "Unknown status"
             ),
         }
-    return None
+    return {}
 
 
 def safe_get(d: dict, path: list, default: str | None = None) -> str:
@@ -110,8 +110,6 @@ def safe_get(d: dict, path: list, default: str | None = None) -> str:
     for key in path:
         if isinstance(d, dict):
             d = d.get(key, default)
-        else:
-            return default
     return d
 
 
