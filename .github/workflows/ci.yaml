@@ -18,8 +18,8 @@ env:
       - "dependabot/**"
       - "gh-readonly-queue/**"
       - "renovate/**"
-      - "tickets/**"
-      - "u/**"
+      # - "tickets/**"
+      # - "u/**"
   release:
     types: [published]
 
