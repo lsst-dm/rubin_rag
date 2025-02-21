@@ -62,7 +62,7 @@ def create_qa_chain(
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
 
     # Define the system message template
-    system_template = """You are VERA, a helpful assistant at 
+    system_template = """You are VERA, a helpful assistant at
     Vera C Rubin Observatory.
     Do your best to answer the questions in as much detail as possible.
     Do not attempt to provide an answer if you do not know the answer.

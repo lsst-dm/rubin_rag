@@ -1,8 +1,11 @@
 """Rubin RAG-basd LLM Application."""
 
-__all__ = ["__version__"]
-
 from importlib.metadata import PackageNotFoundError, version
+
+from .chatbot import *
+from .layout import *
+
+__all__ = ["__version__"]
 
 __version__: str
 """The version string of rubin.rag
@@ -14,6 +17,3 @@ try:
 except PackageNotFoundError:
     # package is not installed
     __version__ = "0.0.1"
-
-from .chatbot import *
-from .layout import *
