@@ -1,4 +1,6 @@
-"""This module loads documents from Confluence, processes them, and uploads them to Weaviate."""
+"""Loads documents from Confluence, processes them, and uploads
+them to Weaviate.
+"""
 
 from langchain.document_loaders import ConfluenceLoader
 from langchain.schema import Document

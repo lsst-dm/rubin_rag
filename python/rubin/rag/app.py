@@ -1,5 +1,6 @@
-"""This module sets up and manages the interactive chatbot interface for the bot, 
-using Streamlit."""
+"""Sets up and manages the interactive chatbot interface for the bot,
+using Streamlit.
+"""
 
 import streamlit as st
 from chatbot import configure_retriever, create_qa_chain, handle_user_input

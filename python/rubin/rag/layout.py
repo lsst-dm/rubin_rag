@@ -1,4 +1,6 @@
-"""Contains functions for setting up the sidebar, landing page, header, and footer."""
+"""Contains functions for setting up the sidebar, landing page, header, and
+footer.
+"""
 
 import streamlit as st
 

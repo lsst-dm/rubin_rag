@@ -1,4 +1,6 @@
-"""Defines a Streamlit callback handler that updates the UI with new tokens and manages execution context."""
+"""Defines a Streamlit callback handler that updates the UI with new tokens and
+manages execution context.
+"""
 
 import inspect
 import os

@@ -1,12 +1,15 @@
-"""This module integrates using Weaviate, LangChain, and OpenAI's GPT-4 to facilitate an interactive chatbot
+"""Integrates using Weaviate, LangChain, and OpenAI's GPT-4 to
+facilitate an interactive chatbot.
 
 It includes functions for:
 - Setting up the Weaviate retriever and configuring the environment.
-- Creating a question-answering (QA) chain to process user input using a conversational model.
-- Handling user input, managing message history, and filtering responses based on specific sources.
-- Interacting with the Streamlit interface to display the chatbot's responses and source information.
+- Creating a question-answering (QA) chain to process user input using a
+conversational model.
+- Handling user input, managing message history, and filtering responses
+based on specific sources.
+- Interacting with the Streamlit interface to display the chatbot's responses
+and source information.
 """
-
 
 import os
 
