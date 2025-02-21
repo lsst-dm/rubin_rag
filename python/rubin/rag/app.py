@@ -1,13 +1,13 @@
-from pathlib import Path
-
-from chatbot import configure_retriever, create_qa_chain, handle_user_input
-from layout import setup_header_and_footer, setup_landing_page, setup_sidebar
+"""This module sets up and manages the interactive chatbot interface for the bot, 
+using Streamlit."""
 
 import streamlit as st
+from chatbot import configure_retriever, create_qa_chain, handle_user_input
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
+from layout import setup_header_and_footer, setup_landing_page, setup_sidebar
 
 # Load environment variables from .env file
 load_dotenv()

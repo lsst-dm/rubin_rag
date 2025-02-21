@@ -1,3 +1,5 @@
+"""This module overrides the similarity search function in WeaviateVectorStore."""
+
 from collections.abc import Callable
 from typing import Any
 

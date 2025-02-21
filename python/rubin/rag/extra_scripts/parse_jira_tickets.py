@@ -1,3 +1,5 @@
+"""This module loads information from Jira tickets and uploads them to Weaviate."""
+
 import json
 import time
 from pathlib import Path

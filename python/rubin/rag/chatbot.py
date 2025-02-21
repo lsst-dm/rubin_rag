@@ -1,3 +1,13 @@
+"""This module integrates using Weaviate, LangChain, and OpenAI's GPT-4 to facilitate an interactive chatbot
+
+It includes functions for:
+- Setting up the Weaviate retriever and configuring the environment.
+- Creating a question-answering (QA) chain to process user input using a conversational model.
+- Handling user input, managing message history, and filtering responses based on specific sources.
+- Interacting with the Streamlit interface to display the chatbot's responses and source information.
+"""
+
+
 import os
 
 import streamlit as st
@@ -54,6 +64,7 @@ def configure_retriever() -> CustomWeaviateVectorStore:
         search_kwargs={"k": 6, "return_metadata": ["score"]},
     )
 
+
 def create_qa_chain(
     retriever: CustomWeaviateVectorStore,
 ) -> ChatPromptTemplate:
@@ -67,7 +78,7 @@ def create_qa_chain(
     Do your best to answer the questions in as much detail as possible.
     Do not attempt to provide an answer if you do not know the answer.
     In your response, do not recommend reading elsewhere.
-    Use the following pieces of context to answer the user's 
+    Use the following pieces of context to answer the user's
     question at the end.
     ----------------
     {context}

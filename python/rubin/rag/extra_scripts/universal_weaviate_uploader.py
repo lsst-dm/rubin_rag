@@ -1,3 +1,7 @@
+"""This module uploads documents to Weaviate after optionally splitting them into smaller chunks 
+and generating embeddings using OpenAI's API.
+"""
+
 import os
 
 import weaviate
