@@ -2,8 +2,17 @@
 
 from importlib.metadata import PackageNotFoundError, version
 
-from .chatbot import *
-from .layout import *
+from .chatbot import (
+    submit_text,
+    configure_retriever,
+    create_qa_chain,
+    handle_user_input
+)
+from .layout import (
+    setup_sidebar,
+    setup_landing_page,
+    setup_header_and_footer
+)
 
 __all__ = ["__version__"]
 
