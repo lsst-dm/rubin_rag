@@ -247,9 +247,10 @@ def retry_fetch_ticket(
     for attempt in range(max_retries):
         try:
             result, error_message = fetch_ticket(ticket, email, api_token)
-            return result, error_message
         except Exception:
             if attempt + 1 == max_retries:
                 raise  # Raise the error if max retries reached
             time.sleep(2**attempt + 2)  # Exponential backoff
+        else:
+            return result, error_message
     return None, "Failed to fetch ticket"
