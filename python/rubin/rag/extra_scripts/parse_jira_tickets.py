@@ -252,3 +252,4 @@ def retry_fetch_ticket(
             if attempt + 1 == max_retries:
                 raise  # Raise the error if max retries reached
             time.sleep(2**attempt + 2)  # Exponential backoff
+    return None, "Failed to fetch ticket"
