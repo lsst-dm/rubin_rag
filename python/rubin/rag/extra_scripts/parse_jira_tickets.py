@@ -3,6 +3,8 @@
 import json
 import time
 from pathlib import Path
+from functools import reduce
+from typing import Any, Dict, Optional
 
 import requests
 from typing import Optional
@@ -106,48 +108,23 @@ def extract_parent_issue(jira_data: dict) -> dict:
     return {}
 
 
-def safe_get(d: dict, path: list, default: Optional[str] = "Not found") -> str:
-    """Safely get a value from a nested dictionary."""
-    for key in path:
-        if isinstance(d, dict):
-            d = d.get(key, default)
-        else:
-            return default
-    return d if isinstance(d, str) else default
+def safe_get(dictionary: Dict[str, Any], keys: list, default: Optional[Any] = None) -> Any:
+    return reduce(
+        lambda d, key: d.get(key, default) if isinstance(d, dict) else default, 
+        keys, 
+        dictionary
+    )
 
 
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
     """Reformat the JIRA data into a simplified dictionary."""
-    if jira_data is None:
-        # If jira_data is None, return a default
+    if not jira_data:
+        # If jira_data is None or empty, return a default
         # dictionary with the error message
         return {
             "key": ticket,
             "summary": "No data available",
             "description": "Unauthorized or no data available",
-            "status": "Unknown",
-            "assignee": "Unassigned",
-            "reviewers": ["No reviewer assigned"],
-            "reporter": "Unknown",
-            "created": "N/A",
-            "updated": "N/A",
-            "resolution": "Unresolved",
-            "labels": [],
-            "attachments": [],
-            "comments": [{"author": "Unknown", "body": "No comments"}],
-            "parent_issue": None,
-            "related_issues": [],
-            "components": ["No components"],
-            "team": "No team",
-            "project": "No project",
-        }
-    if jira_data == []:
-        # If jira_data is None, return a default
-        # dictionary with the error message
-        return {
-            "key": ticket,
-            "summary": "No data available because of JIRA rate limits",
-            "description": "No data available because of JIRA rate limits",
             "status": "Unknown",
             "assignee": "Unassigned",
             "reviewers": ["No reviewer assigned"],
