@@ -24,7 +24,8 @@ st.set_page_config(
 st.logo("../../../static/logo.png")
 
 # Load the CSS file
-with Path.open("../../../static/style.css") as css:
+file_path = Path("../../../static/style.css")
+with Path.open(file_path) as css:
     st.markdown(f"<style>{css.read()}</style>", unsafe_allow_html=True)
 
 # Set up the session state
