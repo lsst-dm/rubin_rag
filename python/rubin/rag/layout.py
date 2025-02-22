@@ -3,6 +3,9 @@ footer.
 """
 
 import streamlit as st
+from langchain_community.chat_message_histories import (
+    StreamlitChatMessageHistory,
+)
 
 
 def setup_sidebar() -> None:
@@ -42,7 +45,7 @@ def setup_landing_page() -> None:
             )
 
 
-def setup_header_and_footer(msgs: object) -> None:
+def setup_header_and_footer(msgs: StreamlitChatMessageHistory) -> None:
     """Set up the header and footer for the Streamlit app."""
 
     def clear_text() -> None:
