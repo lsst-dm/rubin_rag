@@ -21,19 +21,20 @@ def push_docs_to_weaviate(
     # Load environment variables from .env file
     load_dotenv()
 
-    os.getenv("WEAVIATE_URL")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
+    if openai_api_key is None:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+    
 
     client = weaviate.connect_to_custom(
         http_host="localhost",
-        http_port="8080",
+        http_port=8080,
         http_secure=False,
         grpc_host="localhost",
-        grpc_port="50051",
+        grpc_port=50051,
         grpc_secure=False,
         headers={
-            "X-OpenAI-Api-Key": os.getenv(
-                "OPENAI_API_KEY"
-            )  # Or any other inference API keys
+            "X-OpenAI-Api-Key": openai_api_key  # Or any other inference API keys
         },
     )
 
