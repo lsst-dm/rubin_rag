@@ -23,6 +23,9 @@ from langchain.prompts.chat import (
     HumanMessagePromptTemplate,
     SystemMessagePromptTemplate,
 )
+from langchain_community.chat_message_histories import (
+    StreamlitChatMessageHistory,
+)
 from langchain_core.prompts import MessagesPlaceholder
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from streamlit_callback import get_streamlit_cb
@@ -41,6 +44,15 @@ def configure_retriever() -> CustomWeaviateVectorStore:
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
     http_host = os.getenv("HTTP_HOST")
     grpc_host = os.getenv("GRPC_HOST")
+
+    if openai_api_key is None:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+    if weaviate_api_key is None:
+        raise ValueError("WEAVIATE_API_KEY environment variable is not set")
+    if http_host is None:
+        raise ValueError("HTTP_HOST environment variable is not set")
+    if grpc_host is None:
+        raise ValueError("GRPC_HOST environment variable is not set")
 
     client = weaviate.connect_to_custom(
         http_host=http_host,  # Hostname for the HTTP API connection
@@ -102,7 +114,7 @@ def create_qa_chain(
 
 
 def handle_user_input(
-    qa_chain: ChatPromptTemplate, msgs: MessagesPlaceholder
+    qa_chain: ChatPromptTemplate, msgs: StreamlitChatMessageHistory
 ) -> None:
     """Handle user input and chat history."""
     # Check if the message history is empty or the user
@@ -178,4 +190,4 @@ def handle_user_input(
                         # Only show sources with scores
                         # significantly higher (above the threshold)
                         if score >= threshold:
-                            st.info(f"Source: {chunk.metadata['source']}")
+                            st.info(f"Source: {chunk.metadata['source']}")                            
