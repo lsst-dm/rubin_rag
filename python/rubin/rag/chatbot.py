@@ -170,12 +170,13 @@ def handle_user_input(
                 },
                 {"callbacks": [stream_handler]},
             )
-            msgs.add_ai_message(result["answer"]) # type: ignore[index]
+            msgs.add_ai_message(result["answer"])  # type: ignore[index]
 
             # Display source documents in an expander
             with st.expander("See sources"):
                 scores = [
-                    chunk.metadata["score"] for chunk in result["context"] # type: ignore[index]
+                    chunk.metadata["score"]
+                    for chunk in result["context"]  # type: ignore[index]
                 ]
 
                 if scores:
@@ -184,10 +185,10 @@ def handle_user_input(
                         max_score * 0.9
                     )  # Set threshold to 90% of the highest score
 
-                    for chunk in result["context"]: # type: ignore[index]
+                    for chunk in result["context"]:  # type: ignore[index]
                         score = chunk.metadata["score"]
 
                         # Only show sources with scores
                         # significantly higher (above the threshold)
                         if score >= threshold:
-                            st.info(f"Source: {chunk.metadata['source']}")                            
+                            st.info(f"Source: {chunk.metadata['source']}")

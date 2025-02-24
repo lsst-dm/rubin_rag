@@ -2,12 +2,11 @@
 
 import json
 import time
-from pathlib import Path
 from functools import reduce
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any
 
 import requests
-from typing import Optional
 
 
 def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
@@ -108,11 +107,14 @@ def extract_parent_issue(jira_data: dict) -> dict:
     return {}
 
 
-def safe_get(dictionary: Dict[str, Any], keys: list, default: Optional[Any] = None) -> Any:
+def safe_get(
+    dictionary: dict[str, Any], keys: list, default: Any | None = None
+) -> Any:
+    """Safely extract information from nested dictionaries."""
     return reduce(
-        lambda d, key: d.get(key, default) if isinstance(d, dict) else default, 
-        keys, 
-        dictionary
+        lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
+        keys,
+        dictionary,
     )
 
 
