@@ -1,8 +1,8 @@
 """Rubin RAG-basd LLM Application."""
 
-__all__ = ["__version__"]
-
 from importlib.metadata import PackageNotFoundError, version
+
+__all__ = ["__version__"]
 
 __version__: str
 """The version string of rubin.rag
