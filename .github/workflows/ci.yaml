@@ -101,7 +101,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/lsst-dm/rubin_rag:tickets/SP-1945
+            lsst-dm/rubin_rag:${{ steps.vars.outputs.tag }}
+            ghcr.io/lsst-dm/rubin_rag:${{ steps.vars.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
