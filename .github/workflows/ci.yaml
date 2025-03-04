@@ -79,7 +79,7 @@ jobs:
 
       - name: Define the Docker tag
         id: vars
-        run: echo "tag=$(scripts/docker-tag.sh)" >> $GITHUB_OUTPUT
+        run: echo ::set-output name=tag::$(scripts/docker-tag.sh)
 
       - name: Print the tag
         id: print
