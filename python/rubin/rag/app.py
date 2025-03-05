@@ -28,12 +28,21 @@ interactions.
 from pathlib import Path
 
 import streamlit as st
-from chatbot import configure_retriever, create_qa_chain, handle_user_input
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
-from layout import setup_header_and_footer, setup_landing_page, setup_sidebar
+
+from rubin.rag.chatbot import (
+    configure_retriever_cloud,
+    create_qa_chain,
+    handle_user_input,
+)
+from rubin.rag.layout import (
+    setup_header_and_footer,
+    setup_landing_page,
+    setup_sidebar,
+)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -56,7 +65,7 @@ if "message_sent" not in st.session_state:
     st.session_state.message_sent = False
 
 # Configure the Weaviate retriever and QA chain
-retriever = configure_retriever()
+retriever = configure_retriever_cloud()
 qa_chain = create_qa_chain(retriever)
 
 # Enable dynamic filtering based on user input

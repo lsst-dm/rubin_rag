@@ -28,7 +28,6 @@ import os
 
 import streamlit as st
 import weaviate
-from custom_weaviate_vector_store import CustomWeaviateVectorStore
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.prompts.chat import (
@@ -40,9 +39,12 @@ from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
 from langchain_core.prompts import MessagesPlaceholder
+from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from streamlit_callback import get_streamlit_cb
 from weaviate.classes.init import Auth
+
+from .custom_weaviate_vector_store import CustomWeaviateVectorStore
+from .streamlit_callback import get_streamlit_cb
 
 
 def submit_text() -> None:
@@ -51,7 +53,7 @@ def submit_text() -> None:
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever() -> CustomWeaviateVectorStore:
+def configure_retriever() -> VectorStoreRetriever:
     """Configure the Weaviate retriever."""
     openai_api_key = os.getenv("OPENAI_API_KEY")
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
@@ -93,8 +95,43 @@ def configure_retriever() -> CustomWeaviateVectorStore:
     )
 
 
+@st.cache_resource(ttl="1h")
+def configure_retriever_cloud() -> VectorStoreRetriever:
+    """Configure the Weaviate retriever."""
+    openai_api_key = os.getenv("OPENAI_API_KEY_PAID")
+    weaviate_api_key = os.getenv("WEAVIATE_API_KEY_CLOUD")
+    weaviate_url = os.getenv("WEAVIATE_URL")
+
+    if openai_api_key is None:
+        raise ValueError("OPENAI_API_KEY environment variable is not set")
+    if weaviate_api_key is None:
+        raise ValueError("WEAVIATE_API_KEY environment variable is not set")
+    if weaviate_url is None:
+        raise ValueError("WEAVIATE_URL environment variable is not set")
+
+    client = weaviate.connect_to_weaviate_cloud(
+        cluster_url=weaviate_url,
+        auth_credentials=Auth.api_key(
+            weaviate_api_key
+        ),  # The API key to use for authentication
+        headers={"X-OpenAI-Api-Key": openai_api_key},
+        skip_init_checks=True,
+    )
+
+    return CustomWeaviateVectorStore(
+        client=client,
+        index_name="LangChain_cloudtest1",
+        text_key="text",
+        embedding=OpenAIEmbeddings(),
+        attributes=["source", "source_key"],
+    ).as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": 6, "return_metadata": ["score"]},
+    )
+
+
 def create_qa_chain(
-    retriever: CustomWeaviateVectorStore,
+    retriever: VectorStoreRetriever,
 ) -> ChatPromptTemplate:
     """Create a QA chain for the chatbot."""
     # Setup ChatOpenAI (Language Model)
@@ -138,8 +175,8 @@ def handle_user_input(
     # Define avatars for user and assistant messages
     avatars = {"human": "user", "ai": "assistant"}
     avatar_images = {
-        "human": "./static/user_avatar.png",
-        "ai": "./static/rubin_avatar_bw.png",
+        "human": "../../../static/user_avatar.png",
+        "ai": "../../../static/rubin_avatar_bw.png",
     }
 
     for msg in msgs.messages:

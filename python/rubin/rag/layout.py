@@ -51,7 +51,7 @@ def setup_landing_page() -> None:
         with st.container():
             # Add logo (Make sure the logo is in your
             # working directory or provide the full path)
-            st.image("./static/rubin_avatar_bw.png", clamp=True)
+            st.image("../../../static/rubin_avatar_bw.png", clamp=True)
 
             # Centered title and message
             st.markdown(
@@ -60,7 +60,7 @@ def setup_landing_page() -> None:
             )
             st.markdown(
                 (
-                    "<h4 class='h4-landing-page'>Your dedicated"
+                    "<h4 class='h4-landing-page'>Your dedicated "
                     "Rubin Observatory bot.</h4>"
                 ),
                 unsafe_allow_html=True,
