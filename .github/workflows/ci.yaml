@@ -101,8 +101,7 @@ jobs:
           context: .
           push: true
           tags: |
-            lsst-dm/rubin_rag:${{ steps.vars.outputs.tag }}
-            ghcr.io/lsst-dm/rubin_rag:${{ steps.vars.outputs.tag }}
+            ghcr.io/lsst-dm/rubin_rag
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
