@@ -6,8 +6,8 @@
 # see https://python.langchain.com/docs/integrations/document_loaders/github/
 
 import logging
-
 import os
+
 import requests
 from langchain.schema.document import Document
 from langchain_community.document_loaders import GithubFileLoader
