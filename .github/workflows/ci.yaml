@@ -70,7 +70,7 @@ jobs:
 
     if: >
       github.event_name != 'merge_group'
-      && (startsWith(github.ref, 'refs/heads/'))
+      && (startsWith(github.ref, 'refs/heads/main'))
 
     steps:
       - uses: actions/checkout@v4
