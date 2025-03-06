@@ -9,7 +9,7 @@ from langchain.schema.document import Document
 from langchain_community.document_loaders import GithubFileLoader
 import requests
 
-def load_files_1repo(repo='lsst/daf_butler'):
+def load_files_1repo(repo='lsst/daf_butler') -> list:
     """Load all utf-8 files from a given GitHub repo.
 
     Parameters
@@ -44,7 +44,7 @@ def load_files_1repo(repo='lsst/daf_butler'):
 
     return docs
 
-def load_org(n_repo_max=2, org_name='lsst-dm'):
+def load_org(n_repo_max=2, org_name='lsst-dm') -> list:
     """Load all utf-8 files from multiple GitHub repos within a GitHub org
     
     Parameters
