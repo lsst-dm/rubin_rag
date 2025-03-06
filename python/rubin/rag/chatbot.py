@@ -98,7 +98,7 @@ def configure_retriever() -> VectorStoreRetriever:
 @st.cache_resource(ttl="1h")
 def configure_retriever_cloud() -> VectorStoreRetriever:
     """Configure the Weaviate retriever."""
-    openai_api_key = os.getenv("OPENAI_API_KEY_PAID")
+    openai_api_key = os.getenv("OPENAI_API_KEY")
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY_CLOUD")
     weaviate_url = os.getenv("WEAVIATE_URL")
 
