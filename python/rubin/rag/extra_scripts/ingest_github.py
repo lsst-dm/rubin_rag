@@ -26,7 +26,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
         repo=repo,  # the repo name
         branch="main",  # the branch name
         github_api_url="https://api.github.com",
-        file_filter=None
+        file_filter=None,
     )
 
     docs = []
