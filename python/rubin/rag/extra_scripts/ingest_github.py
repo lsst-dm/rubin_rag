@@ -66,8 +66,11 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
 
     # this will give an output 'list' of repos sorted
     # from most to least recently updated
-    api_url = "https://api.github.com/orgs/" + org_name + \
-    "/repos?per_page=100&sort=updated"
+    api_url = (
+        "https://api.github.com/orgs/"
+        + org_name
+        + "/repos?per_page=100&sort=updated"
+    )
 
     result = requests.get(api_url, timeout=10)
     data = result.json()
