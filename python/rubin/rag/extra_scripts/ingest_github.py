@@ -39,7 +39,7 @@ def load_files_1repo(repo='lsst/daf_butler') -> list:
             string = loader.get_file_content_by_path(file_path)
             doc = Document(string, metadata=metadata)
             docs.append(doc)
-        except:
+        except Exception:
             print('FAILURE')
 
     return docs
