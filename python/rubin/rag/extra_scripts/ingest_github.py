@@ -74,7 +74,7 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     result = requests.get(api_url, timeout=10)
     data = result.json()
 
-    all_docs = []
+    all_docs: list = []
     for i in range(n_repo_max):
         docs = load_files_1repo(repo=data[i]["full_name"])
         all_docs = all_docs + docs
