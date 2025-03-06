@@ -49,8 +49,8 @@ def load_org(n_repo_max=2, org_name='lsst-dm') -> list:
     Parameters
     ----------
     n_repo_max : int
-        number of most recently updated repos for which to ingest contents; should be
-        greater than 0 but less than or equal to 100
+        number of most recently updated repos for which to ingest
+        contents; should be greater than 0 but less than or equal to 100
     org_name : str
         GitHub organization name
      
