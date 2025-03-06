@@ -7,6 +7,7 @@
 
 import logging
 
+import os
 import requests
 from langchain.schema.document import Document
 from langchain_community.document_loaders import GithubFileLoader
@@ -29,6 +30,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
         repo=repo,  # the repo name
         branch="main",  # the branch name
         github_api_url="https://api.github.com",
+        access_token=os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"),
         file_filter=None,
     )
 
