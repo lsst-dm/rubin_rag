@@ -32,7 +32,7 @@ def load_files_1repo(repo: str = 'lsst/daf_butler') -> list:
     docs = []
 
     for metadata in loader.get_file_paths():
-        file_path = metadata['path']
+        file_path = metadata["path"]
 
         try:
             string = loader.get_file_content_by_path(file_path)
@@ -70,7 +70,7 @@ def load_org(n_repo_max: int = 2, org_name: str = 'lsst-dm') -> list:
 
     all_docs = []
     for i in range(n_repo_max):
-        docs = load_files_1repo(repo=data[i]['full_name'])
+        docs = load_files_1repo(repo=data[i]["full_name"])
         all_docs = all_docs + docs
 
     return all_docs
