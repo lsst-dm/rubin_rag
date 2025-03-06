@@ -45,7 +45,7 @@ def load_files_1repo(repo: str = 'lsst/daf_butler') -> list:
 
 def load_org(n_repo_max: int = 2, org_name: str = 'lsst-dm') -> list:
     """Load all utf-8 files from GitHub repos in a GitHub org.
-    
+
     Parameters
     ----------
     n_repo_max : int
@@ -53,7 +53,7 @@ def load_org(n_repo_max: int = 2, org_name: str = 'lsst-dm') -> list:
         contents; should be greater than 0 but less than or equal to 100
     org_name : str
         GitHub organization name
-     
+
     Returns
     -------  
     all_docs : list
