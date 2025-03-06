@@ -55,7 +55,7 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
         GitHub organization name
 
     Returns
-    -------  
+    -------
     all_docs : list
         list of langchain documents
     """
