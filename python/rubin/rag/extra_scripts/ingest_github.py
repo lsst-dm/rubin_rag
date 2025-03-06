@@ -34,7 +34,6 @@ def load_files_1repo(repo='lsst/daf_butler') -> list:
     for i,metadata in enumerate(loader.get_file_paths()):
         file_path = metadata['path']
 
-        print(i, file_path)
         try:
             string = loader.get_file_content_by_path(file_path)
             doc = Document(string, metadata=metadata)
