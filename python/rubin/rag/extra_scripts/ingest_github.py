@@ -11,6 +11,7 @@ import requests
 from langchain.schema.document import Document
 from langchain_community.document_loaders import GithubFileLoader
 
+
 def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     """Load all utf-8 files from a given GitHub repo.
 
@@ -44,6 +45,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
             logging.exception("Failed to load file.")
 
     return docs
+
 
 def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     """Load all utf-8 files from GitHub repos in a GitHub org.
