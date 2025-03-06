@@ -26,11 +26,13 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     docs : list
         list of langchain documents
     """
+    access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
+
     loader = GithubFileLoader(
         repo=repo,  # the repo name
         branch="main",  # the branch name
         github_api_url="https://api.github.com",
-        access_token=os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"),
+        access_token=access_token,
         file_filter=None,
     )
 
