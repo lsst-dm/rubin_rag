@@ -40,7 +40,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
             doc = Document(string, metadata=metadata)
             docs.append(doc)
         except Exception:
-            continue
+            logging.exception("Failed to load file.")
 
     return docs
 
