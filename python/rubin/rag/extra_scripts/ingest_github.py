@@ -75,8 +75,11 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
         + "/repos?per_page=100&sort=updated"
     )
 
-    result = requests.get(api_url, timeout=10)
-    data = result.json()
+    try:
+        result = requests.get(api_url, timeout=10)
+        data = result.json()
+    except Exception:
+        logging.exception("Failed to retrieve list of org's repos.")
 
     all_docs: list = []
     for i in range(n_repo_max):
