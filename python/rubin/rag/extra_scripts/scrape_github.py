@@ -29,8 +29,8 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     access_token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
 
     loader = GithubFileLoader(
-        repo=repo,  # the repo name
-        branch="main",  # the branch name
+        repo=repo,
+        branch="main",
         github_api_url="https://api.github.com",
         access_token=access_token,
         file_filter=None,
