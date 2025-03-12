@@ -20,9 +20,6 @@
 
 """Utilities for ingesting GitHub repo contents into langchain documents."""
 
-# note that it's necessary to have set the env var
-# GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
-
 # see https://python.langchain.com/docs/integrations/document_loaders/github/
 
 import logging
@@ -46,6 +43,8 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     docs : list
         list of langchain documents
     """
+    # note that it's necessary to have set the env var
+    # GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
     access_token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
 
     loader = GithubFileLoader(
