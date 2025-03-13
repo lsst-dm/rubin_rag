@@ -10,4 +10,4 @@ toolbarMode = "viewer"
 
 [server]
 enableStaticServing = true
-baseUrlPath = "/gai-helpers"
+baseUrlPath = "/rubin-rag"
