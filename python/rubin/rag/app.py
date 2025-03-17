@@ -28,21 +28,12 @@ interactions.
 from pathlib import Path
 
 import streamlit as st
+from chatbot import configure_retriever, create_qa_chain, handle_user_input
 from dotenv import load_dotenv
 from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
-
-from rubin.rag.chatbot import (
-    configure_retriever,
-    create_qa_chain,
-    handle_user_input,
-)
-from rubin.rag.layout import (
-    setup_header_and_footer,
-    setup_landing_page,
-    setup_sidebar,
-)
+from layout import setup_header_and_footer, setup_landing_page, setup_sidebar
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,12 +42,12 @@ load_dotenv()
 st.set_page_config(
     page_title="Rubin Observatory Bot",
     initial_sidebar_state="collapsed",
-    page_icon="../../../static/rubin_telescope.png",
+    page_icon="./static/rubin_telescope.png",
 )
-st.logo("../../../static/rubin_telescope.png")
+st.logo("./static/rubin_telescope.png")
 
 # Load the CSS file
-file_path = Path("../../../static/style.css")
+file_path = Path("./static/style.css")
 with Path.open(file_path) as css:
     st.markdown(f"<style>{css.read()}</style>", unsafe_allow_html=True)
 

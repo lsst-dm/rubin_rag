@@ -55,7 +55,7 @@ def setup_landing_page() -> None:
         with col2:
             # Add logo (Make sure the logo is in your
             # working directory or provide the full path)
-            st.image("../../../static/rubin_telescope.png", clamp=True)
+            st.image("./static/rubin_telescope.png", clamp=True)
 
             # Centered title and message
             st.markdown(
