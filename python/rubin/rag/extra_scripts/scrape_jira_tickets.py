@@ -243,7 +243,7 @@ def write_to_file(
             directory into which write-out happens is a subdirectory of
             the specified folder, where the subdirectory name is the Jira
             ticket's prefix. The output directory will be created if it
-            doesn't already exist. Using the default folder, the output 
+            doesn't already exist. Using the default folder, the output
             JSON is written into ./DM for a DM- prefixed ticket name.
     """
     # Extract the prefix from the key (letters before '-')
