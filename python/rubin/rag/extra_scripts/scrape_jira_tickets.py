@@ -34,7 +34,14 @@ import requests
 
 
 def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
-    """Get the JIRA issue data from the JIRA API."""
+    """Get the JIRA issue data from the JIRA API.
+
+    Parameters
+    ----------
+    issue_name : str
+        name of the Jira issue including the prefix and dash e.g., DM-40000
+
+    """
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
