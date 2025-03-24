@@ -230,9 +230,22 @@ def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
 
 def write_to_file(
     results: dict,
-    folder: str = "/Users/gmegias/Desktop/LSST_Developer/JIRA tickets",
+    folder: str = ".",
 ) -> None:
-    """Write the JIRA ticket data to a JSON file."""
+    """Write the JIRA ticket data to a JSON file.
+
+    Parameters
+    ----------
+        results : dict
+            dictionary of Jira ticket data and metadata
+        folder : str
+            base output folder within which to write the JSON file. The
+            directory into which write-out happens is a subdirectory of
+            the specified folder, where the subdirectory name is the Jira
+            ticket's prefix. The output directory will be created if it
+            doesn't already exist. Using the default folder, the output 
+            JSON is written into ./DM for a DM- prefixed ticket name.
+    """
     # Extract the prefix from the key (letters before '-')
     ticket_key = results["key"]  # Assuming 'key' is something like 'DM-12345'
     prefix = ticket_key.split("-")[0]  # Get the letters before the '-'
