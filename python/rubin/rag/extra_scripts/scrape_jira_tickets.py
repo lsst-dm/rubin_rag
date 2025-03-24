@@ -278,7 +278,25 @@ def fetch_ticket(ticket: str, email: str, api_token: str) -> tuple:
 def retry_fetch_ticket(
     ticket: str, email: str, api_token: str, max_retries: int = 5
 ) -> tuple:
-    """Fetch the ticket with retry logic."""
+    """Fetch Jira ticket with retry logic.
+
+    Parameters
+    ----------
+    ticket : str
+        name of the Jira issue including the prefix and dash e.g., DM-40000
+    email : str
+        email address of Jira account associated with the API token
+    api_token : str
+        Jira API token
+    max_retries : int
+        maximum number of attempts at fetching the Jira ticket
+
+    Returns
+    -------
+    tuple
+        Two-element tuple. If successful, the first element is a dict
+        with the ticket data/metadata.
+    """
     for attempt in range(max_retries):
         try:
             result, error_message = fetch_ticket(ticket, email, api_token)
