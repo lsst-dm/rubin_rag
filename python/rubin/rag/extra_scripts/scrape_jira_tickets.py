@@ -45,6 +45,13 @@ def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
     email : str
         email address of Jira account associated with the API token
 
+    Returns
+    -------
+    tuple
+        The second of two elements is a status code; None if successful,
+        otherwise a string including the error's status code. If successful,
+        the first element is a JSON dict. If unsuccessful, the first element
+        is either an empty list or None depending on the status code.
     """
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
