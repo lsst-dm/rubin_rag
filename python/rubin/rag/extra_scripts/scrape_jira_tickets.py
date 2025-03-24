@@ -40,6 +40,10 @@ def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
     ----------
     issue_name : str
         name of the Jira issue including the prefix and dash e.g., DM-40000
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
 
     """
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
