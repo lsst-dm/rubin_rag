@@ -220,7 +220,7 @@ def write_to_file(
     prefix = ticket_key.split("-")[0]  # Get the letters before the '-'
 
     # Construct the new folder path by appending the prefix
-    folder_with_prefix = Path(folder / prefix)
+    folder_with_prefix = Path(folder) / Path(prefix)
 
     # Ensure the folder exists
     if not Path.exists(folder_with_prefix):
