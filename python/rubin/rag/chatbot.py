@@ -71,7 +71,7 @@ def configure_retriever() -> VectorStoreRetriever:
 
     client = weaviate.connect_to_custom(
         http_host=http_host,  # Hostname for the HTTP API connection
-        http_port=80,  # Default is 80, WCD uses 443
+        http_port=8501,  # Default is 80, WCD uses 443
         http_secure=False,  # Whether to use https (secure) for HTTP
         grpc_host=grpc_host,  # Hostname for the gRPC API connection
         grpc_port=50051,  # Default is 50051, WCD uses 443
