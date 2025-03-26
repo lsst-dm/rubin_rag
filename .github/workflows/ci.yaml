@@ -61,7 +61,7 @@ jobs:
           tox-plugins: tox-uv
 
   build:
-  
+
     runs-on: ubuntu-latest
     # Only do Docker builds of tagged releases and pull requests from ticket
     # branches.  This will still trigger on pull requests from untrusted
