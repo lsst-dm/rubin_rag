@@ -78,6 +78,8 @@ def extract_reviewer_from_customfield(jira_data: dict) -> list:
     -------
     list
         List of Jira reviewer names (first and last) for this issue.
+        Returns a single-element list if there is one reviewer, and
+        also returns a single element list if no reviewers assigned.
     """
     # Extract reviewer information from customfield_10048 if available
     reviewers = jira_data["fields"].get("customfield_10048", [])
