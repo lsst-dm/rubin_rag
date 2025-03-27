@@ -28,6 +28,7 @@ import os
 
 import streamlit as st
 import weaviate
+from custom_weaviate_vector_store import CustomWeaviateVectorStore
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.prompts.chat import (
@@ -41,10 +42,8 @@ from langchain_community.chat_message_histories import (
 from langchain_core.prompts import MessagesPlaceholder
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from streamlit_callback import get_streamlit_cb
 from weaviate.classes.init import Auth
-
-from .custom_weaviate_vector_store import CustomWeaviateVectorStore
-from .streamlit_callback import get_streamlit_cb
 
 
 def submit_text() -> None:
@@ -71,7 +70,7 @@ def configure_retriever() -> VectorStoreRetriever:
 
     client = weaviate.connect_to_custom(
         http_host=http_host,  # Hostname for the HTTP API connection
-        http_port=80,  # Default is 80, WCD uses 443
+        http_port=8080,  # Default is 80, WCD uses 443
         http_secure=False,  # Whether to use https (secure) for HTTP
         grpc_host=grpc_host,  # Hostname for the gRPC API connection
         grpc_port=50051,  # Default is 50051, WCD uses 443
@@ -140,8 +139,8 @@ def handle_user_input(
     # Define avatars for user and assistant messages
     avatars = {"human": "user", "ai": "assistant"}
     avatar_images = {
-        "human": "../../../static/user_avatar.png",
-        "ai": "../../../static/rubin_telescope.png",
+        "human": "./static/user_avatar.png",
+        "ai": "./static/rubin_telescope.png",
     }
 
     for msg in msgs.messages:
