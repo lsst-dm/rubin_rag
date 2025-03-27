@@ -144,7 +144,19 @@ def extract_related_issues(jira_data: dict) -> list:
 
 
 def extract_components(jira_data: dict) -> list:
-    """Extract the components from the JIRA data."""
+    """Extract the components from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : str
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    list
+        List of components, each of which is a string. Empty list returned
+        if Jira issue has no components specified.
+    """
     components = jira_data["fields"].get("components", [])
     return [component.get("name", "No component") for component in components]
 
