@@ -72,7 +72,7 @@ def extract_reviewer_from_customfield(jira_data: dict) -> list:
     Parameters
     ----------
     jira_data : str
-        Dictionary of Jira ticket data as returned by the Jira API.
+        Dictionary of Jira issue data as returned by the Jira API.
 
     Returns
     -------
@@ -93,7 +93,20 @@ def extract_reviewer_from_customfield(jira_data: dict) -> list:
 
 
 def extract_related_issues(jira_data: dict) -> list:
-    """Extract the related issues from the JIRA data."""
+    """Extract the related issues from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : str
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    related_issues : list
+        List of related issues, each of which is a summirized with
+        a dict. Empty list is returned if there are no related
+        issues.
+    """
     related_issues = []
     issue_links = jira_data["fields"].get("issuelinks", [])
 
