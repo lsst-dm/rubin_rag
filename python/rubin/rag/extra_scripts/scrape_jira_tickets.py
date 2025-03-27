@@ -296,9 +296,9 @@ def retry_fetch_ticket(
     tuple
         Two-element tuple. If successful, the first element is a dict
         with the ticket data/metadata and the second element is None. If
-        unsuccessful, the first element is either None or an empty list
-        depending on the status code, and the second element is
-        a string error message.
+        unsuccessful, the first element is either a default dictionary
+        or None (if exceptions encountered on all retries), and the
+        second element is a string error message.
     """
     for attempt in range(max_retries):
         try:
