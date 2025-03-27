@@ -67,7 +67,18 @@ def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
 
 
 def extract_reviewer_from_customfield(jira_data: dict) -> list:
-    """Extract the reviewer(s) from the customfield_10048."""
+    """Extract the reviewer(s) from the customfield_10048.
+
+    Parameters
+    ----------
+    jira_data : str
+        Dictionary of Jira ticket data as returned by the Jira API.
+
+    Returns
+    -------
+    list
+        List of Jira reviewer names (first and last) for this issue.
+    """
     # Extract reviewer information from customfield_10048 if available
     reviewers = jira_data["fields"].get("customfield_10048", [])
     if reviewers:
