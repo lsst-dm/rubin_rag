@@ -162,7 +162,20 @@ def extract_components(jira_data: dict) -> list:
 
 
 def extract_comments(jira_data: dict) -> list:
-    """Extract the comments from the JIRA data."""
+    """Extract the comments from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : str
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    list
+        List of comments, each of which is represented with a dictionary.
+        Each comment dictionary contains the comment author name and
+        comment text. Empty list returned if Jira issue has no comments.
+    """
     comments = jira_data["fields"].get("comment", {}).get("comments", [])
     return [
         {
