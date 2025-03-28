@@ -224,7 +224,23 @@ def safe_get(
 
 
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
-    """Reformat the JIRA data into a simplified dictionary."""
+    """Reformat the JIRA data into a simplified dictionary.
+
+    Parameters
+    ----------
+    jira_data : str
+        Dictionary of Jira issue data as returned by the Jira API.
+    ticket : str
+        Name of Jira issue.
+
+    Returns
+    -------
+    dict
+        reformatted/simplified dictionary representing the Jira ticket
+        data/metadata, if input Jira data is not an empty dictionary.
+        Otherwise a placeholder dictionary with the same structure but
+        no meaningful content in the values.
+    """
     if not jira_data:
         # If jira_data is None or empty, return a default
         # dictionary with the error message
