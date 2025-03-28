@@ -187,7 +187,19 @@ def extract_comments(jira_data: dict) -> list:
 
 
 def extract_parent_issue(jira_data: dict) -> dict:
-    """Extract the parent issue from the JIRA data."""
+    """Extract the parent issue from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : str
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    dict
+        Parent issue represented as a dictionary. Empty dictionary
+        returned if no parent issue found.
+    """
     parent_issue = jira_data["fields"].get("parent", None)
     if parent_issue:
         return {
