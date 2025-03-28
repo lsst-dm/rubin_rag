@@ -333,7 +333,27 @@ def write_to_file(
 
 
 def fetch_ticket(ticket: str, email: str, api_token: str) -> tuple:
-    """Fetch the ticket data from JIRA."""
+    """Fetch and reformat the ticket data from JIRA.
+
+    Parameters
+    ----------
+        ticket : str
+            name of the Jira issue including the prefix and dash e.g., DM-40000
+        email : str
+            email address of Jira account associated with the API token
+        api_token : str
+            Jira API token
+
+    Returns
+    -------
+        dict
+            reformatted/simplified dictionary representing the Jira ticket
+            data/metadata, if successful. Otherwise a placeholder dictionary
+            with the same structure but no meaningful content in the values.
+        error_message : str
+            None if successful, otherwise a string with the ticket name and
+            error message.
+    """
     jira_data, error_message = get_jira_issue(ticket, email, api_token)
     return reformat_jira_data(jira_data, ticket), error_message
 
