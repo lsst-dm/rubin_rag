@@ -215,7 +215,25 @@ def extract_parent_issue(jira_data: dict) -> dict:
 def safe_get(
     dictionary: dict[str, Any], keys: list, default: Any | None = None
 ) -> Any:
-    """Safely extract information from nested dictionaries."""
+    """Safely extract information from nested dictionaries.
+
+    Parameters
+    ----------
+    dictionary : dict
+        Dictionary of with string keys and values of any type.
+    keys : list
+        List of string keys for which to attempt to extract
+        values from the input (nested) dictionary.
+    default : Any
+        Default value to return in the event that retrieving the
+        value for a key fails. Defaults to None.
+
+    Returns
+    -------
+    Any
+        Value found corresponding to (nested) key(s). Returns default
+        if key(s) not found.
+    """
     return reduce(
         lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
         keys,
