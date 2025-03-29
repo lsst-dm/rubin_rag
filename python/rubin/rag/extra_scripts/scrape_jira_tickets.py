@@ -402,7 +402,10 @@ def fetch_ticket(
 
 
 def retry_fetch_ticket(
-    ticket: str, email: str, api_token: str, max_retries: int = 5
+    ticket: str,
+    email: str,
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    max_retries: int = 5,
 ) -> tuple:
     """Fetch Jira ticket with retry logic.
 
