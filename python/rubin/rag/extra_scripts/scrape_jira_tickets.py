@@ -465,7 +465,8 @@ def jira_to_document(jira_data: dict) -> Document:
         jira_data["description"] = ""
 
     return Document(page_content=jira_data["description"], metadata=metadata)
-    
+
+
 def jira_tickets_from_list(ticket_list: list,
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
@@ -473,10 +474,8 @@ def jira_tickets_from_list(ticket_list: list,
     """Ingest a list of Jira tickets into LangChain documents."""
     docs: list = []
 
-
     for ticket_name in ticket_list:
         jira_data, status = fetch_ticket(ticket_name, email, api_token)
         docs.append(jira_to_document(jira_data))
-
 
     return docs
