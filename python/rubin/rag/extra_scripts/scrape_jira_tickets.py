@@ -30,9 +30,9 @@ import time
 from functools import reduce
 from pathlib import Path
 from typing import Any
-from langchain_core.documents import Document
 
 import requests
+from langchain_core.documents import Document
 
 
 def get_jira_issue(
