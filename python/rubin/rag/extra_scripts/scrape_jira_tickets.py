@@ -500,3 +500,16 @@ def jira_tickets_from_list(
             docs.append(jira_to_document(jira_data))
 
     return docs
+
+def jira_tickets_in_range(
+    ticket_prefix: str,
+    min_ticket_num: int,
+    max_ticket_num: int,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+) -> list:
+    """Ingest a numerical range of Jira tickets into LangChain documents."""
+    ticket_list = [ticket_prefix + '-' + str(i) for i in range(min_ticket_num, max_ticket_num+1)]
+    docs = jira_tickets_from_list(ticket_list, email, api_token)
+
+    return docs
