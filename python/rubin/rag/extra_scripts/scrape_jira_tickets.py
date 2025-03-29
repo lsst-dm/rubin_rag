@@ -36,7 +36,7 @@ import requests
 
 def get_jira_issue(
     issue_name: str,
-    email: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> tuple:
     """Get the JIRA issue data from the JIRA API.
@@ -373,7 +373,7 @@ def write_to_file(
 
 def fetch_ticket(
     ticket: str,
-    email: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> tuple:
     """Fetch and reformat the ticket data from JIRA.
@@ -403,7 +403,7 @@ def fetch_ticket(
 
 def retry_fetch_ticket(
     ticket: str,
-    email: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
     max_retries: int = 5,
 ) -> tuple:
