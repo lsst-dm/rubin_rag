@@ -371,7 +371,11 @@ def write_to_file(
         )  # Writing with indentation for readability
 
 
-def fetch_ticket(ticket: str, email: str, api_token: str) -> tuple:
+def fetch_ticket(
+    ticket: str,
+    email: str,
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+) -> tuple:
     """Fetch and reformat the ticket data from JIRA.
 
     Parameters
