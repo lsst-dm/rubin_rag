@@ -472,7 +472,24 @@ def jira_tickets_from_list(
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> list:
-    """Ingest a list of Jira tickets into LangChain documents."""
+    """Ingest a list of Jira tickets into LangChain documents.
+
+    Parameters
+    ----------
+    ticket_list : list
+        list of names of the Jira issues to ingest including the
+        prefix and dash in each case e.g., DM-40000. Each list
+        element is a string.
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
+
+    Returns
+    -------
+    list
+        list of LangChain documents, one per Jira ticket in ticket_list
+    """
     docs: list = []
 
     for ticket_name in ticket_list:
