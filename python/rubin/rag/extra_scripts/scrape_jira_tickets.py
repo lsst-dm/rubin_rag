@@ -514,6 +514,4 @@ def jira_tickets_in_range(
         ticket_prefix + "-" + str(i)
         for i in range(min_ticket_num, max_ticket_num + 1)
     ]
-    docs = jira_tickets_from_list(ticket_list, email, api_token)
-
-    return docs
+    return jira_tickets_from_list(ticket_list, email, api_token)
