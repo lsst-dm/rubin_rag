@@ -471,8 +471,9 @@ def jira_tickets_from_list(
     ticket_list: list,
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
-    write: bool = False,
     folder: str = ".",
+    *,
+    write: bool = False,
 ) -> list:
     """Ingest a list of Jira tickets into LangChain documents.
 
