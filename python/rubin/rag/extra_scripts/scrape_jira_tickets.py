@@ -475,7 +475,7 @@ def jira_tickets_from_list(
     folder: str = ".",
 ) -> list:
     """Ingest a list of Jira tickets into LangChain documents.
-        
+
     Parameters
     ----------
     ticket_list : list
