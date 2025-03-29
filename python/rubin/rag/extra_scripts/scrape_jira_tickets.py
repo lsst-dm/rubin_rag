@@ -25,18 +25,18 @@ save results in a structured JSON format.
 """
 
 import json
+import os
 import time
 from functools import reduce
 from pathlib import Path
 from typing import Any
-import os
 
 import requests
 
 def get_jira_issue(
     issue_name: str,
     email: str,
-    api_token: str = os.getenv("ATLASSIAN_API_TOKEN")
+    api_token: str = os.getenv("ATLASSIAN_API_TOKEN"),
 ) -> tuple:
     """Get the JIRA issue data from the JIRA API.
 
