@@ -524,6 +524,9 @@ def jira_tickets_in_range(
     max_ticket_num: int,
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    folder: str = ".",
+    *,  
+    write: bool = False,
 ) -> list:
     """Ingest a numerical range of Jira tickets into LangChain documents.
 
@@ -550,4 +553,9 @@ def jira_tickets_in_range(
         ticket_prefix + "-" + str(i)
         for i in range(min_ticket_num, max_ticket_num + 1)
     ]
-    return jira_tickets_from_list(ticket_list, email, api_token)
+    return jira_tickets_from_list(
+        ticket_list,
+        email,
+        api_token,
+        folder=folder,
+        write=write)
