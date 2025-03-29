@@ -460,7 +460,7 @@ def jira_to_document(jira_data: dict) -> Document:
     """
     metadata = jira_data.copy()
     del metadata["description"]
-    
+
     if jira_data["description"] is None:
         jira_data["description"] = ""
 
