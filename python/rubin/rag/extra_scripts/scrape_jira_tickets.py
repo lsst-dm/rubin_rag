@@ -33,6 +33,7 @@ from typing import Any
 
 import requests
 
+
 def get_jira_issue(
     issue_name: str,
     email: str,
