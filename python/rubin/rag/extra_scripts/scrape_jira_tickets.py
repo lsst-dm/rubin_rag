@@ -37,7 +37,7 @@ import requests
 def get_jira_issue(
     issue_name: str,
     email: str,
-    api_token: str = os.getenv("ATLASSIAN_API_TOKEN"),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> tuple:
     """Get the JIRA issue data from the JIRA API.
 
