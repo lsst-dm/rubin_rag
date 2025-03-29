@@ -439,3 +439,12 @@ def retry_fetch_ticket(
         else:
             return result, error_message
     return None, "Failed to fetch ticket"
+
+def jira_to_document(jira_data: dict) -> Document:
+    """Convert Jira ticket dictionary data to a LangChain Document."""
+    metadata = jira_data.copy()
+    del metadata["description"]
+
+    document = Document(page_content=jira_data["description"], metadata=metadata)
+
+    return document
