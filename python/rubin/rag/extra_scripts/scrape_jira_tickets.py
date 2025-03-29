@@ -467,7 +467,8 @@ def jira_to_document(jira_data: dict) -> Document:
     return Document(page_content=jira_data["description"], metadata=metadata)
 
 
-def jira_tickets_from_list(ticket_list: list,
+def jira_tickets_from_list(
+    ticket_list: list,
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> list:
