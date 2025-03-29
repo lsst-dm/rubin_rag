@@ -445,6 +445,8 @@ def jira_to_document(jira_data: dict) -> Document:
     metadata = jira_data.copy()
     del metadata["description"]
 
-    document = Document(page_content=jira_data["description"], metadata=metadata)
+    document = Document(
+        page_content=jira_data["description"], metadata=metadata
+    )
 
     return document
