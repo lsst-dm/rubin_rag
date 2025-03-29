@@ -542,6 +542,17 @@ def jira_tickets_in_range(
         Jira API token
     email : str
         email address of Jira account associated with the API token
+    folder : str
+        base output folder within which to write the JSON file. The
+        directory into which write-out happens is a subdirectory of
+        the specified folder, where the subdirectory name is the Jira
+        ticket's prefix. The output directory will be created if it
+        doesn't already exist. Using the default folder, the output
+        is written into ./DM for a DM- prefixed ticket name. Unused
+        if write is set to False.
+    write : bool
+        keyword-only argument. Whether or not to write out each
+        successfully downloaded Jira issue to a file.
 
     Returns
     -------
