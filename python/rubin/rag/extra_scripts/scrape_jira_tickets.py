@@ -494,6 +494,8 @@ def jira_tickets_from_list(
 
     for ticket_name in ticket_list:
         jira_data, status = fetch_ticket(ticket_name, email, api_token)
-        docs.append(jira_to_document(jira_data))
+        # only output the results if fetching was successful
+        if status is None:
+            docs.append(jira_to_document(jira_data))
 
     return docs
