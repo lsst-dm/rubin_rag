@@ -77,7 +77,7 @@ def extract_reviewer_from_customfield(jira_data: dict) -> list:
 
     Parameters
     ----------
-    jira_data : str
+    jira_data : dict
         Dictionary of Jira issue data as returned by the Jira API.
 
     Returns
@@ -103,7 +103,7 @@ def extract_related_issues(jira_data: dict) -> list:
 
     Parameters
     ----------
-    jira_data : str
+    jira_data : dict
         Dictionary of Jira issue data as returned by the Jira API.
 
     Returns
@@ -154,7 +154,7 @@ def extract_components(jira_data: dict) -> list:
 
     Parameters
     ----------
-    jira_data : str
+    jira_data : dict
         Dictionary of Jira issue data as returned by the Jira API.
 
     Returns
@@ -172,7 +172,7 @@ def extract_comments(jira_data: dict) -> list:
 
     Parameters
     ----------
-    jira_data : str
+    jira_data : dict
         Dictionary of Jira issue data as returned by the Jira API.
 
     Returns
@@ -197,7 +197,7 @@ def extract_parent_issue(jira_data: dict) -> dict:
 
     Parameters
     ----------
-    jira_data : str
+    jira_data : dict
         Dictionary of Jira issue data as returned by the Jira API.
 
     Returns
@@ -252,7 +252,7 @@ def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
 
     Parameters
     ----------
-    jira_data : str
+    jira_data : dict
         Dictionary of Jira issue data as returned by the Jira API.
     ticket : str
         Name of Jira issue.
@@ -443,7 +443,21 @@ def retry_fetch_ticket(
 
 
 def jira_to_document(jira_data: dict) -> Document:
-    """Convert Jira ticket dictionary data to a LangChain Document."""
+    """Convert Jira ticket dictionary data to a LangChain Document.
+
+    Parameters
+    ----------
+    jira_data : dict
+        reformatted/simplified dictionary representing the Jira ticket
+        data/metadata. Needs to have 'description' key.
+
+    Returns
+    -------
+    Document
+        A Document (langchain_core.documents.base.Document) object formed
+        by considering everything other than the 'description' key within
+        the Jira data dictionary to be metadata.
+    """
     metadata = jira_data.copy()
     del metadata["description"]
 
