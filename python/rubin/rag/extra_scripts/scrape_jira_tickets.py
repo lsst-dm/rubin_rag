@@ -488,7 +488,8 @@ def jira_tickets_from_list(
     Returns
     -------
     list
-        list of LangChain documents, one per Jira ticket in ticket_list
+        list of LangChain documents, one per successfully retrieved
+        Jira ticket in ticket_list
     """
     docs: list = []
 
