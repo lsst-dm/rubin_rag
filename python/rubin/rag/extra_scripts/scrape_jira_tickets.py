@@ -475,7 +475,7 @@ def jira_tickets_from_list(
     max_retries: int = 5,
     *,
     write: bool = False,
-) -> list:
+) -> tuple:
     """Ingest a list of Jira tickets into LangChain documents.
 
     Parameters
@@ -505,11 +505,18 @@ def jira_tickets_from_list(
 
     Returns
     -------
-    list
-        list of LangChain documents, one per successfully retrieved
-        Jira ticket in ticket_list
+    tuple
+        two-element tuple. The first element is the list of
+        LangChain documents for successfully retrieved Jira tickets.
+        The second element of the returned tuple is a list of Jira
+        tickets that were not fetched successfully. Each element of
+        this list is a two-element tuple, where the first tuple
+        element is the string ticket name (including prefix and dash)
+        and the second tuple element is the corresponding string
+        error message.
     """
     docs: list = []
+    failures: list = []
 
     for ticket_name in ticket_list:
         jira_data, status = retry_fetch_ticket(
@@ -520,8 +527,10 @@ def jira_tickets_from_list(
             docs.append(jira_to_document(jira_data))
             if write:
                 write_to_file(jira_data, folder)
+        else:
+            failures.append((ticket_name, status))
 
-    return docs
+    return docs, failures
 
 
 def jira_tickets_in_range(
@@ -534,7 +543,7 @@ def jira_tickets_in_range(
     max_retries: int = 5,
     *,
     write: bool = False,
-) -> list:
+) -> tuple:
     """Ingest a numerical range of Jira tickets into LangChain documents.
 
     Parameters
@@ -566,9 +575,15 @@ def jira_tickets_in_range(
 
     Returns
     -------
-    list
-        list of LangChain documents, one per successfully retrieved
-        Jira ticket in ticket_list
+    tuple
+        two-element tuple. The first element is the list of
+        LangChain documents for successfully retrieved Jira tickets.
+        The second element of the returned tuple is a list of Jira
+        tickets that were not fetched successfully. Each element of
+        this list is a two-element tuple, where the first tuple
+        element is the string ticket name (including prefix and dash)
+        and the second tuple element is the corresponding string
+        error message.
     """
     ticket_list = [
         ticket_prefix + "-" + str(i)
