@@ -472,6 +472,7 @@ def jira_tickets_from_list(
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
     folder: str = ".",
+    max_retries: int = 5,
     *,
     write: bool = False,
 ) -> list:
@@ -495,6 +496,9 @@ def jira_tickets_from_list(
         doesn't already exist. Using the default folder, the output
         is written into ./DM for a DM- prefixed ticket name. Unused
         if write is set to False.
+    max_retries : int
+        maximum number of attempts at fetching each Jira ticket.
+        Defaults to 5.
     write : bool
         keyword-only argument. Whether or not to write out each
         successfully downloaded Jira issue to a file.
@@ -508,7 +512,7 @@ def jira_tickets_from_list(
     docs: list = []
 
     for ticket_name in ticket_list:
-        jira_data, status = retry_fetch_ticket(ticket_name, email, api_token)
+        jira_data, status = retry_fetch_ticket(ticket_name, email, api_token, max_retries)
         # only output the results if fetching was successful
         if status is None:
             docs.append(jira_to_document(jira_data))
