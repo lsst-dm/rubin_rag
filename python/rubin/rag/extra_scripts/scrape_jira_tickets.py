@@ -512,7 +512,9 @@ def jira_tickets_from_list(
     docs: list = []
 
     for ticket_name in ticket_list:
-        jira_data, status = retry_fetch_ticket(ticket_name, email, api_token, max_retries)
+        jira_data, status = retry_fetch_ticket(
+            ticket_name, email, api_token, max_retries
+        )
         # only output the results if fetching was successful
         if status is None:
             docs.append(jira_to_document(jira_data))
