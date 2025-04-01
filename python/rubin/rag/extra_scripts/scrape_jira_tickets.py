@@ -531,6 +531,7 @@ def jira_tickets_in_range(
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
     folder: str = ".",
+    max_retries: int = 5,
     *,
     write: bool = False,
 ) -> list:
@@ -556,6 +557,9 @@ def jira_tickets_in_range(
         doesn't already exist. Using the default folder, the output
         is written into ./DM for a DM- prefixed ticket name. Unused
         if write is set to False.
+    max_retries : int
+        maximum number of attempts at fetching each Jira ticket.
+        Defaults to 5.
     write : bool
         keyword-only argument. Whether or not to write out each
         successfully downloaded Jira issue to a file.
@@ -571,5 +575,5 @@ def jira_tickets_in_range(
         for i in range(min_ticket_num, max_ticket_num + 1)
     ]
     return jira_tickets_from_list(
-        ticket_list, email, api_token, folder=folder, write=write
+        ticket_list, email, api_token, folder, max_retries, write=write
     )
