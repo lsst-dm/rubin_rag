@@ -25,16 +25,40 @@ save results in a structured JSON format.
 """
 
 import json
+import os
 import time
 from functools import reduce
 from pathlib import Path
 from typing import Any
 
 import requests
+from langchain_core.documents import Document
 
 
-def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
-    """Get the JIRA issue data from the JIRA API."""
+def get_jira_issue(
+    issue_name: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+) -> tuple:
+    """Get the JIRA issue data from the JIRA API.
+
+    Parameters
+    ----------
+    issue_name : str
+        name of the Jira issue including the prefix and dash e.g., DM-40000
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
+
+    Returns
+    -------
+    tuple
+        The second of two elements is a status code; None if successful,
+        otherwise a string including the error's status code. If successful,
+        the first element is a JSON dict. If unsuccessful, the first element
+        is either an empty list or None depending on the status code.
+    """
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
@@ -49,7 +73,20 @@ def get_jira_issue(issue_name: str, email: str, api_token: str) -> tuple:
 
 
 def extract_reviewer_from_customfield(jira_data: dict) -> list:
-    """Extract the reviewer(s) from the customfield_10048."""
+    """Extract the reviewer(s) from the customfield_10048.
+
+    Parameters
+    ----------
+    jira_data : dict
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    list
+        List of Jira reviewer names (first and last) for this issue.
+        Returns a single-element list if there is one reviewer, and
+        also returns a single element list if no reviewers assigned.
+    """
     # Extract reviewer information from customfield_10048 if available
     reviewers = jira_data["fields"].get("customfield_10048", [])
     if reviewers:
@@ -62,7 +99,20 @@ def extract_reviewer_from_customfield(jira_data: dict) -> list:
 
 
 def extract_related_issues(jira_data: dict) -> list:
-    """Extract the related issues from the JIRA data."""
+    """Extract the related issues from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : dict
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    related_issues : list
+        List of related issues, each of which is a summirized with
+        a dict. Empty list is returned if there are no related
+        issues.
+    """
     related_issues = []
     issue_links = jira_data["fields"].get("issuelinks", [])
 
@@ -100,13 +150,38 @@ def extract_related_issues(jira_data: dict) -> list:
 
 
 def extract_components(jira_data: dict) -> list:
-    """Extract the components from the JIRA data."""
+    """Extract the components from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : dict
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    list
+        List of components, each of which is a string. Empty list returned
+        if Jira issue has no components specified.
+    """
     components = jira_data["fields"].get("components", [])
     return [component.get("name", "No component") for component in components]
 
 
 def extract_comments(jira_data: dict) -> list:
-    """Extract the comments from the JIRA data."""
+    """Extract the comments from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : dict
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    list
+        List of comments, each of which is represented with a dictionary.
+        Each comment dictionary contains the comment author name and
+        comment text. Empty list returned if Jira issue has no comments.
+    """
     comments = jira_data["fields"].get("comment", {}).get("comments", [])
     return [
         {
@@ -118,7 +193,19 @@ def extract_comments(jira_data: dict) -> list:
 
 
 def extract_parent_issue(jira_data: dict) -> dict:
-    """Extract the parent issue from the JIRA data."""
+    """Extract the parent issue from the JIRA data.
+
+    Parameters
+    ----------
+    jira_data : dict
+        Dictionary of Jira issue data as returned by the Jira API.
+
+    Returns
+    -------
+    dict
+        Parent issue represented as a dictionary. Empty dictionary
+        returned if no parent issue found.
+    """
     parent_issue = jira_data["fields"].get("parent", None)
     if parent_issue:
         return {
@@ -134,7 +221,25 @@ def extract_parent_issue(jira_data: dict) -> dict:
 def safe_get(
     dictionary: dict[str, Any], keys: list, default: Any | None = None
 ) -> Any:
-    """Safely extract information from nested dictionaries."""
+    """Safely extract information from nested dictionaries.
+
+    Parameters
+    ----------
+    dictionary : dict
+        Dictionary of with string keys and values of any type.
+    keys : list
+        List of string keys for which to attempt to extract
+        values from the input (nested) dictionary.
+    default : Any
+        Default value to return in the event that retrieving the
+        value for a key fails. Defaults to None.
+
+    Returns
+    -------
+    Any
+        Value found corresponding to (nested) key(s). Returns default
+        if key(s) not found.
+    """
     return reduce(
         lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
         keys,
@@ -143,7 +248,23 @@ def safe_get(
 
 
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
-    """Reformat the JIRA data into a simplified dictionary."""
+    """Reformat the JIRA data into a simplified dictionary.
+
+    Parameters
+    ----------
+    jira_data : dict
+        Dictionary of Jira issue data as returned by the Jira API.
+    ticket : str
+        Name of Jira issue.
+
+    Returns
+    -------
+    dict
+        reformatted/simplified dictionary representing the Jira ticket
+        data/metadata, if input Jira data is not an empty dictionary.
+        Otherwise a placeholder dictionary with the same structure but
+        no meaningful content in the values.
+    """
     if not jira_data:
         # If jira_data is None or empty, return a default
         # dictionary with the error message
@@ -212,15 +333,28 @@ def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
 
 def write_to_file(
     results: dict,
-    folder: str = "/Users/gmegias/Desktop/LSST_Developer/JIRA tickets",
+    folder: str = ".",
 ) -> None:
-    """Write the JIRA ticket data to a JSON file."""
+    """Write the JIRA ticket data to a JSON file.
+
+    Parameters
+    ----------
+        results : dict
+            dictionary of Jira ticket data and metadata
+        folder : str
+            base output folder within which to write the JSON file. The
+            directory into which write-out happens is a subdirectory of
+            the specified folder, where the subdirectory name is the Jira
+            ticket's prefix. The output directory will be created if it
+            doesn't already exist. Using the default folder, the output
+            JSON is written into ./DM for a DM- prefixed ticket name.
+    """
     # Extract the prefix from the key (letters before '-')
     ticket_key = results["key"]  # Assuming 'key' is something like 'DM-12345'
     prefix = ticket_key.split("-")[0]  # Get the letters before the '-'
 
     # Construct the new folder path by appending the prefix
-    folder_with_prefix = Path(folder / prefix)
+    folder_with_prefix = Path(folder) / Path(prefix)
 
     # Ensure the folder exists
     if not Path.exists(folder_with_prefix):
@@ -238,16 +372,64 @@ def write_to_file(
         )  # Writing with indentation for readability
 
 
-def fetch_ticket(ticket: str, email: str, api_token: str) -> tuple:
-    """Fetch the ticket data from JIRA."""
+def fetch_ticket(
+    ticket: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+) -> tuple:
+    """Fetch and reformat the ticket data from JIRA.
+
+    Parameters
+    ----------
+        ticket : str
+            name of the Jira issue including the prefix and dash e.g., DM-40000
+        email : str
+            email address of Jira account associated with the API token
+        api_token : str
+            Jira API token
+
+    Returns
+    -------
+        dict
+            reformatted/simplified dictionary representing the Jira ticket
+            data/metadata, if successful. Otherwise a placeholder dictionary
+            with the same structure but no meaningful content in the values.
+        error_message : str
+            None if successful, otherwise a string with the ticket name and
+            error message.
+    """
     jira_data, error_message = get_jira_issue(ticket, email, api_token)
     return reformat_jira_data(jira_data, ticket), error_message
 
 
 def retry_fetch_ticket(
-    ticket: str, email: str, api_token: str, max_retries: int = 5
+    ticket: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    max_retries: int = 5,
 ) -> tuple:
-    """Fetch the ticket with retry logic."""
+    """Fetch Jira ticket with retry logic.
+
+    Parameters
+    ----------
+    ticket : str
+        name of the Jira issue including the prefix and dash e.g., DM-40000
+    email : str
+        email address of Jira account associated with the API token
+    api_token : str
+        Jira API token
+    max_retries : int
+        maximum number of attempts at fetching the Jira ticket
+
+    Returns
+    -------
+    tuple
+        Two-element tuple. If successful, the first element is a dict
+        with the ticket data/metadata and the second element is None. If
+        unsuccessful, the first element is either a default dictionary
+        or None (if exceptions encountered on all retries), and the
+        second element is a string error message.
+    """
     for attempt in range(max_retries):
         try:
             result, error_message = fetch_ticket(ticket, email, api_token)
@@ -258,3 +440,155 @@ def retry_fetch_ticket(
         else:
             return result, error_message
     return None, "Failed to fetch ticket"
+
+
+def jira_to_document(jira_data: dict) -> Document:
+    """Convert Jira ticket dictionary data to a LangChain Document.
+
+    Parameters
+    ----------
+    jira_data : dict
+        reformatted/simplified dictionary representing the Jira ticket
+        data/metadata. Needs to have 'description' key.
+
+    Returns
+    -------
+    Document
+        A Document (langchain_core.documents.base.Document) object formed
+        by considering everything other than the 'description' key within
+        the Jira data dictionary to be metadata.
+    """
+    metadata = jira_data.copy()
+    del metadata["description"]
+
+    if jira_data["description"] is None:
+        jira_data["description"] = ""
+
+    return Document(page_content=jira_data["description"], metadata=metadata)
+
+
+def jira_tickets_from_list(
+    ticket_list: list,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    folder: str = ".",
+    max_retries: int = 5,
+    *,
+    write: bool = False,
+) -> tuple:
+    """Ingest a list of Jira tickets into LangChain documents.
+
+    Parameters
+    ----------
+    ticket_list : list
+        list of names of the Jira issues to ingest including the
+        prefix and dash in each case e.g., DM-40000. Each list
+        element is a string.
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
+    folder : str
+        base output folder within which to write the JSON file. The
+        directory into which write-out happens is a subdirectory of
+        the specified folder, where the subdirectory name is the Jira
+        ticket's prefix. The output directory will be created if it
+        doesn't already exist. Using the default folder, the output
+        is written into ./DM for a DM- prefixed ticket name. Unused
+        if write is set to False.
+    max_retries : int
+        maximum number of attempts at fetching each Jira ticket.
+        Defaults to 5.
+    write : bool
+        keyword-only argument. Whether or not to write out each
+        successfully downloaded Jira issue to a file.
+
+    Returns
+    -------
+    tuple
+        two-element tuple. The first element is the list of
+        LangChain documents for successfully retrieved Jira tickets.
+        The second element of the returned tuple is a list of Jira
+        tickets that were not fetched successfully. Each element of
+        this list is a two-element tuple, where the first tuple
+        element is the string ticket name (including prefix and dash)
+        and the second tuple element is the corresponding string
+        error message.
+    """
+    docs: list = []
+    failures: list = []
+
+    for ticket_name in ticket_list:
+        jira_data, status = retry_fetch_ticket(
+            ticket_name, email, api_token, max_retries
+        )
+        # only output the results if fetching was successful
+        if status is None:
+            docs.append(jira_to_document(jira_data))
+            if write:
+                write_to_file(jira_data, folder)
+        else:
+            failures.append((ticket_name, status))
+
+    return docs, failures
+
+
+def jira_tickets_in_range(
+    ticket_prefix: str,
+    min_ticket_num: int,
+    max_ticket_num: int,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    folder: str = ".",
+    max_retries: int = 5,
+    *,
+    write: bool = False,
+) -> tuple:
+    """Ingest a numerical range of Jira tickets into LangChain documents.
+
+    Parameters
+    ----------
+    ticket_prefix : str
+        valid ticket prefix such as 'DM' without a trailing dash
+    min_ticket_num : int
+        minimum ticket number (inclusive)
+    max_ticket_num : int
+        maximum ticket number (inclusive)
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
+    folder : str
+        base output folder within which to write the JSON file. The
+        directory into which write-out happens is a subdirectory of
+        the specified folder, where the subdirectory name is the Jira
+        ticket's prefix. The output directory will be created if it
+        doesn't already exist. Using the default folder, the output
+        is written into ./DM for a DM- prefixed ticket name. Unused
+        if write is set to False.
+    max_retries : int
+        maximum number of attempts at fetching each Jira ticket.
+        Defaults to 5.
+    write : bool
+        keyword-only argument. Whether or not to write out each
+        successfully downloaded Jira issue to a file.
+
+    Returns
+    -------
+    tuple
+        two-element tuple. The first element is the list of
+        LangChain documents for successfully retrieved Jira tickets.
+        The second element of the returned tuple is a list of Jira
+        tickets that were not fetched successfully. Each element of
+        this list is a two-element tuple, where the first tuple
+        element is the string ticket name (including prefix and dash)
+        and the second tuple element is the corresponding string
+        error message.
+    """
+    ticket_list = [
+        ticket_prefix + "-" + str(i)
+        for i in range(min_ticket_num, max_ticket_num + 1)
+    ]
+    return jira_tickets_from_list(
+        ticket_list, email, api_token, folder, max_retries, write=write
+    )
