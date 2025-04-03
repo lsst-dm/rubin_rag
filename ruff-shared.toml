@@ -18,7 +18,7 @@
 #
 # Reference for settings: https://docs.astral.sh/ruff/settings/
 # Reference for rules: https://docs.astral.sh/ruff/rules/
-exclude = ["docs/**"]
+exclude = ["docs/**", "notebooks/**"]
 line-length = 79
 target-version = "py312"
 
