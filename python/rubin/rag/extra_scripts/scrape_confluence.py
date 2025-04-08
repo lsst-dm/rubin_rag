@@ -20,39 +20,73 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Load Confluence documents, process metadata, and upload them to Weaviate
-with optional chunking.
-"""
+"""Load and scrape Confluence into a langchain document objects."""
 
-from langchain.document_loaders import ConfluenceLoader
-from langchain.schema import Document
-from universal_weaviate_uploader import push_docs_to_weaviate
+import os
+from pathlib import Path
 
-# Instantiate ConfluenceLoader
-loader = ConfluenceLoader("https://confluence.lsstcorp.org")
+import yaml
+from langchain_community.document_loaders import ConfluenceLoader
+from langchain_core.documents.base import Document
 
-# Load documents with specified parameters
-docs = loader.load(
-    space_key="DM",
-    include_archived_content=False,
-    include_restricted_content=False,
-    include_attachments=False,
-    max_pages=10000,
-    include_comments=True,
-    keep_markdown_format=True,
-    keep_newlines=True,
-)
 
-# Convert the loaded documents to a list
-docs_list = list(docs)
+def load_and_scrape(yaml_file: str) -> list[Document]:
+    """Load and scrape a Confluence page or space into a langchain document
+    object. Put page ids into a yaml file under confluence_pages, and space
+    keys under confluence_spaces.
+    """
+    path = Path(yaml_file)
+    with path.open(mode="r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
 
-new_documents = []
-for doc in docs_list:
-    metadata = doc.metadata.copy()
-    metadata["pageid"] = metadata.pop("id")
-    metadata["source_key"] = "confluence"
-    new_doc = Document(page_content=doc.page_content, metadata=metadata)
-    new_documents.append(new_doc)
+    page_ids = data.get("confluence_pages", [])
+    space_keys = data.get("confluence_spaces", [])
+    if not page_ids and not space_keys:
+        raise ValueError("No Confluence pages or spaces found in YAML file.")
 
-# Push documents to Weaviate
-push_docs_to_weaviate(new_documents, do_chunk=True)
+    documents = []
+
+    loader = ConfluenceLoader(
+        url="https://rubinobs.atlassian.net/wiki",
+        api_key=os.getenv("CONFLUENCE_API_TOKEN"),
+        username=os.getenv("CONFLUENCE_USERNAME"),
+        page_ids=page_ids,
+        include_archived_content=False,
+        include_restricted_content=False,
+        include_attachments=False,
+        max_pages=10000,
+        include_comments=True,
+        keep_markdown_format=True,
+        keep_newlines=True,
+    )
+
+    page_docs = loader.load()
+
+    space_docs = []
+
+    for space_key in space_keys:
+        loader = ConfluenceLoader(
+            url="https://rubinobs.atlassian.net/wiki",
+            api_key=os.getenv("CONFLUENCE_API_TOKEN"),
+            username=os.getenv("CONFLUENCE_USERNAME"),
+            space_key=space_key,
+            include_archived_content=False,
+            include_restricted_content=False,
+            include_attachments=False,
+            max_pages=10000,
+            include_comments=True,
+            keep_markdown_format=True,
+            keep_newlines=True,
+        )
+        space_docs.extend(loader.load())
+
+    docs = page_docs + space_docs
+
+    for doc in docs:
+        doc.metadata["source_key"] = "confluence"
+        documents.append(doc)
+
+    if not documents:
+        raise RuntimeError("No documents were successfully loaded.")
+
+    return documents
