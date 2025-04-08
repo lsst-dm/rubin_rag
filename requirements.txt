@@ -1,3 +1,4 @@
+types-PyYAML==6.0.12.20250402
 requests==2.32.3
 pinecone==6.0.1
 python-dotenv==1.0.1
