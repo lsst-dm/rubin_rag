@@ -1,0 +1,35 @@
+# Confluence data sources -- template
+#title: The name of the Confluence space or its primary focus.
+#url: The URL to the Confluence space.
+#description: A short overview of what the Confluence space contains.
+#category: Categorized as "Documentation" to indicate its purpose.
+#
+description: Common confluence spaces for all deployments of Rubin_RAG
+# Ingest the full space -- no sub directories specified
+sources:
+  - title: "Confluence Space: System Performance"
+    url: "https://rubinobs.atlassian.net/wiki/spaces/SP"
+    description: "Rubin confluence space for System Performance"
+    category: "documentation"
+# Only ingest pages in specific directories with a label
+  - title: "Data Management"
+    url: "https://rubinobs.atlassian.net/wiki/spaces/DM"
+    description: "Rubin confluence space for Data Management"
+    category: "documentation"
+    label:
+      - "dmlt"
+      - "panda"
+      - "dp1paper"
+  # Only ingest specific directories
+  - title: "Rubin Observatory Operations"
+    url: "https://confluence.example.com/display/LSSTOps"
+    description: "Rubin Observatory Operations Confluence Space"
+    category: "documentation"
+    directories:
+      - name: "Rubin Operations Committees"
+        url: "https://rubinobs.atlassian.net/wiki/spaces/LSSTOps/pages/45566257/Rubin+Operations+Committees"
+        description: "Rubin Operations Committees"
+      - name: "Survey Cadence Optimization Committee"
+        url: "https://rubinobs.atlassian.net/wiki/spaces/LSSTOps/pages/45547919/Survey+Cadence+Optimization+Committee"
+        description: "Survey Cadence Optimization Committee"
+

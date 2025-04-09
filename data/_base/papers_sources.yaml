@@ -1,0 +1,16 @@
+# Not all fields are provided for all entries
+description: Common publications data sources for all deployments of Rubin_RAG
+sources:
+  - title: "A Letter from the Reverend Mr. James Bradley Savilian Professor of Astronomy at Oxford, and F.R.S. to Dr.Edmond Halley Astronom. Reg. &c. Giving an Account of a New Discovered Motion of the Fix'd Stars."
+    doi: "1727RSPT...35..637B"
+    category: "paper"
+  - title: "LSST Science Book, Version 2.0"
+    doi: "2009arXiv0912.0201L"
+  - title: "LSST: From Science Drivers to Reference Design and Anticipated Data Products"
+    doi: "2008arXiv0805.2366I"
+  - title: "A Roadmap to Photometric Redshifts for the LSST Object Catalog"
+    url: "https://dmtn-049.lsst.io/"
+    category: "technote"
+
+
+

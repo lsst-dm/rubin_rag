@@ -1,0 +1,13 @@
+# Confluence data sources -- template
+#title: The name of the Confluence space or its primary focus.
+#url: The URL to the Confluence space.
+#description: A short overview of what the Confluence space contains.
+#category: Categorized as "Documentation" to indicate its purpose.
+#
+description: Confluence spaces for the USDF/project instance only
+# Ingest the full space -- no sub directories specified. The community do not care about internal project support
+sources:
+- title: "LITS Support Home"
+  url: "https://rubinobs.atlassian.net/wiki/spaces/IT"
+  description: "Rubin confluence space for LSST Information Technology Services (LITS)"
+  category: "documentation"
