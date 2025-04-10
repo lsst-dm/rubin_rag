@@ -22,7 +22,7 @@ sources:
       - "dp1paper"
   # Only ingest specific directories
   - title: "Rubin Observatory Operations"
-    url: "https://confluence.example.com/display/LSSTOps"
+    url: "LSSTOps"
     description: "Rubin Observatory Operations Confluence Space"
     category: "documentation"
     directories:
