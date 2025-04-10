@@ -19,7 +19,7 @@ sources:
     category: "documentation"
   # Only ingest specific directories
   - title: "Rubin Observatory Operations"
-    url: "LSSTOps"
+    space: "LSSTOps"
     description: "Rubin Observatory Operations Confluence Space"
     category: "documentation"
     pages:
