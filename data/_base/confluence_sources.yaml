@@ -17,9 +17,6 @@ sources:
     space: "DM"
     description: "Rubin confluence space for Data Management"
     category: "documentation"
-      - "dmlt"
-      - "panda"
-      - "dp1paper"
   # Only ingest specific directories
   - title: "Rubin Observatory Operations"
     url: "LSSTOps"
