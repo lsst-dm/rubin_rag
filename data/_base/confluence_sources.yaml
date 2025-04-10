@@ -24,7 +24,7 @@ sources:
     category: "documentation"
     directories:
       - name: "Rubin Operations Committees"
-        url: "https://rubinobs.atlassian.net/wiki/spaces/LSSTOps/pages/45566257/Rubin+Operations+Committees"
+        page_id: "45566257"
         description: "Rubin Operations Committees"
       - name: "Survey Cadence Optimization Committee"
         page_id: "45547919"
