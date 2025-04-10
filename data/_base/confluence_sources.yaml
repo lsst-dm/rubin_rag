@@ -22,7 +22,7 @@ sources:
     url: "LSSTOps"
     description: "Rubin Observatory Operations Confluence Space"
     category: "documentation"
-    directories:
+    pages:
       - name: "Rubin Operations Committees"
         page_id: "45566257"
         description: "Rubin Operations Committees"
