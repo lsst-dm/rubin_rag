@@ -5,7 +5,8 @@
 #category: Categorized as "Documentation" to indicate its purpose.
 #
 description: Common confluence spaces for all deployments of Rubin_RAG
-wiki_url: "https://rubinobs.atlassian.net/wiki"
+confluence_sources:
+  - wiki_url: "https://rubinobs.atlassian.net/wiki"
 # Ingest the full space -- no sub directories specified
 sources:
   - title: "Confluence Space: System Performance"
