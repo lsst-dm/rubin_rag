@@ -13,7 +13,7 @@ sources:
     category: "documentation"
 # Only ingest pages in specific directories with a label
   - title: "Data Management"
-    url: "https://rubinobs.atlassian.net/wiki/spaces/DM"
+    space: "DM"
     description: "Rubin confluence space for Data Management"
     category: "documentation"
     label:
