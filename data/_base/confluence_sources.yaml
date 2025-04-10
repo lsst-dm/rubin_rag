@@ -31,6 +31,6 @@ sources:
         url: "https://rubinobs.atlassian.net/wiki/spaces/LSSTOps/pages/45566257/Rubin+Operations+Committees"
         description: "Rubin Operations Committees"
       - name: "Survey Cadence Optimization Committee"
-        url: "https://rubinobs.atlassian.net/wiki/spaces/LSSTOps/pages/45547919/Survey+Cadence+Optimization+Committee"
+        page_id: "45547919"
         description: "Survey Cadence Optimization Committee"
 
