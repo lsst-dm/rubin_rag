@@ -3,6 +3,7 @@
 #url: The URL to the github repo.
 #description: A short description of the repo.
 #category: Categorized as e.g. pipelines, rsp, tutorial
+organization: "lsst"
 - title: "meas_base"
   url: "https://github.com/lsst/meas_base"
   description: "The lsst.meas.base Python module provides core astronomical measurement algorithms and base classes. Documentation is available at https://pipelines.lsst.io/modules/lsst.meas.base/index.html ."
