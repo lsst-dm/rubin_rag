@@ -14,7 +14,7 @@ organization:
 
 # Science collaborations
   - name: "LSSTDESC"
-  - name: "LSST Strong Lensing Science"
+  - name: "LSST-strong-lensing"
   - name: "LSST-TVSSC"
   - name: "LSST-SSSC"
   - name: "LSSTScienceCollaborations"
