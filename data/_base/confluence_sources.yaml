@@ -9,7 +9,7 @@ url:"https://rubinobs.atlassian.net/wiki/spaces/"
 # Ingest the full space -- no sub directories specified
 sources:
   - title: "Confluence Space: System Performance"
-    url: "https://rubinobs.atlassian.net/wiki/spaces/SP"
+    wiki_url: "https://rubinobs.atlassian.net/wiki"
     description: "Rubin confluence space for System Performance"
     category: "documentation"
 # Only ingest pages in specific directories with a label
