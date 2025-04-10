@@ -1,0 +1,20 @@
+# Some repos have "legacy" in the text or "deprecated"
+url: "https://github.com"
+
+# LSST organizations
+organization:
+  - name: "lsst"
+  - name: "lsst-dm"
+  - name: "lsst-pst"
+  - name: "lsst-sqre"
+  - name: "lsst-dmsst"
+  - name: "lsst-sitcom"
+  - name: "lsst-ts"
+  - name: "lsst-camera-dh"
+
+# Science collaborations
+  - name: "LSSTDESC"
+  - name: "LSST Strong Lensing Science"
+  - name: "LSST-TVSSC"
+  - name: "LSST-SSSC"
+  - name: "LSSTScienceCollaborations"
