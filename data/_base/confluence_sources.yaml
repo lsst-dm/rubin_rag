@@ -12,7 +12,6 @@ sources:
     space: "SP"
     description: "Rubin confluence space for System Performance"
     category: "documentation"
-# Only ingest pages in specific directories with a label
   - title: "Data Management"
     space: "DM"
     description: "Rubin confluence space for Data Management"
