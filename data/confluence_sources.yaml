@@ -23,6 +23,8 @@ wikis:
       - space: "OOD"
       - space: "RM"
       - space: "LSCO"
+      - space: "LWDPP"
+      - space: "IM"
       - space: "LSSTOps"  # only ingest specific pages
         pages:
           # Rubin Operations Committees
