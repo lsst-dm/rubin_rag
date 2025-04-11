@@ -33,7 +33,7 @@ wikis:
   # LSST DESC -- a space in the SLAC wiki.
   # Do not try to ingest yet - no programmatic access
   - url: "https://confluence.slac.stanford.edu"
-  - spaces:
+    spaces:
     - space: "LSSTDESC"
 
   # LSST UK wiki
