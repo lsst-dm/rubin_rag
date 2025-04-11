@@ -11,6 +11,8 @@ organization:
   - name: "lsst-sitcom"
   - name: "lsst-ts"
   - name: "lsst-camera-dh"
+    repos:
+      -repo: "eo-pipe"
 
 # Science collaborations
   - name: "LSSTDESC"
