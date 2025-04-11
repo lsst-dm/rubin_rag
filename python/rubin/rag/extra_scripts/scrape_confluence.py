@@ -24,16 +24,15 @@
 confluence_sources.yaml into a langchain document objects.
 """
 
-import os
-import yaml
 import logging
+import os
 from pathlib import Path
-import requests
-from requests.auth import HTTPBasicAuth
 
+import requests
+import yaml
 from langchain_community.document_loaders import ConfluenceLoader
 from langchain_core.documents.base import Document
-
+from requests.auth import HTTPBasicAuth
 
 logging.basicConfig(level=logging.INFO)
 
@@ -43,8 +42,10 @@ def get_child_page_ids(parent_id: str, limit: int = 100) -> list:
     username = os.getenv("CONFLUENCE_USERNAME")
     api_token = os.getenv("CONFLUENCE_API_TOKEN")
     if username is None or api_token is None:
-        raise ValueError("Missing CONFLUENCE_USERNAME or "
-                         "CONFLUENCE_API_TOKEN environment variables")
+        raise ValueError(
+            "Missing CONFLUENCE_USERNAME or "
+            "CONFLUENCE_API_TOKEN environment variables"
+        )
 
     url = (
         f"https://rubinobs.atlassian.net/wiki/rest/api/content/{parent_id}"
@@ -73,10 +74,11 @@ def get_all_child_page_ids(parent_id: str, limit: int = 100) -> list:
         all_child_ids.extend(child_ids)
         for child_id in child_ids:
             all_child_ids.extend(get_all_child_page_ids(child_id, limit))
-        return all_child_ids
     except Exception as e:
         logging.warning(f"Error when fetching children of {parent_id}: {e}")
         return []
+    else:
+        return all_child_ids
 
 
 def load_and_scrape(yaml_file: str) -> list[Document]:
@@ -84,8 +86,10 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     username = os.getenv("CONFLUENCE_USERNAME")
     api_token = os.getenv("CONFLUENCE_API_TOKEN")
     if username is None or api_token is None:
-        raise ValueError("Missing CONFLUENCE_USERNAME or "
-                         "CONFLUENCE_API_TOKEN environment variables")
+        raise ValueError(
+            "Missing CONFLUENCE_USERNAME or "
+            "CONFLUENCE_API_TOKEN environment variables"
+        )
 
     path = Path(yaml_file)
     with path.open(mode="r", encoding="utf-8") as f:
@@ -114,10 +118,9 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
                             f"Error loading children of page {page_id}: {e}"
                         )
 
-                page_ids = []
-                for pid in all_page_ids:
-                    if pid is not None:
-                        page_ids.append(str(pid))
+                page_ids = [
+                    str(pid) for pid in all_page_ids if pid is not None
+                ]
 
                 loader = ConfluenceLoader(
                     url=wiki_url,
