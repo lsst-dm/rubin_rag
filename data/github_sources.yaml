@@ -19,7 +19,7 @@ organization:
   - name: "lsst-epo"
   - name: "lsst-camera-dh"
     repos:
-      -repo: "eo-pipe"
+      - repo: "eo-pipe"
 
 # Science collaborations
   - name: "LSSTDESC"
