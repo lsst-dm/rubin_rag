@@ -1,0 +1,46 @@
+description: Confluence spaces to ingest into Rubin_RAG
+wikis:
+  - url: "https://rubinobs.atlassian.net/wiki"
+    spaces:
+      - space: "SP"
+      - space: "DM"
+      - space: "EPO"
+      - space: "SYSENG"
+      - space: "CAM"
+      - space: "COM"
+      - space: "LTSAD"
+      - space: "OLM"
+      - space: "LTS"
+      - space: "LSSTPO"
+      - space: "CMMS"
+      - space: "OST"
+      - space: "IT"
+      - space: "LSSTCOM"
+      - space: "SIM"
+      - space: "LSP"
+      - space: "PS"
+      - space: "PC"
+      - space: "OOD"
+      - space: "RM"
+      - space: "LSCO"
+      - space: "LWDPP"
+      - space: "IM"
+      - space: "LSSTOps"  # only ingest specific pages
+        pages:
+          # Rubin Operations Committees
+          - page_id: "45566257"
+          # Survey Cadence Optimization Committee
+          - page_id: "45547919"
+
+  # LSST DESC -- a space in the SLAC wiki.
+  # Do not try to ingest yet - no programmatic access
+#  - url: "https://confluence.slac.stanford.edu"
+#    spaces:
+#    - space: "LSSTDESC"
+
+  # LSST UK wiki
+  # Do not try to ingest yet - no programmatic access
+#  - url: "https://lsst-uk.atlassian.net/wiki"
+#    spaces:
+#    - space: "HOME"
+#    - space: "Documentation"
