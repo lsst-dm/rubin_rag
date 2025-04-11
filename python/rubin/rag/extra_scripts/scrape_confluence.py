@@ -36,24 +36,25 @@ from requests.auth import HTTPBasicAuth
 
 logging.basicConfig(level=logging.INFO)
 
+username = os.getenv("CONFLUENCE_USERNAME")
+api_token = os.getenv("CONFLUENCE_API_TOKEN")
+if username is None:
+    raise ValueError("Missing CONFLUENCE_USERNAME")
+if api_token is None:
+    raise ValueError("Missing CONFLUENCE_API_TOKEN")
+
 
 def get_child_page_ids(parent_id: str, limit: int = 100) -> list:
     """Attempt to get the children of a given parent."""
-    username = os.getenv("CONFLUENCE_USERNAME")
-    api_token = os.getenv("CONFLUENCE_API_TOKEN")
-    if username is None or api_token is None:
-        raise ValueError(
-            "Missing CONFLUENCE_USERNAME or "
-            "CONFLUENCE_API_TOKEN environment variables"
-        )
-
     url = (
         f"https://rubinobs.atlassian.net/wiki/rest/api/content/{parent_id}"
         f"/child/page?limit={limit}"
     )
     try:
         response = requests.get(
-            url, auth=HTTPBasicAuth(username, api_token), timeout=10
+            url,
+            auth=HTTPBasicAuth(username, api_token),  # type: ignore[arg-type]
+            timeout=10,
         )
         response.raise_for_status()
         data = response.json()
@@ -83,14 +84,6 @@ def get_all_child_page_ids(parent_id: str, limit: int = 100) -> list:
 
 def load_and_scrape(yaml_file: str) -> list[Document]:
     """Load Confluence pages into a list of Langchain Documents."""
-    username = os.getenv("CONFLUENCE_USERNAME")
-    api_token = os.getenv("CONFLUENCE_API_TOKEN")
-    if username is None or api_token is None:
-        raise ValueError(
-            "Missing CONFLUENCE_USERNAME or "
-            "CONFLUENCE_API_TOKEN environment variables"
-        )
-
     path = Path(yaml_file)
     with path.open(mode="r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
