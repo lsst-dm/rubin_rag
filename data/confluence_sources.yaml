@@ -1,7 +1,7 @@
 description: Confluence spaces to ingest into Rubin_RAG
 wikis:
   - url: "https://rubinobs.atlassian.net/wiki"
-  - spaces:
+    spaces:
       - space: "SP"
       - space: "DM"
       - space: "EPO"
