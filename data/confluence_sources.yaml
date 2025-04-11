@@ -39,6 +39,6 @@ wikis:
   # LSST UK wiki
   # Do not try to ingest yet - no programmatic access
   - url: "https://lsst-uk.atlassian.net/wiki"
-  - spaces:
+    spaces:
     - space: "HOME"
     - space: "Documentation"
