@@ -23,14 +23,14 @@ wikis:
       - space: "OOD"
       - space: "RM"
       - space: "LSCO"
+      # LWDPP only has 2 child pages -- this format is used to test the code
+      # The space default page does not have a page ID.
       - space: "LWDPP"
-      - space: "IM"
-      - space: "LSSTOps"  # only ingest specific pages
         pages:
-          # Rubin Operations Committees
-          - page_id: "45566257"
-          # Survey Cadence Optimization Committee
-          - page_id: "45547919"
+          - page_id: "42270754"
+          - page_id: "42270746"
+      - space: "IM"
+      - space: "LSSTOps"
 
   # LSST DESC -- a space in the SLAC wiki.
   # Do not try to ingest yet - no programmatic access
