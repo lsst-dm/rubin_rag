@@ -35,6 +35,7 @@ from langchain_core.documents.base import Document
 from requests.auth import HTTPBasicAuth
 
 logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
 
 username = os.getenv("CONFLUENCE_USERNAME")
 api_token = os.getenv("CONFLUENCE_API_TOKEN")
@@ -60,10 +61,10 @@ def get_child_page_ids(parent_id: str, limit: int = 100) -> list:
         data = response.json()
         return [page["id"] for page in data.get("results", [])]
     except requests.exceptions.HTTPError as e:
-        logging.warning(f"Permission error for page {parent_id}: {e}")
+        _log.warning(f"Permission error for page {parent_id}: {e}")
         return []
     except Exception as e:
-        logging.warning(f"Error when fetching children of {parent_id}: {e}")
+        _log.warning(f"Error when fetching children of {parent_id}: {e}")
         return []
 
 
@@ -76,7 +77,7 @@ def get_all_child_page_ids(parent_id: str, limit: int = 100) -> list:
         for child_id in child_ids:
             all_child_ids.extend(get_all_child_page_ids(child_id, limit))
     except Exception as e:
-        logging.warning(f"Error when fetching children of {parent_id}: {e}")
+        _log.warning(f"Error when fetching children of {parent_id}: {e}")
         return []
     else:
         return all_child_ids
@@ -107,7 +108,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
                         child_ids = get_all_child_page_ids(page_id)
                         all_page_ids.update(child_ids)
                     except Exception as e:
-                        logging.warning(
+                        _log.warning(
                             f"Error loading children of page {page_id}: {e}"
                         )
 
