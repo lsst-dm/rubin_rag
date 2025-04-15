@@ -38,8 +38,8 @@ from langchain_core.documents import Document
 
 def get_jira_issue(
     issue_name: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
+    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
 ) -> tuple:
     """Get the JIRA issue data from the JIRA API.
 
@@ -375,8 +375,8 @@ def write_to_file(
 
 def fetch_ticket(
     ticket: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
+    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
 ) -> tuple:
     """Fetch and reformat the ticket data from JIRA.
 
@@ -405,8 +405,8 @@ def fetch_ticket(
 
 def retry_fetch_ticket(
     ticket: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
+    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
     max_retries: int = 5,
 ) -> tuple:
     """Fetch Jira ticket with retry logic.
@@ -470,8 +470,8 @@ def jira_to_document(jira_data: dict) -> Document:
 
 def jira_tickets_from_list(
     ticket_list: list,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
+    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
     folder: str = ".",
     max_retries: int = 5,
     *,
@@ -538,8 +538,8 @@ def jira_tickets_in_range(
     ticket_prefix: str,
     min_ticket_num: int,
     max_ticket_num: int,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
+    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
     folder: str = ".",
     max_retries: int = 5,
     *,
@@ -597,8 +597,8 @@ def jira_tickets_in_range(
 
 def get_max_issue_number(
     project: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
+    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
 ) -> int:
     """Determine maximum Jira issue number for a project.
 
