@@ -44,6 +44,7 @@ if api_token is None:
 username = str(username)
 api_token = str(api_token)
 
+
 def get_jira_issue(
     issue_name: str,
     email: str = username,
