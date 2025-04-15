@@ -601,7 +601,6 @@ def get_max_issue_number(
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> int:
     """Determine maximum Jira issue number for a project."""
-
     url = f"https://rubinobs.atlassian.net/rest/api/latest/search?jql=project={project}+order+by+key+desc&maxResults=1"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
