@@ -604,8 +604,13 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     documents = []
 
     for project in data["projects"]:
+        if not "start" in project.keys():
+            # visible DM issues start at 554 and issues are 1-indexed
+            start = 554 if project["name"] == "DM" else 1
+        else:
+            start = project["start"]
         project_docs, failures = jira_tickets_in_range(
-            project["name"], project["start"], project["end"]
+            project["name"], start, project["end"]
         )
         project_docs = [
             d
