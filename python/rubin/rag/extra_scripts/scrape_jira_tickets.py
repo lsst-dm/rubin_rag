@@ -625,8 +625,12 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
             start = 554 if project["name"] == "DM" else 1
         else:
             start = project["start"]
+        if "end" not in project:
+            end = get_max_issue_number(project["name"])
+        else:
+            end = project["end"]
         project_docs, failures = jira_tickets_in_range(
-            project["name"], start, project["end"]
+            project["name"], start, end
         )
         project_docs = [
             d
