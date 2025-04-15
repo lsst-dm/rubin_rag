@@ -601,7 +601,7 @@ def get_max_issue_number(
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> int:
     """Determine maximum Jira issue number for a project.
-    
+
     Parameters
     ----------
     project : str
