@@ -594,6 +594,7 @@ def jira_tickets_in_range(
         ticket_list, email, api_token, folder, max_retries, write=write
     )
 
+
 def get_max_issue_number(
     project: str,
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
@@ -611,6 +612,7 @@ def get_max_issue_number(
     issue_number = int(issue_name.split("-")[-1])
 
     return issue_number
+
 
 def load_and_scrape(yaml_file: str) -> list[Document]:
     """Load Jira issues into a list of LangChain Documents."""
