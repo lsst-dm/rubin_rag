@@ -607,6 +607,8 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
         project_docs, failures = jira_tickets_in_range(
             project["name"], project["start"], project["end"]
         )
-        documents += project_docs
+        for project_doc in project_docs:
+            if project_doc.metadata["status"] not in data["exclude_status"]:
+                documents.append(project_doc)
 
     return documents
