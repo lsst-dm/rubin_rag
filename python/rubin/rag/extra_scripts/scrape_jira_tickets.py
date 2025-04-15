@@ -35,7 +35,6 @@ import requests
 import yaml
 from langchain_core.documents import Document
 
-
 username = os.getenv("CONFLUENCE_USERNAME")
 api_token = os.getenv("CONFLUENCE_API_TOKEN")
 if username is None:
