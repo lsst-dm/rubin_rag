@@ -609,9 +609,7 @@ def get_max_issue_number(
 
     data = response.json()
     issue_name = data["issues"][0]["key"]
-    issue_number = int(issue_name.split("-")[-1])
-
-    return issue_number
+    return int(issue_name.split("-")[-1])
 
 
 def load_and_scrape(yaml_file: str) -> list[Document]:
