@@ -604,7 +604,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     documents = []
 
     for project in data["projects"]:
-        if "start" not in project.keys():
+        if "start" not in project:
             # visible DM issues start at 554 and issues are 1-indexed
             start = 554 if project["name"] == "DM" else 1
         else:
