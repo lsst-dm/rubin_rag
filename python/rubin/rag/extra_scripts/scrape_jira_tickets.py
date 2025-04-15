@@ -41,7 +41,8 @@ if username is None:
     raise ValueError("Missing CONFLUENCE_USERNAME")
 if api_token is None:
     raise ValueError("Missing CONFLUENCE_API_TOKEN")
-
+username = str(username)
+api_token = str(api_token)
 
 def get_jira_issue(
     issue_name: str,
