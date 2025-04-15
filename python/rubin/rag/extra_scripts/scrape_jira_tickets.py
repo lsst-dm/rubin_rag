@@ -36,10 +36,18 @@ import yaml
 from langchain_core.documents import Document
 
 
+username = os.getenv("CONFLUENCE_USERNAME")
+api_token = os.getenv("CONFLUENCE_API_TOKEN")
+if username is None:
+    raise ValueError("Missing CONFLUENCE_USERNAME")
+if api_token is None:
+    raise ValueError("Missing CONFLUENCE_API_TOKEN")
+
+
 def get_jira_issue(
     issue_name: str,
-    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
-    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
 ) -> tuple:
     """Get the JIRA issue data from the JIRA API.
 
