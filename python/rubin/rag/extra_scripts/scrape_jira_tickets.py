@@ -600,7 +600,22 @@ def get_max_issue_number(
     email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
     api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
 ) -> int:
-    """Determine maximum Jira issue number for a project."""
+    """Determine maximum Jira issue number for a project.
+    
+    Parameters
+    ----------
+    project : str
+        name of Jira project like "DM" or "SP" (without dash)
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
+
+    Returns
+    -------
+    int
+        the maximum extant Jira ticket number for the specified project
+    """
     url = f"https://rubinobs.atlassian.net/rest/api/latest/search?jql=project={project}+order+by+key+desc&maxResults=1"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
