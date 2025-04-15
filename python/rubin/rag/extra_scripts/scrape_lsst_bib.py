@@ -48,11 +48,11 @@ def scrape_pdf(pdf_url: str) -> list[Document]:
             loader = PyMuPDFLoader(tmp.name)
             docs = loader.load()
             for doc in docs:
-                doc.metadata["source"] = url
+                doc.metadata["source"] = pdf_url
                 doc.metadata["source_key"] = "paper"
             documents.extend(docs)
     except Exception as e:
-        _log.debug(f"Failed to download PDF from {full_url}: {e}")
+        _log.debug(f"Failed to download PDF from {pdf_url}: {e}")
 
     return documents
 
@@ -67,51 +67,55 @@ def scrape_webpage(url: str) -> list[Document]:
     return docs
 
 
-# Load the bibtex file from Github
-url = (
-    "https://raw.githubusercontent.com/lsst/lsst-texmf/main/texmf/"
-    "bibtex/bib/lsst.bib"
-)
-response = requests.get(url, timeout=10)
-bib_database = bibtexparser.loads(response.text)
+def load_and_scrape() -> list[Document]:
+    """Load the bibtex file from Github and scrape the content."""
+    # Load the bibtex file from Github
+    url = (
+        "https://raw.githubusercontent.com/lsst/lsst-texmf/main/texmf/"
+        "bibtex/bib/lsst.bib"
+    )
+    response = requests.get(url, timeout=10)
+    bib_database = bibtexparser.loads(response.text)
 
-documents = []
+    documents = []
 
-for entry in bib_database.entries:
-    url = entry.get("url")
-    handle = entry.get("handle")
-    # Use PDF scraper if the direct download URL exists
-    if url and handle:
-        full_url = f"{url}{handle}.pdf"
-        docushare_url = f"http://ls.st/{handle}"
-        # Try both a direct link and a DocuShare link,
-        # take the one that is longer
-        try:
-            response = requests.get(full_url, timeout=10)
-            response.raise_for_status()
-            direct_link_docs = scrape_pdf(full_url)
-            response = requests.get(docushare_url, timeout=10)
-            response.raise_for_status()
-            docushare_link_docs = scrape_pdf(docushare_url)
-            is_longer = len(direct_link_docs) >= len(docushare_link_docs)
-            docs = direct_link_docs if is_longer else docushare_link_docs
-            if not docs or len(docs) < 2:
-                _log.warning(f"Small document from PDF at {full_url}")
-            documents.extend(docs)
-            _log.info(f"[PDF Scrape Success] {full_url}")
+    for entry in bib_database.entries:
+        url = entry.get("url")
+        handle = entry.get("handle")
+        # Use PDF scraper if the direct download URL exists
+        if url and handle:
+            full_url = f"{url}{handle}.pdf"
+            docushare_url = f"http://ls.st/{handle}"
+            # Try both a direct link and a DocuShare link,
+            # take the one that is longer
+            try:
+                response = requests.get(full_url, timeout=10)
+                response.raise_for_status()
+                direct_link_docs = scrape_pdf(full_url)
+                response = requests.get(docushare_url, timeout=10)
+                response.raise_for_status()
+                docushare_link_docs = scrape_pdf(docushare_url)
+                is_longer = len(direct_link_docs) >= len(docushare_link_docs)
+                docs = direct_link_docs if is_longer else docushare_link_docs
+                if not docs or len(docs) < 2:
+                    _log.warning(f"Small document from PDF at {full_url}")
+                documents.extend(docs)
+                _log.info(f"[PDF Scrape Success] {full_url}")
+                continue
+            except requests.exceptions.RequestException as e:
+                _log.debug(f"Failed to download PDF from {full_url}: {e}")
+        # Use webpage scraper otherwise
+        if url:
+            try:
+                docs = scrape_webpage(url)
+                if not docs or len(docs[0].page_content) < 2000:
+                    _log.warning(f"Small document from webpage at {url}")
+                documents.extend(docs)
+                _log.info(f"[Webpage Scrape Success] {url}")
+            except Exception as e:
+                _log.warning(f"Failed to scrape webpage at {url}: {e}")
+        else:
+            _log.warning(f"No URL or handle found in entry: {entry}")
             continue
-        except requests.exceptions.RequestException as e:
-            _log.debug(f"Failed to download PDF from {full_url}: {e}")
-    # Use webpage scraper otherwise
-    if url:
-        try:
-            docs = scrape_webpage(url)
-            if not docs or len(docs[0].page_content) < 2000:
-                _log.warning(f"Small document from webpage at {url}")
-            documents.extend(docs)
-            _log.info(f"[Webpage Scrape Success] {url}")
-        except Exception as e:
-            _log.warning(f"Failed to scrape webpage at {url}: {e}")
-    else:
-        _log.warning(f"No URL or handle found in entry: {entry}")
-        continue
+
+    return documents
