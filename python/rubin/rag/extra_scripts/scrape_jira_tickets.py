@@ -382,8 +382,8 @@ def write_to_file(
 
 def fetch_ticket(
     ticket: str,
-    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
-    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
 ) -> tuple:
     """Fetch and reformat the ticket data from JIRA.
 
@@ -412,8 +412,8 @@ def fetch_ticket(
 
 def retry_fetch_ticket(
     ticket: str,
-    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
-    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
     max_retries: int = 5,
 ) -> tuple:
     """Fetch Jira ticket with retry logic.
@@ -477,8 +477,8 @@ def jira_to_document(jira_data: dict) -> Document:
 
 def jira_tickets_from_list(
     ticket_list: list,
-    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
-    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
     folder: str = ".",
     max_retries: int = 5,
     *,
@@ -545,8 +545,8 @@ def jira_tickets_in_range(
     ticket_prefix: str,
     min_ticket_num: int,
     max_ticket_num: int,
-    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
-    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
     folder: str = ".",
     max_retries: int = 5,
     *,
@@ -604,8 +604,8 @@ def jira_tickets_in_range(
 
 def get_max_issue_number(
     project: str,
-    email: str = str(os.getenv("CONFLUENCE_USERNAME")),
-    api_token: str = str(os.getenv("CONFLUENCE_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
 ) -> int:
     """Determine maximum Jira issue number for a project.
 
