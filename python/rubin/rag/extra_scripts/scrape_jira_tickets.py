@@ -35,14 +35,12 @@ import requests
 import yaml
 from langchain_core.documents import Document
 
-username = os.getenv("CONFLUENCE_USERNAME")
-api_token = os.getenv("CONFLUENCE_API_TOKEN")
-if username is None:
+username = str(os.getenv("CONFLUENCE_USERNAME"))
+api_token = str(os.getenv("CONFLUENCE_API_TOKEN"))
+if username == "None":
     raise ValueError("Missing CONFLUENCE_USERNAME")
-if api_token is None:
+if api_token == "None":
     raise ValueError("Missing CONFLUENCE_API_TOKEN")
-username = str(username)
-api_token = str(api_token)
 
 
 def get_jira_issue(
