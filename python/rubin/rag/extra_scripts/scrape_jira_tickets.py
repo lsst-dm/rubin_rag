@@ -612,7 +612,21 @@ def get_max_issue_number(
 
 
 def load_and_scrape(yaml_file: str) -> list[Document]:
-    """Load Jira issues into a list of LangChain Documents."""
+    """Load Jira issues into a list of LangChain Documents.
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying Jira issues to scrape
+
+    Returns
+    -------
+    documents : list
+        list of LangChain documents, one per successfully retrieved
+        Jira issue. Documents corresponding to Jira issues with
+        certain statuses are dropped according to the YAML's
+        specficiations.
+    """
     path = Path(yaml_file)
     with path.open(mode="r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
