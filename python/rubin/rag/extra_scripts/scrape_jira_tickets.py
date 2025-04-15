@@ -594,6 +594,23 @@ def jira_tickets_in_range(
         ticket_list, email, api_token, folder, max_retries, write=write
     )
 
+def get_max_issue_number(
+    project: str,
+    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
+    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+) -> int:
+    """Determine maximum Jira issue number for a project."""
+
+    url = f"https://rubinobs.atlassian.net/rest/api/latest/search?jql=project={project}+order+by+key+desc&maxResults=1"
+    auth = requests.auth.HTTPBasicAuth(email, api_token)
+    headers = {"Content-Type": "application/json"}
+    response = requests.get(url, auth=auth, headers=headers, timeout=10)
+
+    data = response.json()
+    issue_name = data['issues'][0]['key']
+    issue_number = int(issue_name.split('-')[-1])
+
+    return issue_number
 
 def load_and_scrape(yaml_file: str) -> list[Document]:
     """Load Jira issues into a list of LangChain Documents."""
