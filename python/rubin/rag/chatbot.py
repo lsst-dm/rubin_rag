@@ -85,7 +85,7 @@ def configure_retriever() -> VectorStoreRetriever:
     return CustomWeaviateVectorStore(
         client=client,
         index_name="LangChain_9787ec4b92d3438a8de3ff04ead7ead6",
-        text_key="text",
+        text_key="page_content",
         embedding=OpenAIEmbeddings(),
         attributes=["source", "source_key"],
     ).as_retriever(
