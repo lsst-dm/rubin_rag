@@ -607,8 +607,8 @@ def get_max_issue_number(
     response = requests.get(url, auth=auth, headers=headers, timeout=10)
 
     data = response.json()
-    issue_name = data['issues'][0]['key']
-    issue_number = int(issue_name.split('-')[-1])
+    issue_name = data["issues"][0]["key"]
+    issue_number = int(issue_name.split("-")[-1])
 
     return issue_number
 
