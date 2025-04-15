@@ -30,9 +30,9 @@ import time
 from functools import reduce
 from pathlib import Path
 from typing import Any
-import yaml
 
 import requests
+import yaml
 from langchain_core.documents import Document
 
 
@@ -594,9 +594,9 @@ def jira_tickets_in_range(
         ticket_list, email, api_token, folder, max_retries, write=write
     )
 
+
 def load_and_scrape(yaml_file: str) -> list[Document]:
     """Load Jira issues into a list of LangChain Documents."""
-
     path = Path(yaml_file)
     with path.open(mode="r", encoding="utf-8") as f:
         data = yaml.safe_load(f)
