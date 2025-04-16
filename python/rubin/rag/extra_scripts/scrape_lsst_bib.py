@@ -67,7 +67,7 @@ def scrape_webpage(url: str) -> list[Document]:
     return docs
 
 
-def load_and_scrape() -> list[Document]:
+def main() -> list[Document]:
     """Load the bibtex file from Github and scrape the content."""
     # Load the bibtex file from Github
     url = (
@@ -119,3 +119,7 @@ def load_and_scrape() -> list[Document]:
             continue
 
     return documents
+
+
+if __name__ == "__main__":
+    main()
