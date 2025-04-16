@@ -32,13 +32,21 @@ from pathlib import Path
 from typing import Any
 
 import requests
+import yaml
 from langchain_core.documents import Document
+
+username = str(os.getenv("CONFLUENCE_USERNAME"))
+api_token = str(os.getenv("CONFLUENCE_API_TOKEN"))
+if username == "None":
+    raise ValueError("Missing CONFLUENCE_USERNAME")
+if api_token == "None":
+    raise ValueError("Missing CONFLUENCE_API_TOKEN")
 
 
 def get_jira_issue(
     issue_name: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
 ) -> tuple:
     """Get the JIRA issue data from the JIRA API.
 
@@ -374,8 +382,8 @@ def write_to_file(
 
 def fetch_ticket(
     ticket: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
 ) -> tuple:
     """Fetch and reformat the ticket data from JIRA.
 
@@ -404,8 +412,8 @@ def fetch_ticket(
 
 def retry_fetch_ticket(
     ticket: str,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
     max_retries: int = 5,
 ) -> tuple:
     """Fetch Jira ticket with retry logic.
@@ -469,8 +477,8 @@ def jira_to_document(jira_data: dict) -> Document:
 
 def jira_tickets_from_list(
     ticket_list: list,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
     folder: str = ".",
     max_retries: int = 5,
     *,
@@ -537,8 +545,8 @@ def jira_tickets_in_range(
     ticket_prefix: str,
     min_ticket_num: int,
     max_ticket_num: int,
-    email: str = str(os.getenv("ATLASSIAN_API_EMAIL")),
-    api_token: str = str(os.getenv("ATLASSIAN_API_TOKEN")),
+    email: str = username,
+    api_token: str = api_token,
     folder: str = ".",
     max_retries: int = 5,
     *,
@@ -592,3 +600,79 @@ def jira_tickets_in_range(
     return jira_tickets_from_list(
         ticket_list, email, api_token, folder, max_retries, write=write
     )
+
+
+def get_max_issue_number(
+    project: str,
+    email: str = username,
+    api_token: str = api_token,
+) -> int:
+    """Determine maximum Jira issue number for a project.
+
+    Parameters
+    ----------
+    project : str
+        name of Jira project like "DM" or "SP" (without dash)
+    api_token : str
+        Jira API token
+    email : str
+        email address of Jira account associated with the API token
+
+    Returns
+    -------
+    int
+        the maximum extant Jira ticket number for the specified project
+    """
+    url = f"https://rubinobs.atlassian.net/rest/api/latest/search?jql=project={project}+order+by+key+desc&maxResults=1"
+    auth = requests.auth.HTTPBasicAuth(email, api_token)
+    headers = {"Content-Type": "application/json"}
+    response = requests.get(url, auth=auth, headers=headers, timeout=10)
+
+    data = response.json()
+    issue_name = data["issues"][0]["key"]
+    return int(issue_name.split("-")[-1])
+
+
+def load_and_scrape(yaml_file: str) -> list[Document]:
+    """Load Jira issues into a list of LangChain Documents.
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying Jira issues to scrape
+
+    Returns
+    -------
+    documents : list
+        list of LangChain documents, one per successfully retrieved
+        Jira issue. Documents corresponding to Jira issues with
+        certain statuses are dropped according to the YAML's
+        specficiations.
+    """
+    path = Path(yaml_file)
+    with path.open(mode="r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    documents = []
+
+    for project in data["projects"]:
+        if "start" not in project:
+            # visible DM issues start at 554 and issues are 1-indexed
+            start = 554 if project["name"] == "DM" else 1
+        else:
+            start = project["start"]
+        if "end" not in project:
+            end = get_max_issue_number(project["name"])
+        else:
+            end = project["end"]
+        project_docs, failures = jira_tickets_in_range(
+            project["name"], start, end
+        )
+        project_docs = [
+            d
+            for d in project_docs
+            if d.metadata["status"] not in data["exclude_status"]
+        ]
+        documents += project_docs
+
+    return documents
