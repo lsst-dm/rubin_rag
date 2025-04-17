@@ -24,8 +24,8 @@
 save results in a structured JSON format.
 """
 
-import logging
 import json
+import logging
 import os
 import time
 from functools import reduce
