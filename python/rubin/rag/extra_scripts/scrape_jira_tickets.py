@@ -24,6 +24,7 @@
 save results in a structured JSON format.
 """
 
+import logging
 import json
 import os
 import time
@@ -34,6 +35,9 @@ from typing import Any
 import requests
 import yaml
 from langchain_core.documents import Document
+
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
 
 username = str(os.getenv("CONFLUENCE_USERNAME"))
 api_token = str(os.getenv("CONFLUENCE_API_TOKEN"))
