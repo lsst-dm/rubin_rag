@@ -668,7 +668,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     documents = []
 
     for project in data["projects"]:
-        start = 1 if "start" not in project else project["start"]
+        start = project.get("start", 1)
         if "end" not in project:
             end = get_max_issue_number(project["name"])
         else:
