@@ -410,6 +410,7 @@ def fetch_ticket(
             None if successful, otherwise a string with the ticket name and
             error message.
     """
+    _log.info(f"Attempting to fetch Jira issue {ticket}")
     jira_data, error_message = get_jira_issue(ticket, email, api_token)
     return reformat_jira_data(jira_data, ticket), error_message
 
