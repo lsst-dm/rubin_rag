@@ -456,7 +456,9 @@ def retry_fetch_ticket(
                 _log.warning(f"Error fetching Jira issue {error_message}")
             return result, error_message
 
-    _log.warning(f"Failed to fetch ticket {ticket} after max number of retries.")
+    _log.warning(
+        f"Failed to fetch ticket {ticket} after max number of retries."
+    )
     return None, "Failed to fetch ticket"
 
 
