@@ -447,12 +447,16 @@ def retry_fetch_ticket(
         try:
             result, error_message = fetch_ticket(ticket, email, api_token)
         except Exception:
-            _log.info(f"Failure #{attempt + 1} retrieving {ticket}.")
+            _log.warning(f"Failure #{attempt + 1} retrieving {ticket}.")
             if attempt + 1 == max_retries:
                 raise  # Raise the error if max retries reached
             time.sleep(2**attempt + 2)  # Exponential backoff
         else:
+            if error_message is not None:
+                _log.warning(f"Error fetching Jira issue {error_message}")
             return result, error_message
+
+    _log.warning(f"Failed to fetch ticket {ticket} after max number of retries.")
     return None, "Failed to fetch ticket"
 
 
