@@ -668,11 +668,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     documents = []
 
     for project in data["projects"]:
-        if "start" not in project:
-            # visible DM issues start at 554 and issues are 1-indexed
-            start = 554 if project["name"] == "DM" else 1
-        else:
-            start = project["start"]
+        start = 1 if "start" not in project else project["start"]
         if "end" not in project:
             end = get_max_issue_number(project["name"])
         else:
