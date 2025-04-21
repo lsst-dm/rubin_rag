@@ -121,7 +121,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
     return [repo["full_name"] for repo in repos]
 
 
-def load_org(org_name: str = "lsst-dm", *, n_repo_max: int | None = None) -> list:
+def load_org(
+    org_name: str = "lsst-dm", *, n_repo_max: int | None = None
+) -> list:
     """Load all utf-8 files from GitHub repos in a GitHub org.
 
     Parameters
