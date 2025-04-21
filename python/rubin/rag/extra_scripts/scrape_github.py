@@ -29,6 +29,12 @@ import requests
 from langchain.schema.document import Document
 from langchain_community.document_loaders import GithubFileLoader
 
+# note that it's necessary to have set the env var
+# GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
+access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
+if access_token is None:
+    raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
+
 
 def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     """Load all utf-8 files from a given GitHub repo.
@@ -43,9 +49,6 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     docs : list
         list of langchain documents
     """
-    # note that it's necessary to have set the env var
-    # GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
-    access_token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
 
     loader = GithubFileLoader(
         repo=repo,
@@ -86,10 +89,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
         failed GitHub API response.
     """
     url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
-    token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
 
     try:
-        res = requests.get(url, headers={"Authorization": token}, timeout=10)
+        res = requests.get(url, headers={"Authorization": access_token}, timeout=10)
     except Exception:
         logging.exception(
             f"Failed to retrieve list of repos in org {org_name}."
@@ -101,7 +103,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
     while "next" in res.links:
         res = requests.get(
             res.links["next"]["url"],
-            headers={"Authorization": token},
+            headers={"Authorization": access_token},
             timeout=10,
         )
         repos.extend(res.json())
