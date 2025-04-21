@@ -69,6 +69,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
 
     return docs
 
+
 def repos_in_org(org_name: str = "lsst-dm") -> list:
     """Get list of repos with a GitHub organization.
 
@@ -103,6 +104,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
 
     repos = [repo["full_name"] for repo in repos]
     return repos
+
 
 def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     """Load all utf-8 files from GitHub repos in a GitHub org.
