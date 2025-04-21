@@ -89,7 +89,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
 
     try:
         res = requests.get(url, headers={"Authorization": token}, timeout=10)
-    except:
+    except Exception:
         logging.exception(
             f"Failed to retrieve list of repos in org {org_name}."
         )
@@ -98,12 +98,12 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
 
     while "next" in res.links:
         res = requests.get(
-            res.links["next"]["url"], headers={"Authorization": token}
+            res.links["next"]["url"], headers={"Authorization": token},
+            timeout=10
         )
         repos.extend(res.json())
 
-    repos = [repo["full_name"] for repo in repos]
-    return repos
+    return [repo["full_name"] for repo in repos]
 
 
 def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
