@@ -103,9 +103,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
             url, headers={"Authorization": access_token}, timeout=10
         )
     except Exception:
-        _log.exception(
-            f"Failed to retrieve list of repos in org {org_name}."
-        )
+        _log.exception(f"Failed to retrieve list of repos in org {org_name}.")
         return []
 
     repos = res.json()
