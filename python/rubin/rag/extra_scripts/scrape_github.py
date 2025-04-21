@@ -94,7 +94,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
     repos = res.json()
 
     while 'next' in res.links:
-        res = requests.get(res.links['next']['url'],headers={"Authorization": token})
+        res = requests.get(
+            res.links['next']['url'],headers={"Authorization": token}
+        )
         repos.extend(res.json())
 
     repos = [repo["full_name"] for repo in repos]
