@@ -53,7 +53,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
         repo=repo,
         branch="main",
         github_api_url="https://api.github.com",
-        access_token=access_token,
+        access_token=str(access_token),
         file_filter=None,
     )
 
