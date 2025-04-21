@@ -98,8 +98,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
 
     while "next" in res.links:
         res = requests.get(
-            res.links["next"]["url"], headers={"Authorization": token},
-            timeout=10
+            res.links["next"]["url"],
+            headers={"Authorization": token},
+            timeout=10,
         )
         repos.extend(res.json())
 
