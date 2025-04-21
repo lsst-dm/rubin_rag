@@ -119,7 +119,7 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     ----------
     n_repo_max : int
         number of most recently updated repos for which to ingest
-        contents; should be greater than 0 but less than or equal to 100
+        contents; should be greater than 0
     org_name : str
         GitHub organization name
 
@@ -128,6 +128,7 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     all_docs : list
         list of langchain documents
     """
+    logging.info(f"Processing GitHub org {org_name}")
     all_docs: list = []
 
     repos = repos_in_org(org_name)
@@ -135,6 +136,7 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     for i, repo in enumerate(repos):
         if i >= n_repo_max:
             break
+        logging.info(f"Processing GitHub repo {repo}")
         docs = load_files_1repo(repo)
         all_docs = all_docs + docs
 
