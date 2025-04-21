@@ -130,7 +130,7 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     """
     all_docs: list = []
 
-    repos = repos_in_org(org_name: str = "lsst-dm")
+    repos = repos_in_org(org_name)
 
     for i, repo in enumerate(repos):
         if i >= n_repo_max:
