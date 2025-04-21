@@ -128,25 +128,14 @@ def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     all_docs : list
         list of langchain documents
     """
-    # this will give an output 'list' of repos sorted
-    # from most to least recently updated
-    api_url = (
-        "https://api.github.com/orgs/"
-        + org_name
-        + "/repos?per_page=100&sort=updated"
-    )
-
     all_docs: list = []
 
-    try:
-        result = requests.get(api_url, timeout=10)
-        data = result.json()
-    except Exception:
-        logging.exception("Failed to retrieve list of org's repos.")
-        return all_docs
+    repos = repos_in_org(org_name: str = "lsst-dm")
 
-    for i in range(n_repo_max):
-        docs = load_files_1repo(repo=data[i]["full_name"])
+    for i, repo in enumerate(repos):
+        if i >= n_repo_max:
+            break
+        docs = load_files_1repo(repo)
         all_docs = all_docs + docs
 
     return all_docs
