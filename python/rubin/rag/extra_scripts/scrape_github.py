@@ -69,6 +69,36 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
 
     return docs
 
+def repos_in_org(org_name: str = "lsst-dm") -> list:
+    """Get list of repos with a GitHub organization.
+
+    Parameters
+    ----------
+    org_name : str
+        GitHub organization name
+
+    Returns
+    -------
+    repos : list
+        list of strings, where each string is a repo in the format
+        org_name/repo_name
+    """
+    url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
+    token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
+
+    try:
+        res = requests.get(url,headers={"Authorization": token}, timeout=10)
+    except:
+        logging.exception(f"Failed to retrieve list of repos in org {org_name}.")
+
+    repos = res.json()
+
+    while 'next' in res.links:
+        res = requests.get(res.links['next']['url'],headers={"Authorization": token})
+        repos.extend(res.json())
+
+    repos = [repo["full_name"] for repo in repos]
+    return repos
 
 def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
     """Load all utf-8 files from GitHub repos in a GitHub org.
