@@ -87,9 +87,11 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
     token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
 
     try:
-        res = requests.get(url,headers={"Authorization": token}, timeout=10)
+        res = requests.get(url, headers={"Authorization": token}, timeout=10)
     except:
-        logging.exception(f"Failed to retrieve list of repos in org {org_name}.")
+        logging.exception(
+            f"Failed to retrieve list of repos in org {org_name}."
+        )
 
     repos = res.json()
 
