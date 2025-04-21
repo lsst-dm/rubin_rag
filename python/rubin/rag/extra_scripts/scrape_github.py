@@ -80,9 +80,10 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
 
     Returns
     -------
-    repos : list
+    list
         list of strings, where each string is a repo in the format
-        org_name/repo_name
+        org_name/repo_name. Returns empty list in the case of a
+        failed GitHub API response.
     """
     url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
     token = str(os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN"))
@@ -93,6 +94,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
         logging.exception(
             f"Failed to retrieve list of repos in org {org_name}."
         )
+        return []
 
     repos = res.json()
 
