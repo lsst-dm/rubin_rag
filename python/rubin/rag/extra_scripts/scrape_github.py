@@ -29,6 +29,9 @@ import requests
 from langchain.schema.document import Document
 from langchain_community.document_loaders import GithubFileLoader
 
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
+
 # note that it's necessary to have set the env var
 # GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
 access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
@@ -59,7 +62,13 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
 
     docs: list = []
 
-    for metadata in loader.get_file_paths():
+    try:
+        file_paths = loader.get_file_paths()
+    except Exception:
+        _log.exception("Repo {repo} may not have a branch named 'main'.")
+        return []
+
+    for metadata in file_paths:
         file_path = metadata["path"]
 
         try:
@@ -67,7 +76,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
             doc = Document(string, metadata=metadata)
             docs.append(doc)
         except Exception:
-            logging.exception("Failed to load file.")
+            _log.exception("Failed to load file.")
 
     return docs
 
@@ -94,7 +103,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
             url, headers={"Authorization": access_token}, timeout=10
         )
     except Exception:
-        logging.exception(
+        _log.exception(
             f"Failed to retrieve list of repos in org {org_name}."
         )
         return []
@@ -112,31 +121,32 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
     return [repo["full_name"] for repo in repos]
 
 
-def load_org(n_repo_max: int = 2, org_name: str = "lsst-dm") -> list:
+def load_org(org_name: str = "lsst-dm", *, n_repo_max: int | None = None) -> list:
     """Load all utf-8 files from GitHub repos in a GitHub org.
 
     Parameters
     ----------
-    n_repo_max : int
-        number of most recently updated repos for which to ingest
-        contents; should be greater than 0
     org_name : str
         GitHub organization name
+    n_repo_max : int
+        optional. Max number of repos to scrape; should be greater than 0.
+        Default value is None, resulting in scraping all repos within
+        the org.
 
     Returns
     -------
     all_docs : list
         list of langchain documents
     """
-    logging.info(f"Processing GitHub org {org_name}")
+    _log.info(f"Processing GitHub org {org_name}")
     all_docs: list = []
 
     repos = repos_in_org(org_name)
 
     for i, repo in enumerate(repos):
-        if i >= n_repo_max:
+        if (n_repo_max is not None) and (i >= n_repo_max):
             break
-        logging.info(f"Processing GitHub repo {repo}")
+        _log.info(f"Processing GitHub repo {repo}")
         docs = load_files_1repo(repo)
         all_docs = all_docs + docs
 
