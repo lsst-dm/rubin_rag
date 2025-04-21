@@ -49,7 +49,6 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
     docs : list
         list of langchain documents
     """
-
     loader = GithubFileLoader(
         repo=repo,
         branch="main",
@@ -91,7 +90,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list:
     url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
 
     try:
-        res = requests.get(url, headers={"Authorization": access_token}, timeout=10)
+        res = requests.get(
+            url, headers={"Authorization": access_token}, timeout=10
+        )
     except Exception:
         logging.exception(
             f"Failed to retrieve list of repos in org {org_name}."
