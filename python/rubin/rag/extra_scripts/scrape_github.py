@@ -81,7 +81,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list[Document]:
     return docs
 
 
-def repos_in_org(org_name: str = "lsst-dm") -> list:
+def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
     """Get list of repos within a GitHub organization.
 
     Parameters
