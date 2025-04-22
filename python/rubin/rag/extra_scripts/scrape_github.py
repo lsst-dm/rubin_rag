@@ -26,7 +26,7 @@ import logging
 import os
 
 import requests
-from langchain.schema.document import Document
+from langchain_core.documents.base import Document
 from langchain_community.document_loaders import GithubFileLoader
 
 logging.basicConfig(level=logging.INFO)
@@ -82,7 +82,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
 
 
 def repos_in_org(org_name: str = "lsst-dm") -> list:
-    """Get list of repos with a GitHub organization.
+    """Get list of repos within a GitHub organization.
 
     Parameters
     ----------
