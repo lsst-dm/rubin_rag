@@ -34,7 +34,7 @@ from typing import Any
 
 import requests
 import yaml
-from langchain_core.documents import Document
+from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
