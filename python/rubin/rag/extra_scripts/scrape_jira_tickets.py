@@ -25,6 +25,7 @@ save results in a structured JSON format.
 """
 
 import json
+import logging
 import os
 import time
 from functools import reduce
@@ -33,7 +34,10 @@ from typing import Any
 
 import requests
 import yaml
-from langchain_core.documents import Document
+from langchain_core.documents.base import Document
+
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
 
 username = str(os.getenv("CONFLUENCE_USERNAME"))
 api_token = str(os.getenv("CONFLUENCE_API_TOKEN"))
@@ -406,6 +410,7 @@ def fetch_ticket(
             None if successful, otherwise a string with the ticket name and
             error message.
     """
+    _log.info(f"Attempting to fetch Jira issue {ticket}")
     jira_data, error_message = get_jira_issue(ticket, email, api_token)
     return reformat_jira_data(jira_data, ticket), error_message
 
@@ -442,11 +447,18 @@ def retry_fetch_ticket(
         try:
             result, error_message = fetch_ticket(ticket, email, api_token)
         except Exception:
+            _log.warning(f"Failure #{attempt + 1} retrieving {ticket}.")
             if attempt + 1 == max_retries:
                 raise  # Raise the error if max retries reached
             time.sleep(2**attempt + 2)  # Exponential backoff
         else:
+            if error_message is not None:
+                _log.warning(f"Error fetching Jira issue {error_message}")
             return result, error_message
+
+    _log.warning(
+        f"Failed to fetch ticket {ticket} after max number of retries."
+    )
     return None, "Failed to fetch ticket"
 
 
@@ -656,11 +668,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     documents = []
 
     for project in data["projects"]:
-        if "start" not in project:
-            # visible DM issues start at 554 and issues are 1-indexed
-            start = 554 if project["name"] == "DM" else 1
-        else:
-            start = project["start"]
+        start = project.get("start", 1)
         if "end" not in project:
             end = get_max_issue_number(project["name"])
         else:

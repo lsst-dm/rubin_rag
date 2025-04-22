@@ -2,14 +2,8 @@ description: Jira issues to ingest into Rubin_RAG
 
 projects:
     - name: "DM"
-      start: 40000
-      end: 40002
     - name: "SP"
-      start: 1800
-      end: 1802
     - name: "TAXICAB"
-      start: 20
-      end: 22
 
 exclude_status:
     - "Won't Fix"
