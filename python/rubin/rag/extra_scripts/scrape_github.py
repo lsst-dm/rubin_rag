@@ -39,7 +39,7 @@ if access_token is None:
     raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
 
 
-def load_files_1repo(repo: str = "lsst/daf_butler") -> list:
+def load_files_1repo(repo: str = "lsst/daf_butler") -> list[Document]:
     """Load all utf-8 files from a given GitHub repo.
 
     Parameters
