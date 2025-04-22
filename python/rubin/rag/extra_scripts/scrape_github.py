@@ -26,8 +26,8 @@ import logging
 import os
 
 import requests
-from langchain_core.documents.base import Document
 from langchain_community.document_loaders import GithubFileLoader
+from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
