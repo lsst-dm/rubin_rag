@@ -714,7 +714,9 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
             except (TypeError, KeyError):
                 # If conversion fails, remove the field
                 cleaned_metadata.pop("related_issues")
-        if 'attachments' in cleaned_metadata and isinstance(cleaned_metadata['attachments'], list):
+        if "attachments" in cleaned_metadata and isinstance(
+            cleaned_metadata["attachments"], list
+        ):
             try:
                 # Extract just the filenames
                 cleaned_metadata["attachments"] = [
