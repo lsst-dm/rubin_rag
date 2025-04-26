@@ -717,7 +717,12 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
         if 'attachments' in cleaned_metadata and isinstance(cleaned_metadata['attachments'], list):
             try:
                 # Extract just the filenames
-                cleaned_metadata['attachments'] = [attachment['filename'] for attachment in cleaned_metadata['attachments'] if isinstance(attachment, dict) and 'filename' in attachment]
+                cleaned_metadata["attachments"] = [
+                    attachment["filename"]
+                    for attachment in cleaned_metadata["attachments"]
+                    if isinstance(attachment, dict)
+                    and "filename" in attachment
+                ]
             except (TypeError, KeyError):
                 cleaned_metadata.pop("attachments")
         # Create document with valid string content
