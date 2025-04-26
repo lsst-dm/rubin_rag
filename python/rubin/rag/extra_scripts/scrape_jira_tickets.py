@@ -550,7 +550,7 @@ def jira_tickets_from_list(
         else:
             failures.append((ticket_name, status))
 
-    return docs, failures
+    return sanitize_metadata(docs), failures
 
 
 def jira_tickets_in_range(
