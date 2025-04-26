@@ -694,13 +694,8 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
         content = doc.page_content if doc.page_content is not None else ""
 
         # Clean metadata
-        forbidden_keys = {"id", "vector"}
         if hasattr(doc, "metadata") and isinstance(doc.metadata, dict):
-            cleaned_metadata = {
-                k: v
-                for k, v in doc.metadata.items()
-                if k not in forbidden_keys
-            }
+            cleaned_metadata = doc.metadata
         else:
             cleaned_metadata = {}
 
