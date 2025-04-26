@@ -721,6 +721,8 @@ def sanitize_metadata(docs : list[Document]) -> list[Document]:
             except (TypeError, KeyError):
                 cleaned_metadata.pop('attachments')
         # Create document with valid string content
-        documents.append(Document(page_content=content, metadata=cleaned_metadata))
+        documents.append(
+            Document(page_content=content, metadata=cleaned_metadata)
+        )
 
     return documents
