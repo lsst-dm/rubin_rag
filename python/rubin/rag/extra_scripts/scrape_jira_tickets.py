@@ -713,13 +713,13 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
                 ]
             except (TypeError, KeyError):
                 # If conversion fails, remove the field
-                cleaned_metadata.pop('related_issues')
+                cleaned_metadata.pop("related_issues")
         if 'attachments' in cleaned_metadata and isinstance(cleaned_metadata['attachments'], list):
             try:
                 # Extract just the filenames
                 cleaned_metadata['attachments'] = [attachment['filename'] for attachment in cleaned_metadata['attachments'] if isinstance(attachment, dict) and 'filename' in attachment]
             except (TypeError, KeyError):
-                cleaned_metadata.pop('attachments')
+                cleaned_metadata.pop("attachments")
         # Create document with valid string content
         documents.append(
             Document(page_content=content, metadata=cleaned_metadata)
