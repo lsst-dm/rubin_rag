@@ -706,7 +706,11 @@ def sanitize_metadata(docs : list[Document]) -> list[Document]:
             # Convert each complex object to a simple string representation
             # For example, just extract the 'key' values
             try:
-                cleaned_metadata['related_issues'] = [issue['key'] for issue in cleaned_metadata['related_issues'] if isinstance(issue, dict) and 'key' in issue]
+                cleaned_metadata["related_issues"] = [
+                    issue["key"]
+                    for issue in cleaned_metadata["related_issues"]
+                    if isinstance(issue, dict) and "key" in issue
+                ]
             except (TypeError, KeyError):
                 # If conversion fails, remove the field
                 cleaned_metadata.pop('related_issues')
