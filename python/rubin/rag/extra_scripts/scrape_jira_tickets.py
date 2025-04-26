@@ -699,7 +699,8 @@ def sanitize_metadata(docs : list[Document]) -> list[Document]:
         else:
             cleaned_metadata = {}
 
-        if 'related_issues' in cleaned_metadata and isinstance(cleaned_metadata['related_issues'], list):
+        if ('related_issues' in cleaned_metadata and
+            isinstance(cleaned_metadata['related_issues'], list)):
             # Convert each complex object to a simple string representation
             # For example, just extract the 'key' values
             try:
