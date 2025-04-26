@@ -687,7 +687,19 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
 
 
 def sanitize_metadata(docs: list[Document]) -> list[Document]:
-    """Clean up LangChain document metadata for Weaviate ingestion."""
+    """Clean up LangChain document metadata for Weaviate ingestion.
+
+    Parameters
+    ----------
+    docs : list
+        list of LangChain documents corresponding to scraped Jira tickets.
+
+    Returns
+    -------
+    documents : list
+        list of LangChain documents with metadata and page content cleaned
+        up so as to make them suitable for Weaviate ingest.
+    """
     documents = []
     for doc in docs:
         # Check if page_content is None or not a string, and provide a default
