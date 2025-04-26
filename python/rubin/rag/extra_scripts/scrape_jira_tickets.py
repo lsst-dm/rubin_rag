@@ -686,7 +686,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
     return documents
 
 
-def sanitize_metadata(docs : list[Document]) -> list[Document]:
+def sanitize_metadata(docs: list[Document]) -> list[Document]:
     """Clean up LangChain document metadata for Weaviate ingestion."""
     documents = []
     for doc in docs:
