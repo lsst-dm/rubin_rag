@@ -684,3 +684,36 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
         documents += project_docs
 
     return documents
+
+def sanitize_metadata(docs : list[Document]) -> list[Document]:
+    """Clean up LangChain document metadata for Weaviate ingestion."""
+    documents = []
+    for doc in docs:
+        # Check if page_content is None or not a string, and provide a default
+        content = doc.page_content if doc.page_content is not None else ""
+
+        # Clean metadata
+        forbidden_keys = {'id', 'vector'}
+        if hasattr(doc, 'metadata') and isinstance(doc.metadata, dict):
+            cleaned_metadata = {k: v for k, v in doc.metadata.items() if k not in forbidden_keys}
+        else:
+            cleaned_metadata = {}
+
+        if 'related_issues' in cleaned_metadata and isinstance(cleaned_metadata['related_issues'], list):
+            # Convert each complex object to a simple string representation
+            # For example, just extract the 'key' values
+            try:
+                cleaned_metadata['related_issues'] = [issue['key'] for issue in cleaned_metadata['related_issues'] if isinstance(issue, dict) and 'key' in issue]
+            except (TypeError, KeyError):
+                # If conversion fails, remove the field
+                cleaned_metadata.pop('related_issues')
+        if 'attachments' in cleaned_metadata and isinstance(cleaned_metadata['attachments'], list):
+            try:
+                # Extract just the filenames
+                cleaned_metadata['attachments'] = [attachment['filename'] for attachment in cleaned_metadata['attachments'] if isinstance(attachment, dict) and 'filename' in attachment]
+            except (TypeError, KeyError):
+                cleaned_metadata.pop('attachments')
+        # Create document with valid string content
+        documents.append(Document(page_content=content, metadata=cleaned_metadata))
+
+    return documents
