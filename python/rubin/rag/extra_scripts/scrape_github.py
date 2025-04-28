@@ -74,6 +74,7 @@ def load_files_1repo(repo: str = "lsst/daf_butler") -> list[Document]:
         try:
             string = loader.get_file_content_by_path(file_path)
             doc = Document(string, metadata=metadata)
+            doc["source_key"] = "github"
             docs.append(doc)
         except Exception:
             _log.exception("Failed to load file.")

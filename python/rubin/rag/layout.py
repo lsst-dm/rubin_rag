@@ -32,18 +32,17 @@ from langchain_community.chat_message_histories import (
 
 def setup_sidebar() -> None:
     """Set up the sidebar for the Streamlit app."""
-    select_sources_text = "Select sources to search \
-    (please note that these checkboxes currently do not have any effect)"
+    select_sources_text = "Select sources to search"
     st.sidebar.markdown(select_sources_text)
     st.session_state["required_sources"] = []
     if st.sidebar.checkbox("Confluence", value=True):
         st.session_state["required_sources"].append("confluence")
     if st.sidebar.checkbox("Jira", value=True):
         st.session_state["required_sources"].append("jira")
-    if st.sidebar.checkbox("LSST Forum Docs", value=True):
-        st.session_state["required_sources"].append("lsstforum")
+    if st.sidebar.checkbox("Github", value=True):
+        st.session_state["required_sources"].append("github")
     if st.sidebar.checkbox("Local Docs", value=True):
-        st.session_state["required_sources"].append("localdocs")
+        st.session_state["required_sources"].append("paper")
 
 
 def setup_landing_page() -> None:
