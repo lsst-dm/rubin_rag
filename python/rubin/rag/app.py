@@ -55,12 +55,12 @@ with Path.open(file_path) as css:
 if "message_sent" not in st.session_state:
     st.session_state.message_sent = False
 
+# Enable dynamic filtering based on user input
+setup_sidebar()
+
 # Configure the Weaviate retriever and QA chain
 retriever = configure_retriever()
 qa_chain = create_qa_chain(retriever)
-
-# Enable dynamic filtering based on user input
-setup_sidebar()
 
 # Set up the landing page
 setup_landing_page()
