@@ -198,11 +198,15 @@ def handle_user_input(
                     threshold = (
                         max_score * 0.9
                     )  # Set threshold to 90% of the highest score
+                    cited_sources = set()
 
                     for chunk in result["context"]:  # type: ignore[index]
                         score = chunk.metadata["score"]
 
                         # Only show sources with scores
-                        # significantly higher (above the threshold)
+                        # above the threshold, skip duplicates
                         if score >= threshold:
-                            st.info(f"Source: {chunk.metadata['source']}")
+                            source = chunk.metadata["source"]
+                            if source not in cited_sources:
+                                st.info(f"Source: {source}")
+                                cited_sources.add(source)
