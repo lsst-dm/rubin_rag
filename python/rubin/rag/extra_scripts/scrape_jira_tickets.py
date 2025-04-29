@@ -742,5 +742,7 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
         documents.append(
             Document(page_content=content, metadata=cleaned_metadata)
         )
-
+    # Add source key to each document's metadata
+    for doc in documents:
+        doc.metadata["source_key"] = "jira"
     return documents
