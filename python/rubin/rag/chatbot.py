@@ -45,6 +45,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from streamlit_callback import get_streamlit_cb
 from weaviate.classes.init import Auth
 from weaviate.classes.query import Filter
+from weaviate.client import WeaviateClient
 
 
 def submit_text() -> None:
@@ -53,8 +54,8 @@ def submit_text() -> None:
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever() -> VectorStoreRetriever:
-    """Configure the Weaviate retriever."""
+def configure_client() -> WeaviateClient:
+    """Configure the Weaviate client."""
     openai_api_key = os.getenv("OPENAI_API_KEY")
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
     http_host = os.getenv("HTTP_HOST")
@@ -69,9 +70,9 @@ def configure_retriever() -> VectorStoreRetriever:
     if grpc_host is None:
         raise ValueError("GRPC_HOST environment variable is not set")
 
-    client = weaviate.connect_to_custom(
+    return weaviate.connect_to_custom(
         http_host=http_host,
-        http_port=8080,
+        http_port=8080,  # Database on port 80 in USDF
         http_secure=False,
         grpc_host=grpc_host,
         grpc_port=50051,
@@ -81,6 +82,9 @@ def configure_retriever() -> VectorStoreRetriever:
         skip_init_checks=True,
     )
 
+
+def configure_retriever() -> VectorStoreRetriever:
+    """Configure the Weaviate retriever."""
     search_kwargs = {
         "k": 6,
         "return_metadata": ["score"],
@@ -96,7 +100,7 @@ def configure_retriever() -> VectorStoreRetriever:
         search_kwargs["filters"] = filters
 
     return CustomWeaviateVectorStore(
-        client=client,
+        client=configure_client(),
         index_name="LangChain_9787ec4b92d3438a8de3ff04ead7ead6",
         text_key="page_content",
         embedding=OpenAIEmbeddings(),
