@@ -43,6 +43,8 @@ def setup_sidebar() -> None:
         st.session_state["required_sources"].append("github")
     if st.sidebar.checkbox("Local Docs", value=True):
         st.session_state["required_sources"].append("paper")
+    if st.sidebar.checkbox("Slack", value=True):
+        st.session_state["required_sources"].append("slack")
 
 
 def setup_landing_page() -> None:
