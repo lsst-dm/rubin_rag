@@ -32,9 +32,7 @@ from langchain_community.chat_message_histories import (
 
 def setup_sidebar() -> None:
     """Set up the sidebar for the Streamlit app."""
-    select_sources_text = (
-        "Select sources to search from."
-    )
+    select_sources_text = "Select sources to search from."
     st.sidebar.markdown(select_sources_text)
     st.session_state["required_sources"] = []
     if st.sidebar.checkbox("Confluence", value=True):
