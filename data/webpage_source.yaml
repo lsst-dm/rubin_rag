@@ -1,0 +1,12 @@
+description: Web page data sources for all deployments of Rubin_RAG
+sources:
+  - title: "LSST Discovery Alliance"
+    url: "https://lsstdiscoveryalliance.org"
+  - title: "Rubin Observatory Official Website"
+    url: "https://rubinobservatory.org/"
+  - title: "LSST Official Website"
+    url: "https://www.lsst.org/"
+  - title: "Associate of University for Research in Astronomy (AURA)"
+    url: "https://www.aura-astronomy.org/centers/nsfs-oir-lab/rubinobservatory/"
+  - title: "SLAC"
+    url: "https://www6.slac.stanford.edu/lsst"
