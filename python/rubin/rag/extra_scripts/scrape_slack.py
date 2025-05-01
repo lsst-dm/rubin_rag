@@ -25,9 +25,9 @@ documents.
 """
 
 import datetime
+import logging
 import re
 import sys
-import logging
 
 from langchain_community.document_loaders import SlackDirectoryLoader
 from langchain_core.documents.base import Document
