@@ -44,6 +44,8 @@ from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from streamlit_callback import get_streamlit_cb
 from weaviate.classes.init import Auth
+from weaviate.classes.query import Filter
+from weaviate.client import WeaviateClient
 
 
 def submit_text() -> None:
@@ -52,8 +54,8 @@ def submit_text() -> None:
 
 
 @st.cache_resource(ttl="1h")
-def configure_retriever() -> VectorStoreRetriever:
-    """Configure the Weaviate retriever."""
+def configure_client() -> WeaviateClient:
+    """Configure the Weaviate client."""
     openai_api_key = os.getenv("OPENAI_API_KEY")
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
     http_host = os.getenv("HTTP_HOST")
@@ -68,29 +70,44 @@ def configure_retriever() -> VectorStoreRetriever:
     if grpc_host is None:
         raise ValueError("GRPC_HOST environment variable is not set")
 
-    client = weaviate.connect_to_custom(
-        http_host=http_host,  # Hostname for the HTTP API connection
-        http_port=8080,  # Default is 80, WCD uses 443
-        http_secure=False,  # Whether to use https (secure) for HTTP
-        grpc_host=grpc_host,  # Hostname for the gRPC API connection
-        grpc_port=50051,  # Default is 50051, WCD uses 443
-        grpc_secure=False,  # Whether to use a secure channel for gRPC
-        auth_credentials=Auth.api_key(
-            weaviate_api_key
-        ),  # The API key to use for authentication
+    return weaviate.connect_to_custom(
+        http_host=http_host,
+        http_port=8080,  # Database on port 80 in USDF
+        http_secure=False,
+        grpc_host=grpc_host,
+        grpc_port=50051,
+        grpc_secure=False,
+        auth_credentials=Auth.api_key(weaviate_api_key),
         headers={"X-OpenAI-Api-Key": openai_api_key},
         skip_init_checks=True,
     )
 
+
+def configure_retriever() -> VectorStoreRetriever:
+    """Configure the Weaviate retriever."""
+    search_kwargs = {
+        "k": 6,
+        "return_metadata": ["score"],
+    }
+
+    selected_sources = [
+        source.lower() for source in st.session_state["required_sources"]
+    ]
+    if selected_sources:
+        filters = Filter.by_property("source_key").contains_any(
+            selected_sources
+        )
+        search_kwargs["filters"] = filters
+
     return CustomWeaviateVectorStore(
-        client=client,
+        client=configure_client(),
         index_name="LangChain_9787ec4b92d3438a8de3ff04ead7ead6",
         text_key="page_content",
         embedding=OpenAIEmbeddings(),
-        attributes=["source", "source_key"],
+        attributes=["source", "source_key"],  # Metadata to fetch
     ).as_retriever(
         search_type="similarity",
-        search_kwargs={"k": 6, "return_metadata": ["score"]},
+        search_kwargs=search_kwargs,
     )
 
 
@@ -159,28 +176,11 @@ def handle_user_input(
         with st.chat_message("assistant", avatar=avatar_images["ai"]):
             stream_handler = get_streamlit_cb(st.empty())
 
-            filters = [
-                source.lower()
-                for source in st.session_state["required_sources"]
-            ]
-            where_filter = {
-                "operator": "Or",
-                "operands": [
-                    {
-                        "path": ["source_key"],
-                        "operator": "Equal",
-                        "valueText": source,
-                    }
-                    for source in filters
-                ],
-            }
-
             # Invoke retriever logic
             result = qa_chain.invoke(
                 {
                     "input": user_query,
                     "chat_history": msgs.messages,
-                    "filter": where_filter,
                 },
                 {"callbacks": [stream_handler]},
             )
@@ -198,11 +198,15 @@ def handle_user_input(
                     threshold = (
                         max_score * 0.9
                     )  # Set threshold to 90% of the highest score
+                    cited_sources = set()
 
                     for chunk in result["context"]:  # type: ignore[index]
                         score = chunk.metadata["score"]
 
                         # Only show sources with scores
-                        # significantly higher (above the threshold)
+                        # above the threshold, skip duplicates
                         if score >= threshold:
-                            st.info(f"Source: {chunk.metadata['source']}")
+                            source = chunk.metadata["source"]
+                            if source not in cited_sources:
+                                st.info(f"Source: {source}")
+                                cited_sources.add(source)
