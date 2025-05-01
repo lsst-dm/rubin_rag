@@ -34,6 +34,17 @@ from langchain_core.documents.base import Document
 def transform_source(text: str) -> str:
     """Reformat the source metadata string to remove user information and
     convert the timestamp to a human-readable format.
+
+    Parameters
+    ----------
+    text: str
+        The source metadata from the langchain SlackDirectoryLoader.
+
+    Returns
+    -------
+    str
+        The source metadata with the user id removed and the timestamp
+        reformatted into a standard UTC datetime format.
     """
     # Remove user id
     text = re.sub(r" - [^-]+ - ", " - ", text)
@@ -56,6 +67,17 @@ def transform_source(text: str) -> str:
 def anonymize_mentions(text: str) -> str:
     """Anonymize user mentions in the text by replacing them with a
     placeholder.
+
+    Paramters
+    ---------
+    text: str
+        The page content of a Langchain document object produced by the
+        Slack loader.
+
+    Returns
+    -------
+    str
+        The page content with all @ mentions replace with USER_ANON.
     """
     if "@" in text:
         text = re.sub(r"<@[^>]+>", "USER_ANON", text)
@@ -68,6 +90,17 @@ def anonymize_mentions(text: str) -> str:
 def sanitize_metadata(docs: list[Document]) -> list[Document]:
     """Sanitize the metadata of the documents by removing user information
     and adding source and source_key parameters.
+
+    Parameters
+    ----------
+    docs: list[Document]
+        A list of Langchain document objects from the Slack loader.
+
+    Returns
+    -------
+    list[Document]
+        A list of Langchain documents, with user mentioned removed from the
+        page content and metadata, and a source_key added to the metadata.
     """
     documents = []
     for doc in docs:
@@ -83,7 +116,17 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
 
 
 def main(zipfile: str) -> list[Document]:
-    """Load and sanitize Slack documents."""
+    """Load and sanitize Slack documents.
+
+    Parameters
+    ----------
+    zipfile: str
+        A raw zip file containing Slack messages.
+
+    Returns
+    -------
+    list[Document]
+        A list of Langchain document objects with clean metadata."""
     loader = SlackDirectoryLoader(zipfile)
     docs = loader.load()
 
