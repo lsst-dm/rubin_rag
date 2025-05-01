@@ -26,9 +26,14 @@ documents.
 
 import datetime
 import re
+import sys
+import logging
 
 from langchain_community.document_loaders import SlackDirectoryLoader
 from langchain_core.documents.base import Document
+
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
 
 
 def transform_source(text: str) -> str:
@@ -126,12 +131,19 @@ def main(zipfile: str) -> list[Document]:
     Returns
     -------
     list[Document]
-        A list of Langchain document objects with clean metadata."""
+        A list of Langchain document objects with clean metadata.
+    """
     loader = SlackDirectoryLoader(zipfile)
     docs = loader.load()
+    _log.info(f"Loaded {len(docs)} documents from {zipfile}")
 
     return sanitize_metadata(docs)
 
 
 if __name__ == "__main__":
-    docs = main("dm-middleware-support-test.zip")
+    if len(sys.argv) != 2:
+        _log.error(f"Usage: python {sys.argv[0]} <path_to_slack_zipfile>")
+        sys.exit(1)
+
+    zip_path = sys.argv[1]
+    docs = main(zip_path)
