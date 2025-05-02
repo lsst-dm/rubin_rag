@@ -38,13 +38,35 @@ _log = logging.getLogger(__name__)
 
 
 def is_valid_url(url: str) -> bool:
-    """Check if the URL is valid."""
+    """Check if the URL is valid.
+
+    Parameters
+    ----------
+    url: str
+        A string of the link to check.
+
+    Returns
+    -------
+    bool
+        True if the URL is a valid link.
+    """
     parsed = urlparse(url)
     return parsed.scheme in ("http", "https")
 
 
 def get_links_from_yaml(yaml_file: str) -> list[str]:
-    """Extract links from a YAML file."""
+    """Extract links from a YAML file.
+
+    Parameters
+    ----------
+    yaml_file: str
+        The relative path to the YAML file where the links are stored.
+
+    Returns
+    -------
+    list[str]
+        A list of the URLs within the YAML file.
+    """
     yaml_path = Path(yaml_file)
     with Path.open(yaml_path) as file:
         data = yaml.safe_load(file)
@@ -57,7 +79,18 @@ def get_links_from_yaml(yaml_file: str) -> list[str]:
 
 
 def get_internal_links(base_url: str) -> set[str]:
-    """Fetch all internal links from a given base URL."""
+    """Fetch all internal links from a given base URL.
+
+    Parameters
+    ----------
+    base_url: str
+        A base URL to be scraped for internal links.
+
+    Returns
+    -------
+    set[str]
+         A set of the internal links found within the base URL.
+    """
     try:
         headers = {
             "User-Agent": (
@@ -93,7 +126,18 @@ def get_internal_links(base_url: str) -> set[str]:
 
 
 def webpage_loader(url: str) -> list[Document]:
-    """Load a webpage into a list of LangChain Document objects."""
+    """Load a webpage into a list of LangChain Document objects.
+
+    Parameters
+    ----------
+    url: str
+        The URL to be scraped.
+
+    Returns
+    -------
+    list[Document]
+        A list of Langchain document objects containing the web page content.
+    """
     loader = WebBaseLoader(url)
     docs = loader.load()
     # Remove excessive newlines
@@ -105,7 +149,13 @@ def webpage_loader(url: str) -> list[Document]:
 
 
 def main() -> list[Document]:
-    """Load webpages and extract documents."""
+    """Load webpages and extract documents.
+
+    Returns
+    -------
+    list[Document]
+        A list of Langchain document objects containing the web page content.
+    """
     yaml_links = get_links_from_yaml("../../../../data/webpage_source.yaml")
     docs = []
     for link in yaml_links:
