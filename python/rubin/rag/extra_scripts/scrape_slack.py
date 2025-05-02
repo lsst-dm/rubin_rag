@@ -73,7 +73,7 @@ def anonymize_mentions(text: str) -> str:
     """Anonymize user mentions in the text by replacing them with a
     placeholder.
 
-    Paramters
+    Parameters
     ---------
     text: str
         The page content of a Langchain document object produced by the
