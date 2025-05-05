@@ -16,3 +16,4 @@ langchain-openai==0.3.7
 langchain-weaviate==0.0.4
 langchain-community==0.3.19
 markdownify==1.1.0
+slack_sdk==3.35.0
