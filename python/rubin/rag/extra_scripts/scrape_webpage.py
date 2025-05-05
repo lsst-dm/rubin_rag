@@ -54,7 +54,7 @@ def is_valid_url(url: str) -> bool:
     return parsed.scheme in ("http", "https")
 
 
-def get_links_from_yaml(yaml_file: str) -> list[str]:
+def get_urls_from_yaml(yaml_file: str) -> list[str]:
     """Extract links from a YAML file.
 
     Parameters
@@ -156,7 +156,7 @@ def main() -> list[Document]:
     list[Document]
         A list of Langchain document objects containing the web page content.
     """
-    yaml_links = get_links_from_yaml("../../../../data/webpage_source.yaml")
+    yaml_links = get_urls_from_yaml("../../../../data/webpage_source.yaml")
     docs = []
     for link in yaml_links:
         _log.info(f"Scraping from {link}")
