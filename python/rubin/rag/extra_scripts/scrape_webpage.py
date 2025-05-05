@@ -115,7 +115,7 @@ def get_internal_links(base_url: str) -> set[str]:
                     continue
 
                 full_url = urljoin(base_url, href)
-                if full_url.startswith(base_url) and is_valid_url(full_url):
+                if is_valid_url(full_url):
                     internal_links.add(full_url)
 
     except Exception as e:
