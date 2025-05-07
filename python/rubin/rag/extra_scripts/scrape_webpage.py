@@ -24,6 +24,7 @@
 
 import logging
 import re
+from collections import deque
 from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
@@ -78,51 +79,54 @@ def get_urls_from_yaml(yaml_file: str) -> list[str]:
     ]
 
 
-def get_internal_links(base_url: str) -> set[str]:
+def get_internal_links(base_url: str, max_depth: int = 2) -> set[str]:
     """Fetch all internal links from a given base URL.
 
     Parameters
     ----------
     base_url: str
         A base URL to be scraped for internal links.
+    max_depth: int
+        The maximum depth to scrape for sub pages.
 
     Returns
     -------
     set[str]
          A set of the internal links found within the base URL.
     """
-    try:
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            )
-        }
-        response = requests.get(base_url, headers=headers, timeout=10)
-        soup = BeautifulSoup(response.text, "html.parser")
-        internal_links = set()
+    visited = set()
+    queue = deque([(base_url, 0)])
+    base_netloc = urlparse(base_url).netloc
+    base_scheme = urlparse(base_url).scheme
 
-        for link_tag in soup.find_all("a", href=True):
-            if isinstance(link_tag, Tag):
-                href = link_tag.get("href")
+    while queue:
+        url, depth = queue.popleft()
+        if url in visited or depth > max_depth:
+            continue
+        visited.add(url)
+        _log.info(f"Crawling ({depth}): {url}")
 
-                if not isinstance(href, str):
-                    continue
+        try:
+            response = requests.get(url, timeout=5)
+            soup = BeautifulSoup(response.text, "html.parser")
+            for a_tag in soup.find_all("a", href=True):
+                if isinstance(a_tag, Tag):
+                    href = a_tag["href"]
+                    if isinstance(href, str) and isinstance(url, str):
+                        link = urljoin(url, href)
+                        parsed = urlparse(link)
 
-                href = href.strip()
-                if not href or href.startswith("#"):
-                    continue
+                # Only include links that match base URL (domain + scheme)
+                if (
+                    parsed.scheme == base_scheme
+                    and parsed.netloc == base_netloc
+                ):
+                    if link.startswith(base_url):
+                        queue.append((link, depth + 1))
+        except Exception as e:
+            _log.error(f"Failed to fetch {url}: {e}")
 
-                full_url = urljoin(base_url, href)
-                if is_valid_url(full_url):
-                    internal_links.add(full_url)
-
-    except Exception as e:
-        _log.error(f"Error getting links from {base_url}: {e}")
-        return set()
-    else:
-        return internal_links
+    return visited
 
 
 def webpage_loader(url: str) -> list[Document]:
