@@ -78,7 +78,7 @@ def scrape_1org(org_name='lsst-dmsst', write=False):
     if write:
         with open(org_name + "_20250502.pickle", "wb") as handle:
             pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)       
-        
+
     return all_docs
 
 def scrape_many_orgs():
@@ -90,7 +90,6 @@ def scrape_many_orgs():
     all_docs = []
     for org in orgs:
         docs = scrape_1org(org_name=org, write=True)
-        #all_docs += docs # memory concern !!!
         del docs
 
     return all_docs
