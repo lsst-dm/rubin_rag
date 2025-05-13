@@ -21,6 +21,7 @@
 """Utilities for ingesting GitHub repo contents into LangChain documents."""
 
 import os
+import Path
 import pickle
 import subprocess
 import time
@@ -101,7 +102,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
     return docs
 
 
-def scrape_1org(org_name: str = "lsst-dmsst", write=False) -> List:
+def scrape_1org(org_name: str = "lsst-dmsst", write=False) -> list:
     """Ingest all repos within a GitHub org."""
     repos = repos_in_org(org_name)
 
@@ -124,7 +125,7 @@ def scrape_1org(org_name: str = "lsst-dmsst", write=False) -> List:
     )
 
     if write:
-        with open(org_name + "_20250502.pickle", "wb") as handle:
+        with Path.open(org_name + "_20250502.pickle", "wb") as handle:
             pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return all_docs
