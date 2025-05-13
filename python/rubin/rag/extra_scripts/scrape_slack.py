@@ -24,49 +24,99 @@
 documents.
 """
 
-import datetime
+import argparse
 import logging
+import os
 import re
-import sys
 
 from langchain_community.document_loaders import SlackDirectoryLoader
 from langchain_core.documents.base import Document
+from slack_sdk import WebClient
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
 
-def transform_source(text: str) -> str:
-    """Reformat the source metadata string to remove user information and
-    convert the timestamp to a human-readable format.
-
-    Parameters
-    ----------
-    text: str
-        The source metadata from the langchain SlackDirectoryLoader.
+def channel_lookup() -> dict[str, str]:
+    """Create a dictionary mapping channel names to channel IDs.
 
     Returns
     -------
-    str
-        The source metadata with the user id removed and the timestamp
-        reformatted into a standard UTC datetime format.
+    dict[str, str]:
+        A dictionary mapping Slack channel names to their channel IDs.
+
     """
-    # Remove user id
-    text = re.sub(r" - [^-]+ - ", " - ", text)
+    try:
+        token = os.getenv("SLACK_API_TOKEN")
+        if not token:
+            raise ValueError("SLACK_API_TOKEN environment variable not set.")
+        client = WebClient(token=token)
+    except Exception as e:
+        _log.error(
+            f"Error connecting to Slack API. Make sure the SLACK_API_TOKEN "
+            f"env variable is set: {e}"
+        )
+        return {}
 
-    # Extract the timestamp
-    parts = text.rsplit(" - ", 1)
-    if len(parts) != 2:
-        raise ValueError("Input format is incorrect.")
+    lookup = {}
+    cursor = None
 
-    prefix, timestamp_str = parts
-    timestamp = float(timestamp_str)
+    while True:
+        try:
+            result = client.conversations_list(limit=100, cursor=cursor)
+            page_channels = result["channels"]
+            for channel in page_channels:
+                lookup[channel["name"]] = channel["id"]
+            cursor = result["response_metadata"].get("next_cursor")
+            if not cursor:
+                break
+        except Exception as e:
+            _log.error(f"Error fetching channels from Slack: {e}")
+            break
 
-    # Convert timestamp to UTC datetime string
-    dt = datetime.datetime.fromtimestamp(timestamp, tz=datetime.UTC)
-    dt_str = dt.strftime("%Y-%m-%d %H:%M:%S UTC")
+    return lookup
 
-    return f"Slack: {prefix} - {dt_str}"
+
+def get_channel_id(channel_name: str, lookup: dict[str, str]) -> str | None:
+    """Return the channel ID for a given channel name from the lookup table.
+
+    Parameters
+    ----------
+    channel_name: str
+        Name of a Slack channel.
+    lookup: dict[str, str]
+        A lookup table mapping channel names to channel IDs.
+
+    Returns
+    -------
+    str | None
+        A string of the channel ID if it exists, otherwise None.
+
+    """
+    channel_id = lookup.get(channel_name)
+    if not channel_id:
+        _log.warning(f"Channel '{channel_name}' not found.")
+    return channel_id
+
+
+def source_2_url(timestamp: str, channel_id: str) -> str:
+    """Take timestamp and channel ID and return URL to chat.
+
+    Parameters
+    ----------
+    timestamp: str
+        A UNIX epoch timestamp from the metadata.
+    channel_id: str
+        The channel ID from the metadata.
+
+    Returns
+    -------
+    str:
+        A URL to the cited Slack message.
+
+    """
+    ts = timestamp.replace(".", "")
+    return f"https://rubin-obs.slack.com/archives/{channel_id}/p{ts}"
 
 
 def anonymize_mentions(text: str) -> str:
@@ -92,7 +142,9 @@ def anonymize_mentions(text: str) -> str:
         return text
 
 
-def sanitize_metadata(docs: list[Document]) -> list[Document]:
+def sanitize_metadata(
+    docs: list[Document], lookup: dict[str, str], *, anonymize: bool = False
+) -> list[Document]:
     """Sanitize the metadata of the documents by removing user information
     and adding source and source_key parameters.
 
@@ -100,33 +152,47 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
     ----------
     docs: list[Document]
         A list of Langchain document objects from the Slack loader.
+    lookup: dict[str, str]
+        Mapping of channel names to Slack channel IDs.
+    anonymize: bool, optional
+        If True, remove user mentions from metadata and page content.
 
     Returns
     -------
     list[Document]
-        A list of Langchain documents, with user mentioned removed from the
-        page content and metadata, and a source_key added to the metadata.
+        A sanitized list of Langchain documents.
     """
     documents = []
     for doc in docs:
-        if "source" in doc.metadata:
-            doc.metadata["source"] = transform_source(doc.metadata["source"])
-        if "user" in doc.metadata:
-            doc.metadata.pop("user")
-        if doc.page_content:
+        metadata = doc.metadata
+        timestamp = metadata.get("timestamp")
+        if "source" in metadata and "channel" in metadata:
+            channel_id = get_channel_id(metadata["channel"], lookup)
+            if channel_id and timestamp:
+                metadata["source"] = source_2_url(
+                    timestamp=timestamp, channel_id=channel_id
+                )
+
+        if anonymize and doc.page_content:
             doc.page_content = anonymize_mentions(doc.page_content)
-        doc.metadata["source_key"] = "slack"
+            metadata.pop("user", None)
+
+        metadata["source_key"] = "slack"
+
         documents.append(doc)
+
     return documents
 
 
-def main(zipfile: str) -> list[Document]:
+def main(zipfile: str, *, anonymize: bool = False) -> list[Document]:
     """Load and sanitize Slack documents.
 
     Parameters
     ----------
     zipfile: str
         A raw zip file containing Slack messages.
+    anonymize: bool, optional
+        Remove user mentions from metadata and page content if True.
 
     Returns
     -------
@@ -135,15 +201,22 @@ def main(zipfile: str) -> list[Document]:
     """
     loader = SlackDirectoryLoader(zipfile)
     docs = loader.load()
+    lookup_table = channel_lookup()
     _log.info(f"Loaded {len(docs)} documents from {zipfile}")
 
-    return sanitize_metadata(docs)
+    return sanitize_metadata(docs, lookup_table, anonymize=anonymize)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        _log.error(f"Usage: python {sys.argv[0]} <path_to_slack_zipfile>")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Process Slack zipfile and sanitize content."
+    )
+    parser.add_argument("zipfile", help="Path to Slack zipfile")
+    parser.add_argument(
+        "-anon", action="store_true", help="Anonymize user mentions"
+    )
 
-    zip_path = sys.argv[1]
-    docs = main(zip_path)
+    args = parser.parse_args()
+    lookup_table = channel_lookup()
+
+    docs = main(args.zipfile, anonymize=args.anon)
