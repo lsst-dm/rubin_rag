@@ -43,7 +43,9 @@ def file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of all files within a directory."""
     command = ["find", directory, "-type", "f"]
     try:
-        process = subprocess.run(command, capture_output=True, text=True, check=True)
+        process = subprocess.run(
+            command, capture_output=True, text=True, check=True
+        )
     except Exception:
         # this can happen if there's an empty GitHub repo e.g., https://github.com/lsst-it/ittn-041
         return []
