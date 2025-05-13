@@ -111,7 +111,7 @@ def scrape_1org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
         all_docs = all_docs + docs
 
     if write:
-        with Path.open(org_name + "_20250502.pickle", mode="w") as handle:
+        with Path(org_name + "_20250502.pickle").open("wb") as handle:
             pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return all_docs
