@@ -33,9 +33,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory."""
     files = file_list(directory=directory)
     return [
-        f
-        for f in files
-        if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
+        f for f in files if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
     ]
 
 
