@@ -5,13 +5,13 @@ from scrape_github import repos_in_org
 import time
 import pickle
 
-def clean_file_list(directory='rubin_rag'):
+def clean_file_list(directory="rubin_rag"):
     files = file_list(directory=directory)
-    files = [f for f in files if ((os.path.basename(f)[0] != '.') and (f.find('/.') == -1))]
+    files = [f for f in files if ((os.path.basename(f)[0] != ".") and (f.find("/.") == -1))]
     return files
 
-def file_list(directory='rubin_rag'):
-    command = ['find', directory, '-type', 'f']
+def file_list(directory="rubin_rag"):
+    command = ["find", directory, "-type", "f"]
     try:
         process = subprocess.run(command, capture_output=True, text=True, check=True)
     except Exception:
@@ -23,16 +23,16 @@ def file_list(directory='rubin_rag'):
     else:
         return []
 
-def clone_repo(repo_name='lsst/daf_butler'):
+def clone_repo(repo_name="lsst/daf_butler"):
     
-    repository_url = 'https://github.com/' + repo_name + '.git'
-    command = ['git', 'clone', repository_url]
+    repository_url = "https://github.com/" + repo_name + ".git"
+    command = ["git", "clone", repository_url]
     process = subprocess.run(command,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              text=True)  # Capture output as text
 
-def ingest_1repo(repo_name='lsst/daf_butler'):
+def ingest_1repo(repo_name="lsst/daf_butler"):
     clone_repo(repo_name=repo_name)
     repo_basename = os.path.basename(repo_name)
     flist = clean_file_list(directory=repo_basename)
@@ -51,9 +51,9 @@ def ingest_1repo(repo_name='lsst/daf_butler'):
             doc.metadata["source_key"] = "github"
             docs.append(doc)
         except Exception:
-            print('possible non-text file : ' + f)
+            print("possible non-text file : " + f)
 
-    print('REPO BASENAME: ' + repo_basename)
+    print("REPO BASENAME: " + repo_basename)
     # delete the git clone !
     if os.path.exists(repo_basename):
         command = ["rm", "-rf", repo_basename]
@@ -62,7 +62,7 @@ def ingest_1repo(repo_name='lsst/daf_butler'):
     return docs
 
 
-def scrape_1org(org_name='lsst-dmsst', write=False):
+def scrape_1org(org_name="lsst-dmsst", write=False):
     repos = repos_in_org(org_name)
     
     all_docs = []
@@ -73,7 +73,7 @@ def scrape_1org(org_name='lsst-dmsst', write=False):
         all_docs = all_docs + docs
     
     dt = time.time()-t0
-    print('took ' + "{:.1f}".format(dt) + ' seconds to scrape ' + org_name + ' ; ' + str(len(all_docs)) + ' files successfully scraped')
+    print("took " + "{:.1f}".format(dt) + " seconds to scrape " + org_name + " ; " + str(len(all_docs)) + " files successfully scraped")
 
     if write:
         with open(org_name + "_20250502.pickle", "wb") as handle:
