@@ -32,12 +32,11 @@ from scrape_github import repos_in_org
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory."""
     files = file_list(directory=directory)
-    files = [
+    return [
         f
         for f in files
         if ((os.path.basename(f)[0] != ".") and (f.find("/.") == -1))
     ]
-    return files
 
 
 def file_list(directory: str = "rubin_rag") -> list[str]:
