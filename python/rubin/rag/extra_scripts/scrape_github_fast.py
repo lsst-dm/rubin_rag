@@ -20,7 +20,6 @@
 
 """Utilities for ingesting GitHub repo contents into LangChain documents."""
 
-import os
 import pickle
 import subprocess
 from pathlib import Path
