@@ -19,7 +19,7 @@ def file_list(directory="rubin_rag"):
         return []
     output = process.stdout.strip()
     if output:
-        return output.split('\n')
+        return output.split("\n")
     else:
         return []
 
@@ -42,7 +42,7 @@ def ingest_1repo(repo_name="lsst/daf_butler"):
     # return the list of documents
 
     docs = []
-    for i,f in enumerate(flist):
+    for i, f in enumerate(flist):
         print(i, f)
         loader = TextLoader(f)
         try:
