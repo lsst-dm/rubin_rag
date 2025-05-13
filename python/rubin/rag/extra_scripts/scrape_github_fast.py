@@ -92,7 +92,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
 
     print("REPO BASENAME: " + repo_basename)
     # delete the git clone !
-    if os.path.exists(repo_basename):
+    if Path(repo_basename).exists():
         command = ["rm", "-rf", repo_basename]
         subprocess.run(command, check=False)
 
