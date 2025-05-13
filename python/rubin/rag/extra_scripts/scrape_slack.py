@@ -38,7 +38,14 @@ _log = logging.getLogger(__name__)
 
 
 def channel_lookup() -> dict[str, str]:
-    """Create a dictionary mapping channel names to channel IDs."""
+    """Create a dictionary mapping channel names to channel IDs.
+
+    Returns
+    -------
+    dict[str, str]:
+        A dictionary mapping Slack channel names to their channel IDs.
+
+    """
     try:
         token = os.getenv("SLACK_API_TOKEN")
         if not token:
@@ -71,7 +78,21 @@ def channel_lookup() -> dict[str, str]:
 
 
 def get_channel_id(channel_name: str, lookup: dict[str, str]) -> str | None:
-    """Return the channel ID for a given channel name from the lookup table."""
+    """Return the channel ID for a given channel name from the lookup table.
+
+    Parameters
+    ----------
+    channel_name: str
+        Name of a Slack channel.
+    lookup: dict[str, str]
+        A lookup table mapping channel names to channel IDs.
+
+    Returns
+    -------
+    str | None
+        A string of the channel ID if it exists, otherwise None.
+
+    """
     channel_id = lookup.get(channel_name)
     if not channel_id:
         _log.warning(f"Channel '{channel_name}' not found.")
@@ -79,7 +100,21 @@ def get_channel_id(channel_name: str, lookup: dict[str, str]) -> str | None:
 
 
 def source_2_url(timestamp: str, channel_id: str) -> str:
-    """Take timestamp and channel ID and return URL to chat."""
+    """Take timestamp and channel ID and return URL to chat.
+
+    Parameters
+    ----------
+    timestamp: str
+        A UNIX epoch timestamp from the metadata.
+    channel_id: str
+        The channel ID from the metadata.
+
+    Returns
+    -------
+    str:
+        A URL to the cited Slack message.
+
+    """
     ts = timestamp.replace(".", "")
     return f"https://rubin-obs.slack.com/archives/{channel_id}/p{ts}"
 
@@ -88,8 +123,8 @@ def anonymize_mentions(text: str) -> str:
     """Anonymize user mentions in the text by replacing them with a
     placeholder.
 
-    Paramters
-    ---------
+    Parameters
+    ----------
     text: str
         The page content of a Langchain document object produced by the
         Slack loader.
