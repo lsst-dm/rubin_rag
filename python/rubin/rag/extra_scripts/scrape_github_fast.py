@@ -45,7 +45,7 @@ def file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of all files within a directory."""
     command = ["find", directory, "-type", "f"]
     try:
-        process = subprocess.run(
+        subprocess.run(
             command, capture_output=True, text=True, check=True
         )
     except Exception:
@@ -62,7 +62,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
     """Clone a GitHub repo to the current working directory."""
     repository_url = "https://github.com/" + repo_name + ".git"
     command = ["git", "clone", repository_url]
-    process = subprocess.run(
+    subprocess.run(
         command,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
