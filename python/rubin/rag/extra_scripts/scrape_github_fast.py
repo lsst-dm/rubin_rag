@@ -8,6 +8,7 @@ from scrape_github import repos_in_org
 
 
 def clean_file_list(directory="rubin_rag"):
+    """Make a list of non-hidden files within a directory."""
     files = file_list(directory=directory)
     files = [
         f
@@ -18,6 +19,7 @@ def clean_file_list(directory="rubin_rag"):
 
 
 def file_list(directory="rubin_rag"):
+    """Make a list of all files within a directory."""
     command = ["find", directory, "-type", "f"]
     try:
         process = subprocess.run(
@@ -34,6 +36,7 @@ def file_list(directory="rubin_rag"):
 
 
 def clone_repo(repo_name="lsst/daf_butler"):
+    """Clone a GitHub repo to the current working directory."""
     repository_url = "https://github.com/" + repo_name + ".git"
     command = ["git", "clone", repository_url]
     process = subprocess.run(
@@ -46,6 +49,7 @@ def clone_repo(repo_name="lsst/daf_butler"):
 
 
 def ingest_1repo(repo_name="lsst/daf_butler"):
+    """Ingest all non-hidden files in a locally cloned repo."""
     clone_repo(repo_name=repo_name)
     repo_basename = os.path.basename(repo_name)
     flist = clean_file_list(directory=repo_basename)
@@ -76,6 +80,7 @@ def ingest_1repo(repo_name="lsst/daf_butler"):
 
 
 def scrape_1org(org_name="lsst-dmsst", write=False):
+    """Ingest all repos within a GitHub org."""
     repos = repos_in_org(org_name)
 
     all_docs = []
@@ -104,6 +109,7 @@ def scrape_1org(org_name="lsst-dmsst", write=False):
 
 
 def scrape_many_orgs():
+    """Ingest all GitHub repos within multiple GitHub orgs."""
     orgs = [
         "lsst",
         "lsst-it",
