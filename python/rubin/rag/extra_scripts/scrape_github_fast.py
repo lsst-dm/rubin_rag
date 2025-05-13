@@ -29,7 +29,7 @@ from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
 
 
-def clean_file_list(directory="rubin_rag"):
+def clean_file_list(directory="rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory."""
     files = file_list(directory=directory)
     files = [
