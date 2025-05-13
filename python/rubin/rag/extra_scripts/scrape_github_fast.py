@@ -6,9 +6,14 @@ import time
 from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
 
+
 def clean_file_list(directory="rubin_rag"):
     files = file_list(directory=directory)
-    files = [f for f in files if ((os.path.basename(f)[0] != ".") and (f.find("/.") == -1))]
+    files = [
+        f
+        for f in files
+        if ((os.path.basename(f)[0] != ".") and (f.find("/.") == -1))
+    ]
     return files
 
 
