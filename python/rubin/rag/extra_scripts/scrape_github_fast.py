@@ -14,7 +14,7 @@ def file_list(directory='rubin_rag'):
     command = ['find', directory, '-type', 'f']
     try:
         process = subprocess.run(command, capture_output=True, text=True, check=True)
-    except:
+    except Exception:
         # this can happen if there's an empty GitHub repo e.g., https://github.com/lsst-it/ittn-041
         return []
     output = process.stdout.strip()
@@ -50,7 +50,7 @@ def ingest_1repo(repo_name='lsst/daf_butler'):
             doc = doc[0]
             doc.metadata["source_key"] = "github"
             docs.append(doc)
-        except:
+        except Exception:
             print('possible non-text file : ' + f)
 
     print('REPO BASENAME: ' + repo_basename)
@@ -82,7 +82,6 @@ def scrape_1org(org_name='lsst-dmsst', write=False):
     return all_docs
 
 def scrape_many_orgs():
-    #orgs = ['lsst-dmsst', 'rubin-dp0']
 
     orgs = ["lsst", "lsst-it", "lsst-dmsst", "lsst-pst", "lsst-sqre", "lsst-sqre-testing", "lsst-sitcom", "lsst-ts",
             "lsst-camera-dh", "rubin-observatory", "rubin-dp0", "lsst-sims", "lsst-epo", "lsst-camera-dh", "LSSTDESC",
