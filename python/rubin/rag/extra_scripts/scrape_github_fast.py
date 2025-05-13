@@ -68,7 +68,7 @@ def scrape_1org(org_name='lsst-dmsst', write=False):
     all_docs = []
     t0 = time.time()
     for i, repo in enumerate(repos):
-        print('WORKING ON REPO : ' + repo, i+1, ' of ', len(repos))
+        print("WORKING ON REPO : " + repo, i + 1, " of ", len(repos))
         docs = ingest_1repo(repo_name=repo)
         all_docs = all_docs + docs
     
