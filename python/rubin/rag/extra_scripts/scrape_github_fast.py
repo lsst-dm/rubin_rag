@@ -62,8 +62,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
     command = ["git", "clone", repository_url]
     subprocess.run(
         command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
         text=True,
         check=False,
     )  # Capture output as text
