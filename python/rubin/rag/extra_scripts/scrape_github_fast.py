@@ -21,11 +21,11 @@
 """Utilities for ingesting GitHub repo contents into LangChain documents."""
 
 import os
-import Path
 import pickle
 import subprocess
 import time
 
+import Path
 from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
 
