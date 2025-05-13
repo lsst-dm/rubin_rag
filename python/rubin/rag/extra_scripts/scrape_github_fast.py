@@ -41,9 +41,9 @@ def ingest_1repo(repo_name="lsst/daf_butler"):
     # delete the cloned repo (BE CAREFUL WITH RM -R)
     # return the list of documents
 
-    docs = []    
+    docs = []
     for i,f in enumerate(flist):
-        print(i, f)   
+        print(i, f)
         loader = TextLoader(f)
         try:
             doc = loader.load()
