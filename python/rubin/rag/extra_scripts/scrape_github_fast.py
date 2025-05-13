@@ -84,8 +84,8 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
         _log.info(f"working on file {i}, {f}")
         loader = TextLoader(f)
         try:
-            doc = loader.load()
-            doc = doc[0]
+            results = loader.load()
+            doc = results[0]
             doc.metadata["source_key"] = "github"
             docs.append(doc)
         except Exception:
