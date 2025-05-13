@@ -45,9 +45,7 @@ def file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of all files within a directory."""
     command = ["find", directory, "-type", "f"]
     try:
-        subprocess.run(
-            command, capture_output=True, text=True, check=True
-        )
+        subprocess.run(command, capture_output=True, text=True, check=True)
     except Exception:
         # this can happen if there's an empty GitHub repo e.g., https://github.com/lsst-it/ittn-041
         return []
@@ -97,7 +95,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
     # delete the git clone !
     if os.path.exists(repo_basename):
         command = ["rm", "-rf", repo_basename]
-        process = subprocess.run(command, check=False)
+        subprocess.run(command, check=False)
 
     return docs
 
