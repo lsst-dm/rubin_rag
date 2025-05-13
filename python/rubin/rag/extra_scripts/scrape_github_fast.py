@@ -25,7 +25,7 @@ import pickle
 import subprocess
 import time
 
-import Path
+from pathlib import Path
 from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
 
