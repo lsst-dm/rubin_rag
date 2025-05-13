@@ -73,16 +73,24 @@ def ingest_1repo(repo_name="lsst/daf_butler"):
 
 def scrape_1org(org_name="lsst-dmsst", write=False):
     repos = repos_in_org(org_name)
-    
+
     all_docs = []
     t0 = time.time()
     for i, repo in enumerate(repos):
         print("WORKING ON REPO : " + repo, i + 1, " of ", len(repos))
         docs = ingest_1repo(repo_name=repo)
         all_docs = all_docs + docs
-    
-    dt = time.time()-t0
-    print("took " + "{:.1f}".format(dt) + " seconds to scrape " + org_name + " ; " + str(len(all_docs)) + " files successfully scraped")
+
+    dt = time.time() - t0
+    print(
+        "took "
+        + f"{dt:.1f}"
+        + " seconds to scrape "
+        + org_name
+        + " ; "
+        + str(len(all_docs))
+        + " files successfully scraped"
+    )
 
     if write:
         with open(org_name + "_20250502.pickle", "wb") as handle:
