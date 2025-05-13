@@ -104,7 +104,7 @@ def scrape_1org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
     """Ingest all repos within a GitHub org."""
     repos = repos_in_org(org_name)
 
-    all_docs = []
+    all_docs: list = []
     for i, repo in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
         docs = ingest_1repo(repo_name=repo)
