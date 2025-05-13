@@ -29,7 +29,6 @@ def file_list(directory="rubin_rag"):
 
 
 def clone_repo(repo_name="lsst/daf_butler"):
-    
     repository_url = "https://github.com/" + repo_name + ".git"
     command = ["git", "clone", repository_url]
     process = subprocess.run(
@@ -100,7 +99,6 @@ def scrape_1org(org_name="lsst-dmsst", write=False):
 
 
 def scrape_many_orgs():
-
     orgs = [
         "lsst",
         "lsst-it",
