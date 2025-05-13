@@ -32,10 +32,13 @@ def clone_repo(repo_name="lsst/daf_butler"):
     
     repository_url = "https://github.com/" + repo_name + ".git"
     command = ["git", "clone", repository_url]
-    process = subprocess.run(command,
-                             stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE,
-                             text=True)  # Capture output as text
+    process = subprocess.run(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        check=False,
+    )  # Capture output as text
 
 
 def ingest_1repo(repo_name="lsst/daf_butler"):
@@ -90,9 +93,28 @@ def scrape_1org(org_name="lsst-dmsst", write=False):
 
 def scrape_many_orgs():
 
-    orgs = ["lsst", "lsst-it", "lsst-dmsst", "lsst-pst", "lsst-sqre", "lsst-sqre-testing", "lsst-sitcom", "lsst-ts",
-            "lsst-camera-dh", "rubin-observatory", "rubin-dp0", "lsst-sims", "lsst-epo", "lsst-camera-dh", "LSSTDESC",
-            "LSST-strong-lensing", "LSST-TVSSC", "LSST-SSSC", "LSSTScienceCollaborations", "lsst-dm"]
+    orgs = [
+        "lsst",
+        "lsst-it",
+        "lsst-dmsst",
+        "lsst-pst",
+        "lsst-sqre",
+        "lsst-sqre-testing",
+        "lsst-sitcom",
+        "lsst-ts",
+        "lsst-camera-dh",
+        "rubin-observatory",
+        "rubin-dp0",
+        "lsst-sims",
+        "lsst-epo",
+        "lsst-camera-dh",
+        "LSSTDESC",
+        "LSST-strong-lensing",
+        "LSST-TVSSC",
+        "LSST-SSSC",
+        "LSSTScienceCollaborations",
+        "lsst-dm",
+    ]
 
     all_docs = []
     for org in orgs:
