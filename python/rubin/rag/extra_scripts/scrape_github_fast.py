@@ -76,8 +76,8 @@ def scrape_1org(org_name='lsst-dmsst', write=False):
     print('took ' + "{:.1f}".format(dt) + ' seconds to scrape ' + org_name + ' ; ' + str(len(all_docs)) + ' files successfully scraped')
 
     if write:
-        with open(org_name + '_20250502.pickle', 'wb') as handle:
-            pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)        
+        with open(org_name + "_20250502.pickle", "wb") as handle:
+            pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)       
         
     return all_docs
 
