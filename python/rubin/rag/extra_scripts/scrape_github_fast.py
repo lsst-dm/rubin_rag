@@ -114,12 +114,12 @@ def scrape_1org(org_name: str = "lsst-dmsst", write=False) -> list:
     dt = time.time() - t0
     print(
         "took "
-        + f"{dt:.1f}"
-        + " seconds to scrape "
-        + org_name
-        + " ; "
-        + str(len(all_docs))
-        + " files successfully scraped"
+        f"{dt:.1f}"
+        " seconds to scrape "
+        org_name
+        " ; "
+        str(len(all_docs))
+        " files successfully scraped"
     )
 
     if write:
