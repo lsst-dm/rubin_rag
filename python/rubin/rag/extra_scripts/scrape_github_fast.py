@@ -31,6 +31,7 @@ from scrape_github import repos_in_org
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
+
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory."""
     files = file_list(directory=directory)
@@ -90,7 +91,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
         except Exception:
             print("possible non-text file : " + f)
 
-    print("REPO BASENAME: " + repo_basename)
+    _log.info("REPO BASENAME: {repo_basename}")
     # delete the git clone !
     if Path(repo_basename).exists():
         command = ["rm", "-rf", repo_basename]
