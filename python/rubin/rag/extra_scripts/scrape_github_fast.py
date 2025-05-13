@@ -1,9 +1,10 @@
-import subprocess
 import os
+import pickle
+import subprocess
+import time
+
 from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
-import time
-import pickle
 
 def clean_file_list(directory="rubin_rag"):
     files = file_list(directory=directory)
