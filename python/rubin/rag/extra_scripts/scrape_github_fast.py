@@ -13,7 +13,9 @@ def clean_file_list(directory="rubin_rag"):
 def file_list(directory="rubin_rag"):
     command = ["find", directory, "-type", "f"]
     try:
-        process = subprocess.run(command, capture_output=True, text=True, check=True)
+        process = subprocess.run(
+            command, capture_output=True, text=True, check=True
+        )
     except Exception:
         # this can happen if there's an empty GitHub repo e.g., https://github.com/lsst-it/ittn-041
         return []
