@@ -106,7 +106,7 @@ def scrape_1org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
 
     all_docs = []
     for i, repo in enumerate(repos):
-        print("WORKING ON REPO : " + repo, i + 1, " of ", len(repos))
+        _log.info("WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
         docs = ingest_1repo(repo_name=repo)
         all_docs = all_docs + docs
 
