@@ -29,7 +29,7 @@ from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
 
 
-def clean_file_list(directory="rubin_rag") -> list[str]:
+def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory."""
     files = file_list(directory=directory)
     files = [
@@ -40,7 +40,7 @@ def clean_file_list(directory="rubin_rag") -> list[str]:
     return files
 
 
-def file_list(directory="rubin_rag"):
+def file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of all files within a directory."""
     command = ["find", directory, "-type", "f"]
     try:
@@ -57,7 +57,7 @@ def file_list(directory="rubin_rag"):
         return []
 
 
-def clone_repo(repo_name="lsst/daf_butler"):
+def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
     """Clone a GitHub repo to the current working directory."""
     repository_url = "https://github.com/" + repo_name + ".git"
     command = ["git", "clone", repository_url]
@@ -70,7 +70,7 @@ def clone_repo(repo_name="lsst/daf_butler"):
     )  # Capture output as text
 
 
-def ingest_1repo(repo_name="lsst/daf_butler"):
+def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
     """Ingest all non-hidden files in a locally cloned repo."""
     clone_repo(repo_name=repo_name)
     repo_basename = os.path.basename(repo_name)
@@ -101,7 +101,7 @@ def ingest_1repo(repo_name="lsst/daf_butler"):
     return docs
 
 
-def scrape_1org(org_name="lsst-dmsst", write=False):
+def scrape_1org(org_name: str = "lsst-dmsst", write=False) -> List:
     """Ingest all repos within a GitHub org."""
     repos = repos_in_org(org_name)
 
@@ -130,7 +130,7 @@ def scrape_1org(org_name="lsst-dmsst", write=False):
     return all_docs
 
 
-def scrape_many_orgs():
+def scrape_many_orgs() -> None:
     """Ingest all GitHub repos within multiple GitHub orgs."""
     orgs = [
         "lsst",
@@ -155,9 +155,6 @@ def scrape_many_orgs():
         "lsst-dm",
     ]
 
-    all_docs = []
     for org in orgs:
         docs = scrape_1org(org_name=org, write=True)
         del docs
-
-    return all_docs
