@@ -20,6 +20,7 @@
 
 """Utilities for ingesting GitHub repo contents into LangChain documents."""
 
+import logging
 import pickle
 import subprocess
 from pathlib import Path
@@ -27,6 +28,8 @@ from pathlib import Path
 from langchain_community.document_loaders import TextLoader
 from scrape_github import repos_in_org
 
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
 
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory."""
@@ -77,7 +80,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
 
     docs = []
     for i, f in enumerate(flist):
-        print(i, f)
+        _log.info(f"working on file {i}, {f}")
         loader = TextLoader(f)
         try:
             doc = loader.load()
