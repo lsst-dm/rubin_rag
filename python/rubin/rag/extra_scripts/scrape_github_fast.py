@@ -11,6 +11,7 @@ def clean_file_list(directory="rubin_rag"):
     files = [f for f in files if ((os.path.basename(f)[0] != ".") and (f.find("/.") == -1))]
     return files
 
+
 def file_list(directory="rubin_rag"):
     command = ["find", directory, "-type", "f"]
     try:
@@ -26,6 +27,7 @@ def file_list(directory="rubin_rag"):
     else:
         return []
 
+
 def clone_repo(repo_name="lsst/daf_butler"):
     
     repository_url = "https://github.com/" + repo_name + ".git"
@@ -34,6 +36,7 @@ def clone_repo(repo_name="lsst/daf_butler"):
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              text=True)  # Capture output as text
+
 
 def ingest_1repo(repo_name="lsst/daf_butler"):
     clone_repo(repo_name=repo_name)
@@ -83,6 +86,7 @@ def scrape_1org(org_name="lsst-dmsst", write=False):
             pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     return all_docs
+
 
 def scrape_many_orgs():
 
