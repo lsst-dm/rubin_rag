@@ -35,7 +35,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     return [
         f
         for f in files
-        if ((os.path.basename(f)[0] != ".") and (f.find("/.") == -1))
+        if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
     ]
 
 
@@ -71,7 +71,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
 def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
     """Ingest all non-hidden files in a locally cloned repo."""
     clone_repo(repo_name=repo_name)
-    repo_basename = os.path.basename(repo_name)
+    repo_basename = Path(repo_name).name
     flist = clean_file_list(directory=repo_basename)
 
     # loop over LangChain docs with try/except
