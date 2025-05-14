@@ -22,10 +22,10 @@
 
 import logging
 import pickle
-import requests
 import subprocess
 from pathlib import Path
 
+import requests
 from langchain_community.document_loaders import TextLoader
 
 logging.basicConfig(level=logging.INFO)
