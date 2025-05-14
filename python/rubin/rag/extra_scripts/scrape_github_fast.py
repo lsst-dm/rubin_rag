@@ -26,10 +26,47 @@ import subprocess
 from pathlib import Path
 
 from langchain_community.document_loaders import TextLoader
-from scrape_github import repos_in_org
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
+
+
+def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
+    """Get list of repos within a GitHub organization.
+
+    Parameters
+    ----------
+    org_name : str
+        GitHub organization name
+
+    Returns
+    -------
+    list
+        list of strings, where each string is a repo in the format
+        org_name/repo_name. Returns empty list in the case of a
+        failed GitHub API response.
+    """
+    url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
+
+    try:
+        res = requests.get(
+            url, headers={"Authorization": access_token}, timeout=10
+        )
+    except Exception:
+        _log.exception(f"Failed to retrieve list of repos in org {org_name}.")
+        return []
+
+    repos = res.json()
+
+    while "next" in res.links:
+        res = requests.get(
+            res.links["next"]["url"],
+            headers={"Authorization": access_token},
+            timeout=10,
+        )
+        repos.extend(res.json())
+
+    return [repo["full_name"] for repo in repos]
 
 
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
