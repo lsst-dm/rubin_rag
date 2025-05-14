@@ -91,7 +91,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
         except Exception:
             _log.warning("possible non-text file : {f}")
 
-    _log.info("REPO BASENAME: {repo_basename}")
+    _log.info(f"REPO BASENAME: {repo_basename}")
     # delete the git clone !
     if Path(repo_basename).exists():
         command = ["rm", "-rf", repo_basename]
