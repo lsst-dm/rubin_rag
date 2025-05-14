@@ -89,7 +89,7 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
             doc.metadata["source_key"] = "github"
             docs.append(doc)
         except Exception:
-            _log.warning("possible non-text file : {f}")
+            _log.warning(f"possible non-text file : {f}")
 
     _log.info(f"REPO BASENAME: {repo_basename}")
     # delete the git clone !
