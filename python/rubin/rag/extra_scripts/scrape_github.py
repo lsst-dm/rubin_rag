@@ -79,7 +79,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
 
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """Make a list of non-hidden files within a directory.
-    
+
     Parameters
     ----------
     directory : str
