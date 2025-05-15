@@ -21,6 +21,7 @@
 """Utilities for ingesting GitHub repo contents into LangChain documents."""
 
 import logging
+import os
 import pickle
 import subprocess
 from pathlib import Path
@@ -31,6 +32,11 @@ from langchain_community.document_loaders import TextLoader
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
+# note that it's necessary to have set the env var
+# GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
+access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
+if access_token is None:
+    raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
 
 def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
     """Get list of repos within a GitHub organization.
