@@ -199,7 +199,21 @@ def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
 
 
 def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
-    """Scrape all repos within a GitHub org."""
+    """Scrape all repos within a GitHub org.
+
+    Parameters
+    ----------
+    org_name : str
+        GitHub organization name including the organization name,
+        for instance lsst-dm.
+
+    Returns
+    -------
+    all_docs : list
+        a list of scraped LangChain documents, one per non-hidden file
+        spanning all repos within the org. Empty list if no files
+        found/scraped.
+    """
     repos = repos_in_org(org_name)
 
     all_docs: list = []
