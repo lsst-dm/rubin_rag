@@ -85,7 +85,8 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     directory : str
         directory for which to make a list of non-hidden files.
         Note that files within all non-hidden subdirectories of
-        directory are also returned.
+        directory are also returned. Note that we want to ignore
+        hidden .git directories, for instance.
 
     Returns
     -------
@@ -153,7 +154,21 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
 
 
 def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
-    """Scrape all non-hidden files in a locally cloned repo."""
+    """Scrape all non-hidden files in a locally cloned repo.
+
+    Parameters
+    ----------
+    repo_name : str
+        repo name including the organization name, for instance
+        lsst/daf_butler. As part of scraping, the entire repo will
+        be cloned from GitHub.
+
+    Returns
+    -------
+    docs : list
+        a list of scraped LangChain documents, one per non-hidden file
+        in the cloned repo. Empty list if no files found/scraped.
+    """
     clone_repo(repo_name=repo_name)
     repo_basename = Path(repo_name).name
     flist = clean_file_list(directory=repo_basename)
