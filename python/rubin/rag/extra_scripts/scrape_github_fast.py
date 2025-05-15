@@ -114,7 +114,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
     )  # Capture output as text
 
 
-def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
+def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
     """Ingest all non-hidden files in a locally cloned repo."""
     clone_repo(repo_name=repo_name)
     repo_basename = Path(repo_name).name
@@ -145,14 +145,14 @@ def ingest_1repo(repo_name: str = "lsst/daf_butler") -> list:
     return docs
 
 
-def scrape_1org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
+def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
     """Ingest all repos within a GitHub org."""
     repos = repos_in_org(org_name)
 
     all_docs: list = []
     for i, repo in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
-        docs = ingest_1repo(repo_name=repo)
+        docs = scrape_repo(repo_name=repo)
         all_docs = all_docs + docs
 
     if write:
@@ -188,5 +188,5 @@ def scrape_many_orgs() -> None:
     ]
 
     for org in orgs:
-        docs = scrape_1org(org_name=org, write=True)
+        docs = scrape_org(org_name=org, write=True)
         del docs
