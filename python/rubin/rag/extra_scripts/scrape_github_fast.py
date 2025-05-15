@@ -38,6 +38,7 @@ access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
 if access_token is None:
     raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
 
+
 def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
     """Get list of repos within a GitHub organization.
 
