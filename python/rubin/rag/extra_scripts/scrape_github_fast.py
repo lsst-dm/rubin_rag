@@ -18,7 +18,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.```
 
-"""Utilities for ingesting GitHub repo contents into LangChain documents."""
+"""Utilities for scraping GitHub repo contents into LangChain documents."""
 
 import logging
 import os
@@ -115,7 +115,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
 
 
 def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
-    """Ingest all non-hidden files in a locally cloned repo."""
+    """Scrape all non-hidden files in a locally cloned repo."""
     clone_repo(repo_name=repo_name)
     repo_basename = Path(repo_name).name
     flist = clean_file_list(directory=repo_basename)
@@ -146,7 +146,7 @@ def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
 
 
 def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
-    """Ingest all repos within a GitHub org."""
+    """Scrape all repos within a GitHub org."""
     repos = repos_in_org(org_name)
 
     all_docs: list = []
@@ -163,7 +163,7 @@ def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
 
 
 def scrape_many_orgs() -> None:
-    """Ingest all GitHub repos within multiple GitHub orgs."""
+    """Scrape all GitHub repos within multiple GitHub orgs."""
     orgs = [
         "lsst",
         "lsst-it",
