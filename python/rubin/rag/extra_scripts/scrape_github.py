@@ -84,8 +84,8 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     ----------
     directory : str
         directory for which to make a list of non-hidden files.
-        Note that files within all subdirectories of directory
-        are also returned.
+        Note that files within all non-hidden subdirectories of
+        directory are also returned.
 
     Returns
     -------
@@ -101,7 +101,23 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
 
 
 def file_list(directory: str = "rubin_rag") -> list[str]:
-    """Make a list of all files within a directory."""
+    """Make a list of all files within a directory.
+
+    Parameters
+    ----------
+    directory : str
+        directory for which to make a list of all files, including
+        hidden files and files within hidden subdirectories.
+        Note that files within all subdirectories of directory
+        are also returned.
+
+    Returns
+    -------
+    list
+        list of strings, where each string is a relative file
+        path. Returns empty list in the case of no files found
+        within the specified directory.
+    """
     command = ["find", directory, "-type", "f"]
     try:
         process = subprocess.run(
