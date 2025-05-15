@@ -78,7 +78,22 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
 
 
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
-    """Make a list of non-hidden files within a directory."""
+    """Make a list of non-hidden files within a directory.
+    
+    Parameters
+    ----------
+    directory : str
+        directory for which to make a list of non-hidden files.
+        Note that files within all subdirectories of directory
+        are also returned.
+
+    Returns
+    -------
+    list
+        list of strings, where each string is a relative file
+        path. Returns empty list in the case of no non-hidden
+        files found within the specified directory.
+    """
     files = file_list(directory=directory)
     return [
         f for f in files if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
