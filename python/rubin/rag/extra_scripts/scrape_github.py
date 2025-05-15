@@ -134,7 +134,14 @@ def file_list(directory: str = "rubin_rag") -> list[str]:
 
 
 def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
-    """Clone a GitHub repo to the current working directory."""
+    """Clone a GitHub repo to the current working directory.
+
+    Parameters
+    ----------
+    repo_name : str
+        repo name including the organization name, for instance
+        lsst/daf_butler
+    """
     repository_url = "https://github.com/" + repo_name + ".git"
     command = ["git", "clone", repository_url]
     subprocess.run(
