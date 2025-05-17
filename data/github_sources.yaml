@@ -17,9 +17,6 @@ organization:
   - name: "rubin-dp0"
   - name: "lsst-sims"
   - name: "lsst-epo"
-  - name: "lsst-camera-dh"
-    repos:
-      - repo: "eo-pipe"
 
 # Science collaborations
   - name: "LSSTDESC"
