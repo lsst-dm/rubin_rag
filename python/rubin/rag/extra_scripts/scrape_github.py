@@ -230,7 +230,7 @@ def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
     return all_docs
 
 
-def load_and_scrape(yaml_file : str) -> None:
+def load_and_scrape(yaml_file: str) -> None:
     """Scrape all GitHub repos within multiple GitHub orgs."""
     path = Path(yaml_file)
     with path.open(mode="r", encoding="utf-8") as f:
