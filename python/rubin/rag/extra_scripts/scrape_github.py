@@ -27,6 +27,7 @@ import subprocess
 from pathlib import Path
 
 import requests
+import yaml
 from langchain_community.document_loaders import TextLoader
 
 logging.basicConfig(level=logging.INFO)
@@ -228,32 +229,14 @@ def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
 
     return all_docs
 
-
-def scrape_many_orgs() -> None:
+def load_and_scrape(yaml_file : str) -> None:
     """Scrape all GitHub repos within multiple GitHub orgs."""
-    orgs = [
-        "lsst",
-        "lsst-it",
-        "lsst-dmsst",
-        "lsst-pst",
-        "lsst-sqre",
-        "lsst-sqre-testing",
-        "lsst-sitcom",
-        "lsst-ts",
-        "lsst-camera-dh",
-        "rubin-observatory",
-        "rubin-dp0",
-        "lsst-sims",
-        "lsst-epo",
-        "lsst-camera-dh",
-        "LSSTDESC",
-        "LSST-strong-lensing",
-        "LSST-TVSSC",
-        "LSST-SSSC",
-        "LSSTScienceCollaborations",
-        "lsst-dm",
-    ]
 
+    path = Path(yaml_file)
+    with path.open(mode="r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+
+    orgs = data["organization"]
     for org in orgs:
-        docs = scrape_org(org_name=org, write=True)
+        docs = scrape_org(org_name=org["name"], write=True)
         del docs
