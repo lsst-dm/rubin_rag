@@ -218,7 +218,9 @@ def scrape_org(org_name: str = "lsst-dmsst") -> None:
         scrape_repo(repo_name=repo)
 
     end_org = time.time()
-    _log.info(f"Scraped {org_name} in {(end_org - start_org) / 60:.2f} minutes.")
+    _log.info(
+        f"Scraped {org_name} in {(end_org - start_org) / 60:.2f} minutes."
+    )
 
 
 def load_and_scrape(yaml_file: str) -> None:
@@ -235,5 +237,4 @@ def load_and_scrape(yaml_file: str) -> None:
 
     orgs = data["organization"]
     for org in orgs:
-        docs = scrape_org(org_name=org["name"], write=True)
-        del docs
+        scrape_org(org_name=org["name"])
