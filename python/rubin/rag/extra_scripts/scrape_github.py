@@ -228,12 +228,12 @@ def scrape_repo(
             docs.append(doc)
 
         except Exception as e:
-            _log.debug(f"possible non-text file : {f} - Error: {str(e)}")
+            _log.debug(f"possible non-text file : {f} - Error: {e!s}")
 
     # Save any remaining documents in the last batch
     if current_batch:
         batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
-        with open(batch_path, 'wb') as f_out:
+        with open(batch_path, "wb") as f_out:
             pickle.dump(current_batch, f_out)
         _log.info(f"Saved batch {batch_number} to {batch_path}")
 
