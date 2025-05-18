@@ -281,6 +281,20 @@ def scrape_org(org_name: str = "lsst-dmsst", max_mb: int = 1024) -> None:
     )
 
 
+def load_yaml_spec(yaml_file: str) -> Dict:
+    """Load YAML file specifying GitHub sources to scrape.
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying GitHub orgs to scrape
+    """
+    path = Path(yaml_file)
+    with path.open(mode="r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    return data
+
+
 def load_and_scrape(yaml_file: str) -> None:
     """Scrape all GitHub repos within multiple GitHub orgs.
 
