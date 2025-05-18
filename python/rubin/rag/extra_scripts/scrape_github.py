@@ -281,7 +281,7 @@ def scrape_org(org_name: str = "lsst-dmsst", max_mb: int = 1024) -> None:
     )
 
 
-def load_yaml_spec(yaml_file: str) -> Dict:
+def load_yaml_spec(yaml_file: str) -> dict:
     """Load YAML file specifying GitHub sources to scrape.
 
     Parameters
