@@ -191,7 +191,7 @@ def scrape_repo(
 
     # Process files
     docs = []
-    current_batch = []
+    current_batch: list = []
     current_batch_size = 0
     batch_number = 1
     batch_size_limit = max_mb * 1024 * 1024  # Convert MB to bytes
