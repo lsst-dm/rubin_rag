@@ -208,7 +208,8 @@ def scrape_repo(
             # Get approximate size of this document
             doc_size = len(pickle.dumps(doc))
 
-            # If adding this document would exceed the batch size limit, save the current batch
+            # If adding this document would exceed the batch size limit,
+            # save the current batch
             if (
                 current_batch_size + doc_size > batch_size_limit
                 and current_batch
