@@ -293,6 +293,21 @@ def load_yaml_spec(yaml_file: str) -> dict:
     with path.open(mode="r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+def get_all_repos(yaml_file: str) -> list[str]:
+    """Get list of repos across many orgs (exploratory utility)."""
+
+    spec = load_yaml_spec(yaml_file)
+
+    orgs = spec["organization"]
+    all_repos: list = []
+    for org in orgs:
+        org_name = org["name"]
+        _log.info(f"retrieving repo list for org {org_name}")
+        repos = repos_in_org(org_name)
+        all_repos += repos
+
+    return all_repos
+        
 
 def load_and_scrape(yaml_file: str) -> None:
     """Scrape all GitHub repos within multiple GitHub orgs.
