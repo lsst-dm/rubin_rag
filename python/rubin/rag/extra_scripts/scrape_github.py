@@ -293,6 +293,7 @@ def load_yaml_spec(yaml_file: str) -> dict:
     with path.open(mode="r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 
+
 def get_all_repos(yaml_file: str) -> list[str]:
     """Get list of repos across many orgs (exploratory utility)."""
 
