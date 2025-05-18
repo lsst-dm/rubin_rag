@@ -307,7 +307,7 @@ def get_all_repos(yaml_file: str) -> list[str]:
         all_repos += repos
 
     return all_repos
-        
+
 
 def load_and_scrape(yaml_file: str) -> None:
     """Scrape all GitHub repos within multiple GitHub orgs.
