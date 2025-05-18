@@ -160,13 +160,16 @@ def scrape_repo(
     repo_name: str = "lsst/daf_butler", max_mb: int = 1024
 ) -> None:
     """
-    Scrape all non-hidden files in a locally cloned repo and batch them into pickle files.
+    Scrape all non-hidden files in a locally cloned repo and batch
+    them into pickle files.
 
     Args:
         repo_name: GitHub repository in the format 'org/repo'
         max_mb: Maximum size of each pickle file in megabytes
     """
     # At start of scrape_repo
+
+    repo_org, repo_basename = repo_name.split("/", 1)
     output_dir = Path(f"large_batched_pickle/{repo_org}/{repo_basename}")
     if any(output_dir.glob(f"{repo_basename}_*.pkl")):
         _log.info(f"Skipping {repo_name}, already has pickle files.")
@@ -175,8 +178,6 @@ def scrape_repo(
     # Extract repo organization and name
     if "/" not in repo_name:
         raise ValueError("Repository name should be in format 'org/repo'")
-
-    repo_org, repo_basename = repo_name.split("/", 1)
 
     # Clone the repository
     clone_repo(repo_name=repo_name)
