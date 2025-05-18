@@ -24,6 +24,7 @@ import logging
 import os
 import pickle
 import subprocess
+import time
 from pathlib import Path
 
 import requests
@@ -199,7 +200,7 @@ def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
     return docs
 
 
-def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
+def scrape_org(org_name: str = "lsst-dmsst") -> None:
     """Scrape all repos within a GitHub org.
 
     Parameters
@@ -207,27 +208,17 @@ def scrape_org(org_name: str = "lsst-dmsst", *, write: bool = False) -> list:
     org_name : str
         GitHub organization name including the organization name,
         for instance lsst-dm.
-
-    Returns
-    -------
-    all_docs : list
-        a list of scraped LangChain documents, one per non-hidden file
-        spanning all repos within the org. Empty list if no files
-        found/scraped.
     """
+    start_org = time.time()
+
     repos = repos_in_org(org_name)
 
-    all_docs: list = []
     for i, repo in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
-        docs = scrape_repo(repo_name=repo)
-        all_docs = all_docs + docs
+        scrape_repo(repo_name=repo)
 
-    if write:
-        with Path(org_name + "_20250502.pickle").open("wb") as handle:
-            pickle.dump(all_docs, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    return all_docs
+    end_org = time.time()
+    _log.info(f"Scraped {org_name} in {(end_org - start_org) / 60:.2f} minutes.")
 
 
 def load_and_scrape(yaml_file: str) -> None:
