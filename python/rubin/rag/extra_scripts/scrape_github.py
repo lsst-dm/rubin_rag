@@ -163,14 +163,17 @@ def scrape_repo(
     Scrape all non-hidden files in a locally cloned repo and batch
     them into pickle files.
 
-    Args:
-        repo_name: GitHub repository in the format 'org/repo'
-        max_mb: Maximum size of each pickle file in megabytes
+    Parameters
+    ----------
+    repo_name : str
+        GitHub repository in the format 'org/repo'.
+    max_mb : int
+        Maximum size of each pickle file in megabytes.
     """
     # At start of scrape_repo
 
     repo_org, repo_basename = repo_name.split("/", 1)
-    output_dir = Path(f"large_batched_pickle/{repo_org}/{repo_basename}")
+    output_dir = Path(f"batched_pickle_output/{repo_org}/{repo_basename}")
     if any(output_dir.glob(f"{repo_basename}_*.pkl")):
         _log.info(f"Skipping {repo_name}, already has pickle files.")
         return
