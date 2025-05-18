@@ -295,7 +295,18 @@ def load_yaml_spec(yaml_file: str) -> dict:
 
 
 def get_all_repos(yaml_file: str) -> list[str]:
-    """Get list of repos across many orgs (exploratory utility)."""
+    """Get list of repos across many orgs (exploratory utility).
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying GitHub orgs to scrape
+
+    Returns
+    -------
+    all_repos : list[str]
+        list of repositories found across all orgs in 'org/repo' format.
+    """
     spec = load_yaml_spec(yaml_file)
 
     orgs = spec["organization"]
