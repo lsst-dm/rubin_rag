@@ -20,6 +20,7 @@
 
 """Utilities for scraping GitHub repo contents into LangChain documents."""
 
+import gc
 import logging
 import os
 import pickle
@@ -155,7 +156,9 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
     )  # Capture output as text
 
 
-def scrape_repo(repo_name: str = "lsst/daf_butler", max_mb: int = 1024) -> None:
+def scrape_repo(
+    repo_name: str = "lsst/daf_butler", max_mb: int = 1024
+) -> None:
     """
     Scrape all non-hidden files in a locally cloned repo and batch them into pickle files.
 
@@ -205,9 +208,12 @@ def scrape_repo(repo_name: str = "lsst/daf_butler", max_mb: int = 1024) -> None:
             doc_size = len(pickle.dumps(doc))
 
             # If adding this document would exceed the batch size limit, save the current batch
-            if current_batch_size + doc_size > batch_size_limit and current_batch:
+            if (
+                current_batch_size + doc_size > batch_size_limit
+                and current_batch
+            ):
                 batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
-                with open(batch_path, 'wb') as f_out:
+                with open(batch_path, "wb") as f_out:
                     pickle.dump(current_batch, f_out)
                 _log.info(f"Saved batch {batch_number} to {batch_path}")
 
