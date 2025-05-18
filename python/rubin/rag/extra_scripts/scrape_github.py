@@ -296,7 +296,6 @@ def load_yaml_spec(yaml_file: str) -> dict:
 
 def get_all_repos(yaml_file: str) -> list[str]:
     """Get list of repos across many orgs (exploratory utility)."""
-
     spec = load_yaml_spec(yaml_file)
 
     orgs = spec["organization"]
