@@ -189,7 +189,6 @@ def scrape_repo(
     flist = clean_file_list(directory=repo_basename)
 
     # Create output directory
-    output_dir = Path(f"large_batched_pickle/{repo_org}/{repo_basename}")
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Process files
