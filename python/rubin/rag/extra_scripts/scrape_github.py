@@ -78,7 +78,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
         repos.extend(res.json())
 
     return [
-        repo["full_name"] for repo in repos if ("data" not in repo["name"])
+        repo["full_name"] for repo in repos if ("data" not in repo["name"]) and ("dustmaps" not in repo["name"])
     ]
 
 
