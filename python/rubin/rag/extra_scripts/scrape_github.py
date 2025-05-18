@@ -291,8 +291,7 @@ def load_yaml_spec(yaml_file: str) -> Dict:
     """
     path = Path(yaml_file)
     with path.open(mode="r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
-    return data
+        return yaml.safe_load(f)
 
 
 def load_and_scrape(yaml_file: str) -> None:
