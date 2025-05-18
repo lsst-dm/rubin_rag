@@ -302,10 +302,8 @@ def load_and_scrape(yaml_file: str) -> None:
     yaml_file : str
         file name of the YAML file specifying GitHub orgs to scrape
     """
-    path = Path(yaml_file)
-    with path.open(mode="r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    spec = load_yaml_spec(yaml_file)
 
-    orgs = data["organization"]
+    orgs = spec["organization"]
     for org in orgs:
         scrape_org(org_name=org["name"])
