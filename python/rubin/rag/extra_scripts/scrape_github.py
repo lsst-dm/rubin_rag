@@ -100,9 +100,10 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """
     files = file_list(directory=directory)
     return [
-        f for f in files if ((Path(f).name[0] != ".") and
-        (f.find("/.") == -1)) and
-        (f[-5:] != '.fits')
+        f
+        for f in files
+        if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
+        and (f[-5:] != ".fits")
     ]
 
 
