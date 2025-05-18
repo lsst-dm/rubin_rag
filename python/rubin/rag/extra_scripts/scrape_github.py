@@ -256,7 +256,7 @@ def scrape_repo(
     gc.collect()
 
 
-def scrape_org(org_name: str = "lsst-dmsst") -> None:
+def scrape_org(org_name: str = "lsst-dmsst", max_mb: int = 1024) -> None:
     """Scrape all repos within a GitHub org.
 
     Parameters
@@ -264,6 +264,8 @@ def scrape_org(org_name: str = "lsst-dmsst") -> None:
     org_name : str
         GitHub organization name including the organization name,
         for instance lsst-dm.
+    max_mb : int
+        Maximum size of each pickle file in megabytes.
     """
     start_org = time.time()
 
@@ -271,7 +273,7 @@ def scrape_org(org_name: str = "lsst-dmsst") -> None:
 
     for i, repo in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
-        scrape_repo(repo_name=repo)
+        scrape_repo(repo_name=repo, max_mb=max_mb)
 
     end_org = time.time()
     _log.info(
