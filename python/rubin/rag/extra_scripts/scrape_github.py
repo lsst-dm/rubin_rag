@@ -155,49 +155,95 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
     )  # Capture output as text
 
 
-def scrape_repo(repo_name: str = "lsst/daf_butler") -> list:
-    """Scrape all non-hidden files in a locally cloned repo.
-
-    Parameters
-    ----------
-    repo_name : str
-        repo name including the organization name, for instance
-        lsst/daf_butler. As part of scraping, the entire repo will
-        be cloned from GitHub.
-
-    Returns
-    -------
-    docs : list
-        a list of scraped LangChain documents, one per non-hidden file
-        in the cloned repo. Empty list if no files found/scraped.
+def scrape_repo(repo_name: str = "lsst/daf_butler", max_mb: int = 1024) -> None:
     """
+    Scrape all non-hidden files in a locally cloned repo and batch them into pickle files.
+
+    Args:
+        repo_name: GitHub repository in the format 'org/repo'
+        max_mb: Maximum size of each pickle file in megabytes
+    """
+    # At start of scrape_repo
+    output_dir = Path(f"large_batched_pickle/{repo_org}/{repo_basename}")
+    if any(output_dir.glob(f"{repo_basename}_*.pkl")):
+        _log.info(f"Skipping {repo_name}, already has pickle files.")
+        return
+
+    # Extract repo organization and name
+    if "/" not in repo_name:
+        raise ValueError("Repository name should be in format 'org/repo'")
+
+    repo_org, repo_basename = repo_name.split("/", 1)
+
+    # Clone the repository
     clone_repo(repo_name=repo_name)
-    repo_basename = Path(repo_name).name
+
+    # Get list of files
     flist = clean_file_list(directory=repo_basename)
 
-    # loop over LangChain docs with try/except
-    # delete the cloned repo (BE CAREFUL WITH RM -R)
-    # return the list of documents
+    # Create output directory
+    output_dir = Path(f"large_batched_pickle/{repo_org}/{repo_basename}")
+    output_dir.mkdir(parents=True, exist_ok=True)
 
+    # Process files
     docs = []
+    current_batch = []
+    current_batch_size = 0
+    batch_number = 1
+    batch_size_limit = max_mb * 1024 * 1024  # Convert MB to bytes
+
     for i, f in enumerate(flist):
-        _log.info(f"working on file {i}, {f}")
-        loader = TextLoader(f)
+        _log.debug(f"working on file {i}, {f}")
+        loader = TextLoader(f, encoding="utf-8")
+
         try:
             results = loader.load()
             doc = results[0]
             doc.metadata["source_key"] = "github"
-            docs.append(doc)
-        except Exception:
-            _log.warning(f"possible non-text file : {f}")
 
-    _log.info(f"REPO BASENAME: {repo_basename}")
-    # delete the git clone !
+            # Get approximate size of this document
+            doc_size = len(pickle.dumps(doc))
+
+            # If adding this document would exceed the batch size limit, save the current batch
+            if current_batch_size + doc_size > batch_size_limit and current_batch:
+                batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
+                with open(batch_path, 'wb') as f_out:
+                    pickle.dump(current_batch, f_out)
+                _log.info(f"Saved batch {batch_number} to {batch_path}")
+
+                # Reset batch
+                current_batch = []
+                current_batch_size = 0
+                batch_number += 1
+
+            # Add document to current batch and overall docs list
+            current_batch.append(doc)
+            current_batch_size += doc_size
+            docs.append(doc)
+
+        except Exception as e:
+            _log.debug(f"possible non-text file : {f} - Error: {str(e)}")
+
+    # Save any remaining documents in the last batch
+    if current_batch:
+        batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
+        with open(batch_path, 'wb') as f_out:
+            pickle.dump(current_batch, f_out)
+        _log.info(f"Saved batch {batch_number} to {batch_path}")
+
+    _log.debug(f"REPO BASENAME: {repo_basename}")
+
+    # Delete the git clone
     if Path(repo_basename).exists():
         command = ["rm", "-rf", repo_basename]
         subprocess.run(command, check=False)
 
-    return docs
+    # Log the completion message
+    _log.info(f"Saved {repo_basename} to pickle in {batch_number} batches.")
+
+    # Free up memory
+    del docs
+    gc.collect()
 
 
 def scrape_org(org_name: str = "lsst-dmsst") -> None:
