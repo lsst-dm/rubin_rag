@@ -80,7 +80,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
     return [
         repo["full_name"]
         for repo in repos
-        if ("data" not in repo["name"]) and ("dustmaps" not in repo["name"])
+        if ("data" not in repo["name"].lower())
+        and ("dustmaps" not in repo["name"].lower())
+        and ("gen2" not in repo["name"].lower())
     ]
 
 
