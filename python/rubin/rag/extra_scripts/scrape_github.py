@@ -235,7 +235,7 @@ def scrape_repo(
     # Save any remaining documents in the last batch
     if current_batch:
         batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
-        with open(batch_path, "wb") as f_out:
+        with Path(batch_path).open("wb") as f_out:
             pickle.dump(current_batch, f_out)
         _log.info(f"Saved batch {batch_number} to {batch_path}")
 
