@@ -245,7 +245,7 @@ def scrape_repo(
 
     # Delete the git clone
     clone_path = Path(repo_basename)
-    if clone_path.exists() and (Path.cwd() in clone_path.parents):
+    if clone_path.exists() and (Path.cwd() in clone_path.resolve().parents):
         command = ["rm", "-rf", repo_basename]
         subprocess.run(command, check=False)
 
