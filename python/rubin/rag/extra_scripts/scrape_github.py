@@ -173,7 +173,7 @@ def scrape_repo(
     # At start of scrape_repo
 
     repo_org, repo_basename = repo_name.split("/", 1)
-    output_dir = Path(f"batched_pickle_output/{repo_org}/{repo_basename}")
+    output_dir = Path(f"batched_github_output/{repo_org}/{repo_basename}")
     if any(output_dir.glob(f"{repo_basename}_*.pkl")):
         _log.info(f"Skipping {repo_name}, already has pickle files.")
         return
