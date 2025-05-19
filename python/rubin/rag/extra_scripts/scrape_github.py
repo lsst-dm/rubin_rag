@@ -148,6 +148,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         and ("data" not in os.path.split(f)[0].lower())
         and ("images" not in f.split("/"))
         and ("figures" not in f.split("/"))
+        and ("logs" not in f.split("/"))
     ]
 
 
