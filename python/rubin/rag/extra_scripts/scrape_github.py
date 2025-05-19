@@ -112,6 +112,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
         and (f[-5:] != ".fits")
         and (f[-4:] != ".eps")
+        and (f[-4:] != ".tar")
         and ("gen2" not in f.lower())
         and ("data" not in os.path.split(f)[0].lower())
         and ("images" not in f.split("/"))
