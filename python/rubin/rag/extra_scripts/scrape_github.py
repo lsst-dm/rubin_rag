@@ -239,6 +239,15 @@ def delete_clone(repo_basename: str) -> None:
         subprocess.run(command, check=False)
 
 
+def select_doc_loader(fname: str) -> NotebookLoader | TextLoader:
+    """Select which LangChain document loader to use for a file."""
+    return (
+            TextLoader(fname, encoding="utf-8")
+            if (Path(fname).suffix != ".ipynb")
+            else NotebookLoader(f, remove_newline=True)
+    )
+
+
 def scrape_repo(
     repo_name: str = "lsst/daf_butler", max_mb: int = 1024
 ) -> None:
@@ -283,11 +292,7 @@ def scrape_repo(
 
     for i, f in enumerate(flist):
         _log.debug(f"working on file {i}, {f}")
-        loader = (
-            TextLoader(f, encoding="utf-8")
-            if (Path(f).suffix != ".ipynb")
-            else NotebookLoader(f, remove_newline=True)
-        )
+        loader = select_doc_loader(f)
 
         try:
             results = loader.load()
