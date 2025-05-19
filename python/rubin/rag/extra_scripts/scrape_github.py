@@ -104,7 +104,6 @@ def file_modified_timestamp(fname: str) -> str:
             command, capture_output=True, text=True, check=True
         )
     except Exception:
-        # this can happen if there's an empty GitHub repo e.g., https://github.com/lsst-it/ittn-041
         return ''
 
     return process.stdout.strip()
