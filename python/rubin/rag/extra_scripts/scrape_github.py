@@ -30,8 +30,11 @@ from pathlib import Path
 
 import requests
 import yaml
-from langchain_community.document_loaders import BSHTMLLoader, NotebookLoader,
-    TextLoader
+from langchain_community.document_loaders import (
+    BSHTMLLoader,
+    NotebookLoader,
+    TextLoader,
+)
 from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
