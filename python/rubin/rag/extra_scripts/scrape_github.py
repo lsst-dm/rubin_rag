@@ -30,7 +30,7 @@ from pathlib import Path
 
 import requests
 import yaml
-from langchain_community.document_loaders import NotebookLoader, TextLoader
+from langchain_community.document_loaders import BSHTMLLoader, NotebookLoader, TextLoader
 from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
@@ -241,11 +241,14 @@ def delete_clone(repo_basename: str) -> None:
 
 def select_doc_loader(fname: str) -> NotebookLoader | TextLoader:
     """Select which LangChain document loader to use for a file."""
-    return (
-        TextLoader(fname, encoding="utf-8")
-        if (Path(fname).suffix != ".ipynb")
-        else NotebookLoader(fname, remove_newline=True)
-    )
+    suffix = Path(fname).suffix
+
+    if suffix == '.ipynb':
+        return NotebookLoader(fname, remove_newline=True)
+    elif suffix == '.html'
+        return BSHTMLLoader(fname)
+    else:
+        return TextLoader(fname, encoding="utf-8")
 
 
 def scrape_repo(
