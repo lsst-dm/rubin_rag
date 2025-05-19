@@ -135,7 +135,17 @@ def is_data_dump(doc: Document) -> bool:
 
     return (size_mb > 1) and (
         exten
-        in [".json", ".csv", ".txt", ".text", ".dat", ".log", ".sql", ".yaml", ".cfg"]
+        in [
+            ".json",
+            ".csv",
+            ".txt",
+            ".text",
+            ".dat",
+            ".log",
+            ".sql",
+            ".yaml",
+            ".cfg",
+        ]
     )
 
 
