@@ -171,6 +171,20 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
         check=False,
     )  # Capture output as text
 
+def delete_clone(repo_basename: str) -> None.
+    """Delete a GitHub repo clone from local disk.
+       Be extremely careful with this function as it
+       spawns an rm -rf command.
+
+    Parameters
+    ----------
+    repo_basename: str
+        repo base name e.g., daf_butler (does not include the org name)
+    """
+    clone_path = Path(repo_basename)
+    if clone_path.exists() and (Path.cwd() in clone_path.resolve().parents):
+        command = ["rm", "-rf", repo_basename]
+        subprocess.run(command, check=False)
 
 def scrape_repo(
     repo_name: str = "lsst/daf_butler", max_mb: int = 1024
@@ -263,10 +277,7 @@ def scrape_repo(
     _log.debug(f"REPO BASENAME: {repo_basename}")
 
     # Delete the git clone
-    clone_path = Path(repo_basename)
-    if clone_path.exists() and (Path.cwd() in clone_path.resolve().parents):
-        command = ["rm", "-rf", repo_basename]
-        subprocess.run(command, check=False)
+    delete_clone(repo_basename)
 
     # Log the completion message
     _log.info(f"Saved {repo_basename} to pickle in {batch_number} batches.")
