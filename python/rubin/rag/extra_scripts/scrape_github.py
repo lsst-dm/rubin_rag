@@ -31,6 +31,7 @@ from pathlib import Path
 import requests
 import yaml
 from langchain_community.document_loaders import TextLoader
+from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -114,6 +115,17 @@ def file_modified_timestamp(fname: str) -> str:
         return ""
 
     return process.stdout.strip()
+
+
+def is_data_dump(doc: Document):
+    """Determine if a file has a high chance of being a data dump."""
+    size_mb = len(doc.page_content)/(1024.0**2)
+
+    root, exten = os.path.splitext(doc.metadata["source"])
+
+    exten = exten.lower()
+    
+    return (size_mb > 1) and (exten in [".json", ".csv", ".txt", ".text", ".dat"])
 
 
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
