@@ -222,6 +222,9 @@ def scrape_repo(
             results = loader.load()
             doc = results[0]
             doc.metadata["source_key"] = "github"
+            doc.metadata["repo_basename"] = repo_basename
+            doc.metadata["org_name"] = repo_org
+            doc.metadata["repo"] = repo_name
 
             # Get approximate size of this document
             doc_size = len(pickle.dumps(doc))
