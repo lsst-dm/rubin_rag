@@ -289,26 +289,27 @@ def scrape_repo(
             # Get approximate size of this document
             doc_size = len(pickle.dumps(doc))
 
-            # If adding this document would exceed the batch size limit,
-            # save the current batch
-            if (
-                current_batch_size + doc_size > batch_size_limit
-                and current_batch
-            ):
-                batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
-                with Path(batch_path).open("wb") as f_out:
-                    pickle.dump(current_batch, f_out)
-                _log.info(f"Saved batch {batch_number} to {batch_path}")
+            if not is_data_dump(doc):
+                # If adding this document would exceed the batch size limit,
+                # save the current batch
+                if (
+                    current_batch_size + doc_size > batch_size_limit
+                    and current_batch
+                ):
+                    batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
+                    with Path(batch_path).open("wb") as f_out:
+                        pickle.dump(current_batch, f_out)
+                    _log.info(f"Saved batch {batch_number} to {batch_path}")
 
-                # Reset batch
-                current_batch = []
-                current_batch_size = 0
-                batch_number += 1
+                    # Reset batch
+                    current_batch = []
+                    current_batch_size = 0
+                    batch_number += 1
 
-            # Add document to current batch and overall docs list
-            current_batch.append(doc)
-            current_batch_size += doc_size
-            docs.append(doc)
+                # Add document to current batch and overall docs list
+                current_batch.append(doc)
+                current_batch_size += doc_size
+                docs.append(doc)
 
         except Exception as e:
             _log.debug(f"possible non-text file : {f} - Error: {e!s}")
