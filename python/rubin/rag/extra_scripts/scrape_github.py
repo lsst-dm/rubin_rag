@@ -181,6 +181,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         and (f[-4:] != ".dax")
         and (f[-4:] != ".svg")
         and (f[-3:] != ".pd")
+        and (f[-5:] != ".trim")
         and (f[-7:] != ".SIMLIB")
         and (f[-7:] != ".pickle")
         and (f[-7:] != ".lvproj")
