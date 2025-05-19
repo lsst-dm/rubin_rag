@@ -167,6 +167,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         and (f[-4:] != ".zip")
         and (f[-4:] != ".out")
         and (f[-4:] != ".pkl")
+        and (f[-4:] != ".dax")
         and (f[-3:] != ".pd")
         and (f[-7:] != ".SIMLIB")
         and (f[-7:] != ".pickle")
