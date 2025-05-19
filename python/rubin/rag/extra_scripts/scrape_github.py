@@ -110,6 +110,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         for f in files
         if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
         and (f[-5:] != ".fits")
+        and ("gen2" not in f.lower())
     ]
 
 
