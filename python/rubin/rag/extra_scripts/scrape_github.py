@@ -284,7 +284,7 @@ def scrape_repo(
         _log.debug(f"working on file {i}, {f}")
         loader = (
             TextLoader(f, encoding="utf-8")
-            if not (Path(f).suffix == ".ipynb")
+            if (Path(f).suffix != ".ipynb")
             else NotebookLoader(f, remove_newline=True)
         )
 
