@@ -134,7 +134,8 @@ def is_data_dump(doc: Document) -> bool:
     exten = Path(doc.metadata["source"]).suffix.lower()
 
     return (size_mb > 1) and (
-        exten in [".json", ".csv", ".txt", ".text", ".dat", ".log", ".sql", ".yaml"]
+        exten
+        in [".json", ".csv", ".txt", ".text", ".dat", ".log", ".sql", ".yaml"]
     )
 
 
