@@ -96,15 +96,22 @@ def file_modified_timestamp(fname: str) -> str:
         name of a file within a local GitHub repo clone.
     """
     if not os.path.exists(fname):
-        return ''
-    command = ["git", "log", "-1", "--format=%ad", "--date=format:%F %R ", fname]
+        return ""
+    command = [
+        "git",
+        "log",
+        "-1",
+        "--format=%ad",
+        "--date=format:%F %R ",
+        fname,
+    ]
 
     try:
         process = subprocess.run(
             command, capture_output=True, text=True, check=True
         )
     except Exception:
-        return ''
+        return ""
 
     return process.stdout.strip()
 
