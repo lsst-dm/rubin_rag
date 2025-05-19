@@ -30,7 +30,7 @@ from pathlib import Path
 
 import requests
 import yaml
-from langchain_community.document_loaders import TextLoader
+from langchain_community.document_loaders import TextLoader, NotebookLoader
 from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
@@ -282,7 +282,7 @@ def scrape_repo(
 
     for i, f in enumerate(flist):
         _log.debug(f"working on file {i}, {f}")
-        loader = TextLoader(f, encoding="utf-8")
+        loader = TextLoader(f, encoding="utf-8") if not (Path(f).suffix == '.ipynb') else NotebookLoader(f, remove_newline=True)
 
         try:
             results = loader.load()
