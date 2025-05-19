@@ -172,6 +172,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         and (f[-3:] != ".pd")
         and (f[-7:] != ".SIMLIB")
         and (f[-7:] != ".pickle")
+        and (f[-7:] != ".lvproj")
         and ("gen2" not in f.lower())
         and ("data" not in os.path.split(f)[0].lower())
         and ("images" not in f.split("/"))
