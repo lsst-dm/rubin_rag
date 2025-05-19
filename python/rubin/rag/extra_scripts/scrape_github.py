@@ -95,7 +95,7 @@ def file_modified_timestamp(fname: str) -> str:
     fname : str
         name of a file within a local GitHub repo clone.
     """
-    if not os.path.exists(fname):
+    if not Path(fname).exists():
         return ""
     command = [
         "git",
