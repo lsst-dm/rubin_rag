@@ -83,6 +83,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
         if ("data" not in repo["name"].lower())
         and ("dustmaps" not in repo["name"].lower())
         and ("gen2" not in repo["name"].lower())
+        and (int(repo["updated_at"][0:4]) > 2020)
     ]
 
 
