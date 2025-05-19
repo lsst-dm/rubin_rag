@@ -243,7 +243,7 @@ def delete_clone(repo_basename: str) -> None:
         subprocess.run(command, check=False)
 
 
-def select_doc_loader(fname: str) -> NotebookLoader | TextLoader:
+def select_doc_loader(fname: str) -> BSHTMLLoader | NotebookLoader | TextLoader:
     """Select which LangChain document loader to use for a file."""
     suffix = Path(fname).suffix
 
