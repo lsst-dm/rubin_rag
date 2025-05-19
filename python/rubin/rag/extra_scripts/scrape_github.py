@@ -296,7 +296,9 @@ def scrape_repo(
                     current_batch_size + doc_size > batch_size_limit
                     and current_batch
                 ):
-                    batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
+                    batch_path = (
+                        output_dir / f"{repo_basename}_{batch_number}.pkl"
+                    )
                     with Path(batch_path).open("wb") as f_out:
                         pickle.dump(current_batch, f_out)
                     _log.info(f"Saved batch {batch_number} to {batch_path}")
