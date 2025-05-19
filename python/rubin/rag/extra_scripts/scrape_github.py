@@ -246,7 +246,13 @@ def delete_clone(repo_basename: str) -> None:
 def select_doc_loader(
     fname: str,
 ) -> BSHTMLLoader | NotebookLoader | TextLoader:
-    """Select which LangChain document loader to use for a file."""
+    """Select which LangChain document loader to use for a file.
+
+    Parameters
+    ----------
+    fname : str
+        path of file name that will be loaded into a LangChain doc.
+    """
     suffix = Path(fname).suffix
 
     if suffix == ".ipynb":
