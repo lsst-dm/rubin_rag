@@ -472,3 +472,7 @@ def load_and_scrape(yaml_file: str) -> None:
     orgs = spec["organization"]
     for org in orgs:
         scrape_org(org_name=org["name"])
+
+
+if __name__ == "__main__":
+    load_and_scrape("../../../../data/github_sources.yaml")
