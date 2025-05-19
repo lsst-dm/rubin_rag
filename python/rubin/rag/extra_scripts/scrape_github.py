@@ -171,7 +171,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
         check=False,
     )  # Capture output as text
 
-def delete_clone(repo_basename: str) -> None.
+def delete_clone(repo_basename: str) -> None:
     """Delete a GitHub repo clone from local disk.
        Be extremely careful with this function as it
        spawns an rm -rf command.
