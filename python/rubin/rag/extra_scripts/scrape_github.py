@@ -239,7 +239,7 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
         lsst/daf_butler
     """
     repository_url = "https://github.com/" + repo_name + ".git"
-    command = ["git", "clone", repository_url]
+    command = ["git", "clone", "--single-branch", "--depth", "1", repository_url]
     subprocess.run(
         command,
         capture_output=True,
