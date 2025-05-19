@@ -119,13 +119,15 @@ def file_modified_timestamp(fname: str) -> str:
 
 def is_data_dump(doc: Document):
     """Determine if a file has a high chance of being a data dump."""
-    size_mb = len(doc.page_content)/(1024.0**2)
+    size_mb = len(doc.page_content) / (1024.0**2)
 
     root, exten = os.path.splitext(doc.metadata["source"])
 
     exten = exten.lower()
-    
-    return (size_mb > 1) and (exten in [".json", ".csv", ".txt", ".text", ".dat"])
+
+    return (size_mb > 1) and (
+        exten in [".json", ".csv", ".txt", ".text", ".dat"]
+    )
 
 
 def clean_file_list(directory: str = "rubin_rag") -> list[str]:
