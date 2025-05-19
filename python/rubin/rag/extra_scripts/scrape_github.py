@@ -117,7 +117,7 @@ def file_modified_timestamp(fname: str) -> str:
     return process.stdout.strip()
 
 
-def is_data_dump(doc: Document):
+def is_data_dump(doc: Document) -> bool:
     """Determine if a file has a high chance of being a data dump."""
     size_mb = len(doc.page_content) / (1024.0**2)
 
