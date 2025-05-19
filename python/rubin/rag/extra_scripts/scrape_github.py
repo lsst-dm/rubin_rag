@@ -242,9 +242,9 @@ def delete_clone(repo_basename: str) -> None:
 def select_doc_loader(fname: str) -> NotebookLoader | TextLoader:
     """Select which LangChain document loader to use for a file."""
     return (
-            TextLoader(fname, encoding="utf-8")
-            if (Path(fname).suffix != ".ipynb")
-            else NotebookLoader(f, remove_newline=True)
+        TextLoader(fname, encoding="utf-8")
+        if (Path(fname).suffix != ".ipynb")
+        else NotebookLoader(fname, remove_newline=True)
     )
 
 
