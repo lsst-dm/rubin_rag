@@ -118,7 +118,13 @@ def file_modified_timestamp(fname: str) -> str:
 
 
 def is_data_dump(doc: Document) -> bool:
-    """Determine if a file has a high chance of being a data dump."""
+    """Determine if a file has a high chance of being a data dump.
+
+    Parameters
+    ----------
+    doc : langchain_core.documents.base.Document
+        LangChain document. Must have a "source" key in its metadata.
+    """
     size_mb = len(doc.page_content) / (1024.0**2)
 
     exten = Path(doc.metadata["source"]).suffix.lower()
