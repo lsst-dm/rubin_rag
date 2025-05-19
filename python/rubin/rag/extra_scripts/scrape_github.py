@@ -162,6 +162,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         and (f[-4:] != ".tar")
         and (f[-4:] != ".zip")
         and (f[-4:] != ".out")
+        and (f[-7:] != ".SIMLIB")
         and ("gen2" not in f.lower())
         and ("data" not in os.path.split(f)[0].lower())
         and ("images" not in f.split("/"))
