@@ -121,9 +121,7 @@ def is_data_dump(doc: Document):
     """Determine if a file has a high chance of being a data dump."""
     size_mb = len(doc.page_content) / (1024.0**2)
 
-    root, exten = os.path.splitext(doc.metadata["source"])
-
-    exten = exten.lower()
+    exten = Path(doc.metadata["source"]).suffix.lower()
 
     return (size_mb > 1) and (
         exten in [".json", ".csv", ".txt", ".text", ".dat"]
