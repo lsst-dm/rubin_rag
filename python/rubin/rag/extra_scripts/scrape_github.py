@@ -247,9 +247,9 @@ def select_doc_loader(fname: str) -> NotebookLoader | TextLoader:
     """Select which LangChain document loader to use for a file."""
     suffix = Path(fname).suffix
 
-    if suffix == '.ipynb':
+    if suffix == ".ipynb":
         return NotebookLoader(fname, remove_newline=True)
-    elif suffix == '.html':
+    elif suffix == ".html":
         return BSHTMLLoader(fname)
     else:
         return TextLoader(fname, encoding="utf-8")
