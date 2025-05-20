@@ -410,7 +410,7 @@ def scrape_org(org_name: str = "lsst-dmsst", max_mb: int = 1024, repos_ignore: l
     """
     start_org = time.time()
 
-    repos = [r in repos_in_org(org_name) if r.split('/')[1] not in repos_ignore]
+    repos = [r for r in repos_in_org(org_name) if r.split('/')[1] not in repos_ignore]
 
     for i, repo in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
