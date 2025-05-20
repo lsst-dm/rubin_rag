@@ -411,6 +411,9 @@ def scrape_org(
         for instance lsst-dm.
     max_mb : int
         Maximum size of each pickle file in megabytes.
+    repos_ignore : list
+        List of repos to ignore (if any). Each repo in this list
+        should be just the base repo name without the org name.
     """
     start_org = time.time()
 
