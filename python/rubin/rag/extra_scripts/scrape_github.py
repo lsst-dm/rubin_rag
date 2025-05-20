@@ -414,6 +414,9 @@ def scrape_org(
     """
     start_org = time.time()
 
+    if repos_ignore is None:
+        repos_ignore = []
+
     repos = [
         r
         for r in repos_in_org(org_name)
