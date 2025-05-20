@@ -487,7 +487,7 @@ def load_and_scrape(yaml_file: str) -> None:
 
     orgs = spec["organization"]
     for org in orgs:
-        repos_ignore = org.get("repos_ignore", [])
+        repos_ignore = org.get("ignore_repos", [])
         scrape_org(org_name=org["name"], repos_ignore=repos_ignore)
 
 
