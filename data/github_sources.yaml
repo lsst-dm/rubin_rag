@@ -4,6 +4,9 @@ url: "https://github.com"
 # LSST organizations
 organization:
   - name: "lsst"
+    ignore_repos:
+      - "community-operators"
+      - "versiondb"
   - name: "lsst-it"
   - name: "lsst-dm"
   - name: "lsst-dmsst"
@@ -20,7 +23,11 @@ organization:
 
 # Science collaborations
   - name: "LSSTDESC"
+    ignore_repos:
+      - "PC5AtmosphericExtinction"
   - name: "LSST-strong-lensing"
   - name: "LSST-TVSSC"
+    ignore_repos:
+      - "LSST-TVSSC.github.io"
   - name: "LSST-SSSC"
   - name: "LSSTScienceCollaborations"
