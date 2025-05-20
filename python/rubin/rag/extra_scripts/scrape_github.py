@@ -484,7 +484,8 @@ def load_and_scrape(yaml_file: str) -> None:
 
     orgs = spec["organization"]
     for org in orgs:
-        scrape_org(org_name=org["name"])
+        repos_ignore = org["repos_ignore"] if "repos_ignore" in org else []
+        scrape_org(org_name=org["name"], repos_ignore=repos_ignore)
 
 
 if __name__ == "__main__":
