@@ -147,7 +147,7 @@ def is_data_dump(doc: Document) -> bool:
             ".sql",
             ".yaml",
             ".cfg",
-            ".tbl"
+            ".tbl",
         ]
     )
 
