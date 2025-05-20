@@ -103,7 +103,9 @@ def configure_retriever() -> VectorStoreRetriever:
         client=configure_client(),
         index_name="LangChain_9787ec4b92d3438a8de3ff04ead7ead6",
         text_key="page_content",
-        embedding=OpenAIEmbeddings(model="text-embedding-3", dimensions=1536),
+        embedding=OpenAIEmbeddings(
+            model="text-embedding-3-large", dimensions=1536
+        ),
         attributes=["source", "source_key"],  # Metadata to fetch
     ).as_retriever(
         search_type="similarity",
