@@ -398,7 +398,9 @@ def scrape_repo(
 
 
 def scrape_org(
-    org_name: str = "lsst-dmsst", max_mb: int = 1024, repos_ignore: list | None = None
+    org_name: str = "lsst-dmsst",
+    max_mb: int = 1024,
+    repos_ignore: list | None = None,
 ) -> None:
     """Scrape all repos within a GitHub org.
 
