@@ -395,8 +395,6 @@ def scrape_repo(
             pickle.dump(current_batch, f_out)
         _log.info(f"Saved batch {batch_number} to {batch_path}")
 
-    _log.debug(f"REPO BASENAME: {repo_basename}")
-
     # Delete the git clone
     delete_clone(repo_basename)
 
