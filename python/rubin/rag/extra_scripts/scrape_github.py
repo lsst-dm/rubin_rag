@@ -172,9 +172,21 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     """
     files = file_list(directory=directory)
     excluded_exts = {
-        ".fits", ".eps", ".tar", ".zip", ".out", ".pkl", ".dax",
-        ".svg", ".pd", ".trim", ".SIMLIB", ".pickle", ".lvproj",
-        ".lvbitx", ".tsbuildinfo"
+        ".fits",
+        ".eps",
+        ".tar",
+        ".zip",
+        ".out",
+        ".pkl",
+        ".dax",
+        ".svg",
+        ".pd",
+        ".trim",
+        ".SIMLIB",
+        ".pickle",
+        ".lvproj",
+        ".lvbitx",
+        ".tsbuildinfo",
     }
 
     excluded_dirs = {"images", "figures", "logs"}
