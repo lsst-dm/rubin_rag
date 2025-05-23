@@ -171,30 +171,24 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         files found within the specified directory.
     """
     files = file_list(directory=directory)
+    excluded_exts = {
+        ".fits", ".eps", ".tar", ".zip", ".out", ".pkl", ".dax",
+        ".svg", ".pd", ".trim", ".SIMLIB", ".pickle", ".lvproj",
+        ".lvbitx", ".tsbuildinfo"
+    }
+
+    excluded_dirs = {"images", "figures", "logs"}
+
     return [
-        f
-        for f in files
-        if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
-        and (f[-5:] != ".fits")
-        and (f[-4:] != ".eps")
-        and (f[-4:] != ".tar")
-        and (f[-4:] != ".zip")
-        and (f[-4:] != ".out")
-        and (f[-4:] != ".pkl")
-        and (f[-4:] != ".dax")
-        and (f[-4:] != ".svg")
-        and (f[-3:] != ".pd")
-        and (f[-5:] != ".trim")
-        and (f[-7:] != ".SIMLIB")
-        and (f[-7:] != ".pickle")
-        and (f[-7:] != ".lvproj")
-        and (f[-7:] != ".lvbitx")
-        and (f[-12:] != ".tsbuildinfo")
-        and ("gen2" not in f.lower())
-        and ("data" not in os.path.split(f)[0].lower())
-        and ("images" not in f.split("/"))
-        and ("figures" not in f.split("/"))
-        and ("logs" not in f.split("/"))
+        f for f in files
+        if (
+            not Path(f).name.startswith(".")
+            and "/." not in f
+            and not any(f.lower().endswith(ext.lower()) for ext in excluded_exts)
+            and "gen2" not in f.lower()
+            and "data" not in os.path.split(f)[0].lower()
+            and not any(part in excluded_dirs for part in f.split("/"))
+        )
     ]
 
 
