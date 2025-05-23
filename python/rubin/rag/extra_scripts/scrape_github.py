@@ -180,11 +180,14 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
     excluded_dirs = {"images", "figures", "logs"}
 
     return [
-        f for f in files
+        f
+        for f in files
         if (
             not Path(f).name.startswith(".")
             and "/." not in f
-            and not any(f.lower().endswith(ext.lower()) for ext in excluded_exts)
+            and not any(
+                f.lower().endswith(ext.lower()) for ext in excluded_exts
+            )
             and "gen2" not in f.lower()
             and "data" not in os.path.split(f)[0].lower()
             and not any(part in excluded_dirs for part in f.split("/"))
