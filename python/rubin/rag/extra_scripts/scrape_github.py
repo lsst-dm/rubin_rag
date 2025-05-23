@@ -24,6 +24,7 @@ import gc
 import logging
 import os
 import pickle
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -277,9 +278,10 @@ def delete_clone(repo_basename: str) -> None:
         repo base name e.g., daf_butler (does not include the org name)
     """
     clone_path = Path(repo_basename)
-    if clone_path.exists() and (Path.cwd() in clone_path.resolve().parents):
-        command = ["rm", "-rf", repo_basename]
-        subprocess.run(command, check=False)
+    try:
+        shutil.rmtree(clone_path)
+    except Exception as e:
+        _log.warning(f"Failed to remove {repo_basename}: {e}")
 
 
 def select_doc_loader(
