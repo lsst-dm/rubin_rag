@@ -18,15 +18,24 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.```
 
-"""Utilities for ingesting GitHub repo contents into langchain documents."""
+"""Utilities for scraping GitHub repo contents into LangChain documents."""
 
-# see https://python.langchain.com/docs/integrations/document_loaders/github/
-
+import gc
 import logging
 import os
+import pickle
+import shutil
+import subprocess
+import time
+from pathlib import Path
 
 import requests
-from langchain_community.document_loaders import GithubFileLoader
+import yaml
+from langchain_community.document_loaders import (
+    BSHTMLLoader,
+    NotebookLoader,
+    TextLoader,
+)
 from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
@@ -37,49 +46,6 @@ _log = logging.getLogger(__name__)
 access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
 if access_token is None:
     raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
-
-
-def load_files_1repo(repo: str = "lsst/daf_butler") -> list[Document]:
-    """Load all utf-8 files from a given GitHub repo.
-
-    Parameters
-    ----------
-    repo : str
-        name of the GitHub repository including the org and repo name
-
-    Returns
-    -------
-    docs : list
-        list of langchain documents
-    """
-    loader = GithubFileLoader(
-        repo=repo,
-        branch="main",
-        github_api_url="https://api.github.com",
-        access_token=str(access_token),
-        file_filter=None,
-    )
-
-    docs: list = []
-
-    try:
-        file_paths = loader.get_file_paths()
-    except Exception:
-        _log.exception("Repo {repo} may not have a branch named 'main'.")
-        return []
-
-    for metadata in file_paths:
-        file_path = metadata["path"]
-
-        try:
-            string = loader.get_file_content_by_path(file_path)
-            doc = Document(string, metadata=metadata)
-            doc.metadata["source_key"] = "github"
-            docs.append(doc)
-        except Exception:
-            _log.exception("Failed to load file.")
-
-    return docs
 
 
 def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
@@ -117,38 +83,423 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
         )
         repos.extend(res.json())
 
-    return [repo["full_name"] for repo in repos]
+    return [
+        repo["full_name"]
+        for repo in repos
+        if ("data" not in repo["name"].lower())
+        and ("dustmaps" not in repo["name"].lower())
+        and ("gen2" not in repo["name"].lower())
+        and ("legacy" not in repo["name"].lower())
+        and ("test" not in repo["name"].lower())
+        and (int(repo["updated_at"][0:4]) > 2020)
+        and (not repo["archived"])
+    ]
 
 
-def load_org(
-    org_name: str = "lsst-dm", *, n_repo_max: int | None = None
-) -> list:
-    """Load all utf-8 files from GitHub repos in a GitHub org.
+def file_modified_timestamp(fname: str) -> str:
+    """Get the Git last modified date of a file in a repo.
+
+    Parameters
+    ----------
+    fname : str
+        name of a file within a local GitHub repo clone.
+    """
+    if not Path(fname).exists():
+        return ""
+    command = [
+        "git",
+        "log",
+        "-1",
+        "--format=%ad",
+        "--date=format:%F %R ",
+        fname,
+    ]
+
+    try:
+        process = subprocess.run(
+            command, capture_output=True, text=True, check=True
+        )
+    except Exception:
+        return ""
+
+    return process.stdout.strip()
+
+
+def is_data_dump(doc: Document) -> bool:
+    """Determine if a file has a high chance of being a data dump.
+
+    Parameters
+    ----------
+    doc : langchain_core.documents.base.Document
+        LangChain document. Must have a "source" key in its metadata.
+    """
+    size_mb = len(doc.page_content) / (1024.0**2)
+
+    exten = Path(doc.metadata["source"]).suffix.lower()
+
+    return (size_mb > 1) and (
+        exten
+        in [
+            ".json",
+            ".csv",
+            ".txt",
+            ".text",
+            ".dat",
+            ".log",
+            ".sql",
+            ".yaml",
+            ".cfg",
+            ".tbl",
+        ]
+    )
+
+
+def clean_file_list(directory: str = "rubin_rag") -> list[str]:
+    """Make a list of non-hidden files within a directory.
+
+    Parameters
+    ----------
+    directory : str
+        directory for which to make a list of non-hidden files.
+        Note that files within all non-hidden subdirectories of
+        directory are also returned. Note that we want to ignore
+        hidden .git directories, for instance.
+
+    Returns
+    -------
+    list
+        list of strings, where each string is a relative file
+        path. Returns empty list in the case of no non-hidden
+        files found within the specified directory.
+    """
+    files = file_list(directory=directory)
+    excluded_exts = {
+        ".fits",
+        ".eps",
+        ".tar",
+        ".zip",
+        ".out",
+        ".pkl",
+        ".dax",
+        ".svg",
+        ".pd",
+        ".trim",
+        ".SIMLIB",
+        ".pickle",
+        ".lvproj",
+        ".lvbitx",
+        ".tsbuildinfo",
+    }
+
+    excluded_dirs = {"images", "figures", "logs"}
+
+    return [
+        f
+        for f in files
+        if (
+            not Path(f).name.startswith(".")
+            and "/." not in f
+            and not any(
+                f.lower().endswith(ext.lower()) for ext in excluded_exts
+            )
+            and "gen2" not in f.lower()
+            and "data" not in os.path.split(f)[0].lower()
+            and not any(part in excluded_dirs for part in f.split("/"))
+        )
+    ]
+
+
+def file_list(directory: str = "rubin_rag") -> list[str]:
+    """Make a list of all files within a directory.
+
+    Parameters
+    ----------
+    directory : str
+        directory for which to make a list of all files, including
+        hidden files and files within hidden subdirectories.
+        Note that files within all subdirectories of directory
+        are also returned.
+
+    Returns
+    -------
+    list
+        list of strings, where each string is a relative file
+        path. Returns empty list in the case of no files found
+        within the specified directory.
+    """
+    command = ["find", directory, "-type", "f"]
+    try:
+        process = subprocess.run(
+            command, capture_output=True, text=True, check=True
+        )
+    except Exception:
+        # this can happen if there's an empty GitHub repo e.g., https://github.com/lsst-it/ittn-041
+        return []
+    output = process.stdout.strip()
+    if output:
+        return output.split("\n")
+    else:
+        return []
+
+
+def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
+    """Clone a GitHub repo to the current working directory.
+
+    Parameters
+    ----------
+    repo_name : str
+        repo name including the organization name, for instance
+        lsst/daf_butler
+    """
+    repository_url = "https://github.com/" + repo_name + ".git"
+    command = [
+        "git",
+        "clone",
+        "--single-branch",
+        "--depth",
+        "1",
+        repository_url,
+    ]
+    subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        check=False,
+    )  # Capture output as text
+
+
+def delete_clone(repo_basename: str) -> None:
+    """Delete a GitHub repo clone from local disk.
+       Be extremely careful with this function as it
+       spawns an rm -rf command.
+
+    Parameters
+    ----------
+    repo_basename: str
+        repo base name e.g., daf_butler (does not include the org name)
+    """
+    clone_path = Path(repo_basename)
+    try:
+        shutil.rmtree(clone_path)
+    except Exception as e:
+        _log.warning(f"Failed to remove {repo_basename}: {e}")
+
+
+def select_doc_loader(
+    fname: str,
+) -> BSHTMLLoader | NotebookLoader | TextLoader:
+    """Select which LangChain document loader to use for a file.
+
+    Parameters
+    ----------
+    fname : str
+        path of file name that will be loaded into a LangChain doc.
+    """
+    suffix = Path(fname).suffix
+
+    if suffix == ".ipynb":
+        return NotebookLoader(fname, remove_newline=True)
+    elif suffix == ".html":
+        return BSHTMLLoader(fname)
+    else:
+        return TextLoader(fname, encoding="utf-8")
+
+
+def scrape_repo(
+    repo_name: str = "lsst/daf_butler", max_mb: int = 1024
+) -> None:
+    """
+    Scrape all non-hidden files in a locally cloned repo and batch
+    them into pickle files.
+
+    Parameters
+    ----------
+    repo_name : str
+        GitHub repository in the format 'org/repo'.
+    max_mb : int
+        Maximum size of each pickle file in megabytes.
+    """
+    # At start of scrape_repo
+
+    repo_org, repo_basename = repo_name.split("/", 1)
+    output_dir = Path(f"batched_github_output/{repo_org}/{repo_basename}")
+    if any(output_dir.glob(f"{repo_basename}_*.pkl")):
+        _log.info(f"Skipping {repo_name}, already has pickle files.")
+        return
+
+    # Extract repo organization and name
+    if "/" not in repo_name:
+        raise ValueError("Repository name should be in format 'org/repo'")
+
+    # Clone the repository
+    clone_repo(repo_name=repo_name)
+
+    # Get list of files
+    flist = clean_file_list(directory=repo_basename)
+
+    # Create output directory
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Process files
+    docs = []
+    current_batch: list = []
+    current_batch_size = 0
+    batch_number = 1
+    batch_size_limit = max_mb * 1024 * 1024  # Convert MB to bytes
+
+    for i, f in enumerate(flist):
+        _log.debug(f"working on file {i}, {f}")
+        loader = select_doc_loader(f)
+
+        try:
+            results = loader.load()
+            doc = results[0]
+            doc.metadata["source_key"] = "github"
+            doc.metadata["repo_basename"] = repo_basename
+            doc.metadata["org_name"] = repo_org
+            doc.metadata["repo"] = repo_name
+
+            # Get approximate size of this document
+            doc_size = len(pickle.dumps(doc))
+
+            if not is_data_dump(doc):
+                # If adding this document would exceed the batch size limit,
+                # save the current batch
+                if (
+                    current_batch_size + doc_size > batch_size_limit
+                    and current_batch
+                ):
+                    batch_path = (
+                        output_dir / f"{repo_basename}_{batch_number}.pkl"
+                    )
+                    with Path(batch_path).open("wb") as f_out:
+                        pickle.dump(current_batch, f_out)
+                    _log.info(f"Saved batch {batch_number} to {batch_path}")
+
+                    # Reset batch
+                    current_batch = []
+                    current_batch_size = 0
+                    batch_number += 1
+
+                # Add document to current batch and overall docs list
+                current_batch.append(doc)
+                current_batch_size += doc_size
+                docs.append(doc)
+
+        except Exception as e:
+            _log.debug(f"possible non-text file : {f} - Error: {e!s}")
+
+    # Save any remaining documents in the last batch
+    if current_batch:
+        batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
+        with Path(batch_path).open("wb") as f_out:
+            pickle.dump(current_batch, f_out)
+        _log.info(f"Saved batch {batch_number} to {batch_path}")
+
+    # Delete the git clone
+    delete_clone(repo_basename)
+
+    # Log the completion message
+    _log.info(f"Saved {repo_basename} to pickle in {batch_number} batches.")
+
+    # Free up memory
+    del docs
+    gc.collect()
+
+
+def scrape_org(
+    org_name: str = "lsst-dmsst",
+    max_mb: int = 1024,
+    repos_ignore: list | None = None,
+) -> None:
+    """Scrape all repos within a GitHub org.
 
     Parameters
     ----------
     org_name : str
-        GitHub organization name
-    n_repo_max : int
-        optional. Max number of repos to scrape; should be greater than 0.
-        Default value is None, resulting in scraping all repos within
-        the org.
+        GitHub organization name including the organization name,
+        for instance lsst-dm.
+    max_mb : int
+        Maximum size of each pickle file in megabytes.
+    repos_ignore : list
+        List of repos to ignore (if any). Each repo in this list
+        should be just the base repo name without the org name.
+    """
+    start_org = time.time()
+
+    if repos_ignore is None:
+        repos_ignore = []
+
+    repos = [
+        r
+        for r in repos_in_org(org_name)
+        if r.split("/")[1] not in repos_ignore
+    ]
+
+    for i, repo in enumerate(repos):
+        _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
+        scrape_repo(repo_name=repo, max_mb=max_mb)
+
+    end_org = time.time()
+    _log.info(
+        f"Scraped {org_name} in {(end_org - start_org) / 60:.2f} minutes."
+    )
+
+
+def load_yaml_spec(yaml_file: str) -> dict:
+    """Load YAML file specifying GitHub sources to scrape.
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying GitHub orgs to scrape
+    """
+    path = Path(yaml_file)
+    with path.open(mode="r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def get_all_repos(yaml_file: str) -> list[str]:
+    """Get list of repos across many orgs (exploratory utility).
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying GitHub orgs to scrape
 
     Returns
     -------
-    all_docs : list
-        list of langchain documents
+    all_repos : list[str]
+        list of repositories found across all orgs in 'org/repo' format.
     """
-    _log.info(f"Processing GitHub org {org_name}")
-    all_docs: list = []
+    spec = load_yaml_spec(yaml_file)
 
-    repos = repos_in_org(org_name)
+    orgs = spec["organization"]
+    all_repos: list = []
+    for org in orgs:
+        org_name = org["name"]
+        _log.info(f"retrieving repo list for org {org_name}")
+        repos = repos_in_org(org_name)
+        all_repos += repos
 
-    for i, repo in enumerate(repos):
-        if (n_repo_max is not None) and (i >= n_repo_max):
-            break
-        _log.info(f"Processing GitHub repo {repo}")
-        docs = load_files_1repo(repo)
-        all_docs = all_docs + docs
+    return all_repos
 
-    return all_docs
+
+def load_and_scrape(yaml_file: str) -> None:
+    """Scrape all GitHub repos within multiple GitHub orgs.
+
+    Parameters
+    ----------
+    yaml_file : str
+        file name of the YAML file specifying GitHub orgs to scrape
+    """
+    spec = load_yaml_spec(yaml_file)
+
+    orgs = spec["organization"]
+    for org in orgs:
+        repos_ignore = org.get("ignore_repos", [])
+        scrape_org(org_name=org["name"], repos_ignore=repos_ignore)
+
+
+if __name__ == "__main__":
+    load_and_scrape("../../../../data/github_sources.yaml")
