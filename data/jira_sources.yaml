@@ -1,9 +1,12 @@
 description: Jira issues to ingest into Rubin_RAG
 
 projects:
-    - name: "DM"
-    - name: "SP"
     - name: "TAXICAB"
+    - name: "RFC"
+    - name: "SP"
+    - name: "CCB"
+    - name: "CAP"
+    - name: "DM"
 
 exclude_status:
     - "Won't Fix"
