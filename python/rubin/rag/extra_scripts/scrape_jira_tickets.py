@@ -645,7 +645,7 @@ def get_max_issue_number(
     return int(issue_name.split("-")[-1])
 
 
-def load_and_scrape(yaml_file: str) -> list[Document]:
+def load_and_scrape(yaml_file: str) -> Tuple[list, list]:
     """Load Jira issues into a list of LangChain Documents.
 
     Parameters
@@ -666,6 +666,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
         data = yaml.safe_load(f)
 
     documents = []
+    failures = []
 
     for project in data["projects"]:
         start = project.get("start", 1)
@@ -673,7 +674,7 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
             end = get_max_issue_number(project["name"])
         else:
             end = project["end"]
-        project_docs, failures = jira_tickets_in_range(
+        project_docs, project_failures = jira_tickets_in_range(
             project["name"], start, end
         )
         project_docs = [
@@ -682,8 +683,9 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
             if d.metadata["status"] not in data["exclude_status"]
         ]
         documents += project_docs
+        failures += project_failures
 
-    return documents
+    return documents, failures
 
 
 def sanitize_metadata(docs: list[Document]) -> list[Document]:
