@@ -24,6 +24,7 @@
 save results in a structured JSON format.
 """
 
+import gc
 import json
 import logging
 import os
@@ -35,6 +36,13 @@ from typing import Any
 import requests
 import yaml
 from langchain_core.documents.base import Document
+from scrapers.utils import (
+    batch_by_tokens,
+    chunk_docs,
+    load_progress,
+    save_progress,
+    write_batches_to_pickle,
+)
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -410,7 +418,7 @@ def fetch_ticket(
             None if successful, otherwise a string with the ticket name and
             error message.
     """
-    _log.info(f"Attempting to fetch Jira issue {ticket}")
+    _log.debug(f"Fetching Jira issue {ticket}")
     jira_data, error_message = get_jira_issue(ticket, email, api_token)
     return reformat_jira_data(jira_data, ticket), error_message
 
@@ -625,10 +633,10 @@ def get_max_issue_number(
     ----------
     project : str
         name of Jira project like "DM" or "SP" (without dash)
-    api_token : str
-        Jira API token
     email : str
         email address of Jira account associated with the API token
+    api_token : str
+        Jira API token
 
     Returns
     -------
@@ -645,13 +653,118 @@ def get_max_issue_number(
     return int(issue_name.split("-")[-1])
 
 
-def load_and_scrape(yaml_file: str) -> list[Document]:
-    """Load Jira issues into a list of LangChain Documents.
+def sanitize_illegal_keys(meta: dict) -> None:
+    """Sanitize illegal keys."""
+    for bad_key in ("id", "vector"):
+        meta.pop(bad_key, None)
+
+
+def sanitize_parent_issue(meta: dict) -> None:
+    """Sanitize parent issues."""
+    parent = meta.get("parent_issue")
+    if parent == {}:
+        meta.pop("parent_issue", None)
+    elif isinstance(parent, dict) and "key" in parent:
+        meta["parent_issue"] = [parent["key"]]
+
+
+def sanitize_related_issues(meta: dict) -> None:
+    """Sanitize related issues."""
+    issues = meta.get("related_issues")
+    if not isinstance(issues, list):
+        meta.pop("related_issues", None)
+        return
+
+    sanitized = []
+    for issue in issues:
+        if isinstance(issue, dict):
+            sanitized.append(
+                str(issue.get("key")) if "key" in issue else json.dumps(issue)
+            )
+        else:
+            sanitized.append(str(issue))
+
+    meta["related_issues"] = sanitized
+
+
+def sanitize_attachments(meta: dict) -> None:
+    """Sanitize attatchments."""
+    attachments = meta.get("attachments")
+    if not isinstance(attachments, list):
+        meta.pop("attachments", None)
+        return
+
+    sanitized = []
+    for att in attachments:
+        if isinstance(att, dict):
+            sanitized.append(
+                str(att.get("filename"))
+                if "filename" in att
+                else json.dumps(att)
+            )
+        else:
+            sanitized.append(str(att))
+
+    meta["attachments"] = sanitized
+
+
+def sanitize_metadata(docs: list[Document]) -> list[Document]:
+    """Sanitize related_issues, attachments, and parent_issue keys from
+    metadata and add source and source_key keys.
 
     Parameters
     ----------
-    yaml_file : str
-        file name of the YAML file specifying Jira issues to scrape
+    docs: list[Document]
+        list of LangChain documents from Jira scrape to be cleaned.
+
+    Returns
+    -------
+    list[Document]
+        list of clean LangChain documents.
+    """
+    out = []
+
+    for doc in docs:
+        content = doc.page_content or ""
+        raw_meta = getattr(doc, "metadata", {}) or {}
+
+        sanitize_illegal_keys(raw_meta)
+        sanitize_parent_issue(raw_meta)
+        sanitize_related_issues(raw_meta)
+        sanitize_attachments(raw_meta)
+
+        raw_meta["source_key"] = "jira"
+        issue_key = raw_meta.get("key", "")
+        raw_meta["source"] = (
+            f"https://rubinobs.atlassian.net/browse/{issue_key}"
+        )
+
+        out.append(Document(page_content=content, metadata=raw_meta))
+
+    return out
+
+
+def process_project(
+    project: dict[str, Any],
+    completed_keys: list[str],
+    log_path: Path,
+    output_dir: Path,
+    exclude_status: list[str],
+) -> None:
+    """Scrape a Jira project and write to pickle files.
+
+    Parameters
+    ----------
+    project: str
+        name of Jira project to be scraped
+    completed_keys: list[str]
+        list of projects that have been scraped and written to pkl files.
+    log_path: Path
+        path to progress.log file the Jira scraping run.
+    output_dir: Path
+        path to output directory for the repo.
+    exclude_status: list[str]
+        list of status types to exclude.
 
     Returns
     -------
@@ -661,88 +774,68 @@ def load_and_scrape(yaml_file: str) -> list[Document]:
         certain statuses are dropped according to the YAML's
         specficiations.
     """
-    path = Path(yaml_file)
-    with path.open(mode="r", encoding="utf-8") as f:
-        data = yaml.safe_load(f)
+    project_name = project["name"]
 
-    documents = []
+    if project_name in completed_keys:
+        _log.info(f"Skipping already processed space: {project_name}")
+        return
 
-    for project in data["projects"]:
-        start = project.get("start", 1)
-        if "end" not in project:
-            end = get_max_issue_number(project["name"])
-        else:
-            end = project["end"]
-        project_docs, failures = jira_tickets_in_range(
-            project["name"], start, end
-        )
-        project_docs = [
-            d
-            for d in project_docs
-            if d.metadata["status"] not in data["exclude_status"]
-        ]
-        documents += project_docs
+    _log.info(f"Scraping from {project_name}...")
+    start = project.get("start", 1)
+    if "end" not in project:
+        end = get_max_issue_number(project_name)
+    else:
+        end = project["end"]
+    project_docs, failures = jira_tickets_in_range(project_name, start, end)
+    project_docs = [
+        d for d in project_docs if d.metadata["status"] not in exclude_status
+    ]
 
-    return documents
+    cleaned = sanitize_metadata(project_docs)
+    chunked = chunk_docs(cleaned)
+    batched = batch_by_tokens(chunked)
+
+    write_batches_to_pickle(batched, project_name, output_dir)
+
+    completed_keys.append(project_name)
+    save_progress(log_path, completed_keys)
+
+    del project_docs, cleaned, chunked, batched
+    gc.collect()
 
 
-def sanitize_metadata(docs: list[Document]) -> list[Document]:
-    """Clean up LangChain document metadata for Weaviate ingestion.
+def scrape_jira(yaml_path: str, output_dir: str) -> None:
+    """Scrape Jira into LangChain documents and write docs to pickle files.
 
     Parameters
     ----------
-    docs : list
-        list of LangChain documents corresponding to scraped Jira tickets.
-
-    Returns
-    -------
-    documents : list
-        list of LangChain documents with metadata and page content cleaned
-        up so as to make them suitable for Weaviate ingest.
+    yaml_path: str
+        String of path to jira_sources.yaml
+    output_dir: str
+        String of path to output directory, typically a timestamped directory
+        specified in run_scraping.
     """
-    documents = []
-    for doc in docs:
-        # Check if page_content is None or not a string, and provide a default
-        content = doc.page_content if doc.page_content is not None else ""
+    base_dir = Path(output_dir)
+    log_path = base_dir / "progress.log"
 
-        # Clean metadata
-        if hasattr(doc, "metadata") and isinstance(doc.metadata, dict):
-            cleaned_metadata = doc.metadata
-        else:
-            cleaned_metadata = {}
+    path = Path(yaml_path)
+    with path.open(mode="r", encoding="utf-8") as f:
+        data = yaml.safe_load(f)
 
-        if "related_issues" in cleaned_metadata and isinstance(
-            cleaned_metadata["related_issues"], list
-        ):
-            # Convert each complex object to a simple string representation
-            # For example, just extract the 'key' values
-            try:
-                cleaned_metadata["related_issues"] = [
-                    issue["key"]
-                    for issue in cleaned_metadata["related_issues"]
-                    if isinstance(issue, dict) and "key" in issue
-                ]
-            except (TypeError, KeyError):
-                # If conversion fails, remove the field
-                cleaned_metadata.pop("related_issues")
-        if "attachments" in cleaned_metadata and isinstance(
-            cleaned_metadata["attachments"], list
-        ):
-            try:
-                # Extract just the filenames
-                cleaned_metadata["attachments"] = [
-                    attachment["filename"]
-                    for attachment in cleaned_metadata["attachments"]
-                    if isinstance(attachment, dict)
-                    and "filename" in attachment
-                ]
-            except (TypeError, KeyError):
-                cleaned_metadata.pop("attachments")
-        # Create document with valid string content
-        documents.append(
-            Document(page_content=content, metadata=cleaned_metadata)
+    completed_keys = load_progress(log_path)
+
+    exclude_status = data.get("exclude_status", [])
+
+    for project in data["projects"]:
+        start = time.time()
+        process_project(
+            project, completed_keys, log_path, base_dir, exclude_status
         )
-    # Add source key to each document's metadata
-    for doc in documents:
-        doc.metadata["source_key"] = "jira"
-    return documents
+        end = time.time()
+        _log.info(
+            f"Scraped {project['name']} in {(end - start) / 60:.2f} minutes"
+        )
+
+    completed_keys.add("done")
+    with Path.open(log_path, "w", encoding="utf-8") as f:
+        json.dump(list(completed_keys), f, indent=2)

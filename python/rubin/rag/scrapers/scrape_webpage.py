@@ -22,6 +22,8 @@
 
 """Scrape web pages from a yaml file into langchain document objects."""
 
+import gc
+import json
 import logging
 import re
 from collections import deque
@@ -33,9 +35,48 @@ import yaml
 from bs4 import BeautifulSoup, Tag
 from langchain_community.document_loaders import WebBaseLoader
 from langchain_core.documents.base import Document
+from scrapers.utils import (
+    batch_by_tokens,
+    chunk_docs,
+    load_progress,
+    save_progress,
+    write_batches_to_pickle,
+)
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
+
+
+def extract_website_name(url: str) -> str:
+    """
+    Extract a reasonable domain identifier from a URL like:
+    'https://www6.slac.stanford.edu/page' -> 'slac'
+    'https://www.aura-astronomy.org' -> 'aura-astronomy'.
+
+    Parameters
+    ----------
+    url: str
+        URL to parse.
+
+    Returns
+    -------
+    str:
+        Domain identifier based on URL.
+    """
+    netloc = urlparse(url).netloc  # e.g. 'www6.slac.stanford.edu'
+    parts = netloc.split(".")
+
+    # Remove known prefixes like 'www', 'www2', 'www6', etc.
+    while parts[0].startswith("www") or parts[0].isdigit():
+        parts = parts[1:]
+
+    # If still long, get the second-to-last part (domain before TLD)
+    if len(parts) >= 2:
+        return parts[-2]
+    elif parts:
+        return parts[0]
+    else:
+        return "unknown"
 
 
 def is_valid_url(url: str) -> bool:
@@ -107,7 +148,8 @@ def get_internal_links(base_url: str, max_depth: int = 2) -> set[str]:
         _log.info(f"Crawling ({depth}): {url}")
 
         try:
-            response = requests.get(url, timeout=5)
+            headers = {"User-Agent": "Mozilla/5.0"}
+            response = requests.get(url, timeout=5, headers=headers)
             soup = BeautifulSoup(response.text, "html.parser")
             for a_tag in soup.find_all("a", href=True):
                 if isinstance(a_tag, Tag):
@@ -152,24 +194,69 @@ def webpage_loader(url: str) -> list[Document]:
     return docs
 
 
-def main() -> list[Document]:
+def process_link(
+    link: str,
+    completed_keys: list[str],
+    log_path: Path,
+    output_dir: Path,
+) -> None:
     """Load webpages and extract documents.
 
-    Returns
-    -------
-    list[Document]
-        A list of Langchain document objects containing the web page content.
+    Parameters
+    ----------
+    link: str
+        string of link to scrape.
+    completed_keys: list[str]
+        list of links that have been scraped and written to pkl files.
+    log_path: Path
+        path to progress.log file the web page scraping run.
+    output_dir: Path
+        path to output directory for the repo.
     """
-    yaml_links = get_urls_from_yaml("../../../../data/webpage_source.yaml")
+    if link in completed_keys:
+        _log.info(f"Skipping already processed space: {link}")
+        return
     docs = []
-    for link in yaml_links:
-        _log.info(f"Scraping from {link}")
-        internal_links = set(get_internal_links(link))
-        for internal_link in internal_links:
-            docs.extend(webpage_loader(internal_link))
+
+    _log.info(f"Scraping from {link}")
+    internal_links = set(get_internal_links(link))
+    for internal_link in internal_links:
+        docs.extend(webpage_loader(internal_link))
     _log.info(f"Scraped {len(docs)} documents")
-    return docs
+
+    chunked = chunk_docs(docs)
+    batched = batch_by_tokens(chunked)
+    site_name = extract_website_name(link)
+
+    write_batches_to_pickle(batched, site_name, output_dir)
+
+    completed_keys.append(link)
+    save_progress(log_path, completed_keys)
+
+    del docs, chunked, batched
+    gc.collect()
 
 
-if __name__ == "__main__":
-    main()
+def scrape_webpage(yaml_path: str, output_dir: str) -> None:
+    """Scrape web pages and write them to pickle files.
+
+    Parameters
+    ----------
+    yaml_path: str
+        String of path to webpage_sources.yaml
+    output_dir: str
+        String of path to output directory, typically a timestamped directory
+        specified in run_scraping.
+    """
+    base_dir = Path(f"{output_dir}/webpage")
+    log_path = base_dir / "progress.log"
+
+    urls = get_urls_from_yaml(yaml_path)
+    completed_keys = load_progress(log_path)
+
+    for url in urls:
+        process_link(url, completed_keys, log_path, base_dir)
+
+    completed_keys.add("done")
+    with Path.open(log_path, "w", encoding="utf-8") as f:
+        json.dump(list(completed_keys), f, indent=2)
