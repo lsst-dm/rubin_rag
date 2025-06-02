@@ -645,7 +645,7 @@ def get_max_issue_number(
     return int(issue_name.split("-")[-1])
 
 
-def load_and_scrape(yaml_file: str) -> Tuple[list, list]:
+def load_and_scrape(yaml_file: str) -> tuple[list, list]:
     """Load Jira issues into a list of LangChain Documents.
 
     Parameters
