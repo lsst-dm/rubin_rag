@@ -345,7 +345,7 @@ def scrape_repo(
 
     for i, f in enumerate(flist):
         converted_path = prepare_path_for_link(f)
-        _log.info(f"working on file https://github.com/{repo_org}/{converted_path}")
+        _log.debug(f"working on file https://github.com/{repo_org}/{converted_path}")
         loader = select_doc_loader(f)
 
         try:
