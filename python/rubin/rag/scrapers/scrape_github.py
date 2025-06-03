@@ -168,6 +168,7 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         f
         for f in files
         if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
+        and (not f.endswith("~"))
         and (f[-5:] != ".fits")
         and (f[-4:] != ".eps")
         and (f[-4:] != ".tar")
@@ -287,6 +288,18 @@ def select_doc_loader(
         return TextLoader(fname, encoding="utf-8")
 
 
+def prepare_path_for_link(path_str: str) -> str:
+    """Inject /blob/main/ into the file path to allow source key to point to
+    direct link.
+    """
+    parts = path_str.split("/", 2)  # maxsplit=2 ensures we preserve the full path
+    if len(parts) < 2:
+        raise ValueError("Expected input like 'repo/path/to/file'")
+    repo = parts[0]
+    rest = parts[1] if len(parts) == 2 else parts[1] + "/" + parts[2]
+    return f"{repo}/blob/main/{rest}"
+
+
 def scrape_repo(
     repo_name: str,
     completed_keys: set[str],
@@ -331,7 +344,8 @@ def scrape_repo(
     documents = []
 
     for i, f in enumerate(flist):
-        _log.debug(f"working on file {i}, {f}")
+        converted_path = prepare_path_for_link(f)
+        _log.info(f"working on file https://github.com/{repo_org}/{converted_path}")
         loader = select_doc_loader(f)
 
         try:
@@ -341,7 +355,7 @@ def scrape_repo(
             doc.metadata["repo_basename"] = repo_basename
             doc.metadata["org_name"] = repo_org
             doc.metadata["repo"] = repo_name
-            doc.metadata["source"] = f"https://github.com/{repo_name}"
+            doc.metadata["source"] = f"https://github.com/{repo_org}/{converted_path}"
             creation_date = doc.metadata.get("creationdate")
             if creation_date is not None:
                 if not is_rfc3339(creation_date):
