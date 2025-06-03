@@ -248,7 +248,7 @@ def scrape_webpage(yaml_path: str, output_dir: str) -> None:
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
     """
-    base_dir = Path(f"{output_dir}/webpage")
+    base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 
     urls = get_urls_from_yaml(yaml_path)
