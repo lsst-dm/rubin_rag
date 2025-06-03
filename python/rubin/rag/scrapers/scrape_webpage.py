@@ -196,7 +196,7 @@ def webpage_loader(url: str) -> list[Document]:
 
 def process_link(
     link: str,
-    completed_keys: list[str],
+    completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
 ) -> None:
@@ -206,8 +206,8 @@ def process_link(
     ----------
     link: str
         string of link to scrape.
-    completed_keys: list[str]
-        list of links that have been scraped and written to pkl files.
+    completed_keys: set[str]
+        set of links that have been scraped and written to pkl files.
     log_path: Path
         path to progress.log file the web page scraping run.
     output_dir: Path
@@ -230,7 +230,7 @@ def process_link(
 
     write_batches_to_pickle(batched, site_name, output_dir)
 
-    completed_keys.append(link)
+    completed_keys.add(link)
     save_progress(log_path, completed_keys)
 
     del docs, chunked, batched

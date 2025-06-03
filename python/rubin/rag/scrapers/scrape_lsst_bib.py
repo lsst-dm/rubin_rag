@@ -195,7 +195,7 @@ def try_scrape_web(url: str, paper_name: str, output_dir: Path) -> bool:
 
 def process_entry(
     entry: dict[str, str],
-    completed_keys: list[str],
+    completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
 ) -> None:
@@ -205,8 +205,8 @@ def process_entry(
     ----------
     entry: dict[str, str]
         dictionary of bibtex entry to scrape.
-    completed_keys: list[str]
-        list of entries that have been scraped and written to pkl files.
+    completed_keys: set[str]
+        set of entries that have been scraped and written to pkl files.
     log_path: Path
         path to progress.log file the lsst_bib scraping run.
     output_dir: Path
@@ -225,13 +225,13 @@ def process_entry(
 
     if url and handle:
         if try_scrape_pdf(url, handle, paper_name, output_dir):
-            completed_keys.append(paper_name)
+            completed_keys.add(paper_name)
             save_progress(log_path, completed_keys)
             return
 
     if url:
         if try_scrape_web(url, paper_name, output_dir):
-            completed_keys.append(paper_name)
+            completed_keys.add(paper_name)
             save_progress(log_path, completed_keys)
             return
 

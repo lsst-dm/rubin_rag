@@ -289,7 +289,7 @@ def select_doc_loader(
 
 def scrape_repo(
     repo_name: str,
-    completed_keys: list[str],
+    completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
 ) -> None:
@@ -301,8 +301,8 @@ def scrape_repo(
     ----------
     repo_name : str
         GitHub repository in the format 'org/repo'.
-    completed_keys: list[str]
-        List of repos that have been scraped and written to pkl files.
+    completed_keys: set[str]
+        set of repos that have been scraped and written to pkl files.
     log_path: path
         path to progress.log file the Github scraping run.
     output_dir: path
@@ -361,7 +361,7 @@ def scrape_repo(
     batched = batch_by_tokens(chunked)
     write_batches_to_pickle(batched, repo_basename, org_output_dir)
 
-    completed_keys.append(repo_name)
+    completed_keys.add(repo_name)
     save_progress(log_path, completed_keys)
 
     del documents, chunked, batched
@@ -373,7 +373,7 @@ def scrape_repo(
 
 def scrape_org(
     org_name: str,
-    completed_keys: list[str],
+    completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
     repos_ignore: list | None = None,
@@ -384,8 +384,8 @@ def scrape_org(
     ----------
     org_name : str
         GitHub organization
-    completed_keys: list[str]
-        List of repos that have been scraped and written to pkl files.
+    completed_keys: set[str]
+        set of repos that have been scraped and written to pkl files.
     log_path: Path
         path to progress.log file the Github scraping run.
     output_dir: Path

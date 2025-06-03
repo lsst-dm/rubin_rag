@@ -746,7 +746,7 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
 
 def process_project(
     project: dict[str, Any],
-    completed_keys: list[str],
+    completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
     exclude_status: list[str],
@@ -757,8 +757,8 @@ def process_project(
     ----------
     project: str
         name of Jira project to be scraped
-    completed_keys: list[str]
-        list of projects that have been scraped and written to pkl files.
+    completed_keys: set[str]
+        set of projects that have been scraped and written to pkl files.
     log_path: Path
         path to progress.log file the Jira scraping run.
     output_dir: Path
@@ -797,7 +797,7 @@ def process_project(
 
     write_batches_to_pickle(batched, project_name, output_dir)
 
-    completed_keys.append(project_name)
+    completed_keys.add(project_name)
     save_progress(log_path, completed_keys)
 
     del project_docs, cleaned, chunked, batched

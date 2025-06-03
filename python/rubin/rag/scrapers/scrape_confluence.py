@@ -98,7 +98,7 @@ def get_all_child_page_ids(parent_id: str, limit: int = 100) -> list:
 def process_space(
     space_config: dict[str, Any],
     wiki_url: str,
-    completed_keys: list[str],
+    completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
 ) -> None:
@@ -111,8 +111,8 @@ def process_space(
         and, optionally, specific pages to ingest.
     wiki_url: str
         A string of the Confluence wiki URL
-    completed_keys: list[str]
-        List of spaces that have been scraped and written to pkl files.
+    completed_keys: set[str]
+        set of spaces that have been scraped and written to pkl files.
     log_path: path
         path to progress.log file the Github scraping run.
     output_dir: path
@@ -193,7 +193,7 @@ def process_space(
     batched = batch_by_tokens(chunked)
     write_batches_to_pickle(batched, space_key, output_dir)
 
-    completed_keys.append(space_key)
+    completed_keys.add(space_key)
     save_progress(log_path, completed_keys)
 
     del documents, chunked, batched
