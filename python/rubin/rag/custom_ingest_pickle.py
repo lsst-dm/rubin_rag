@@ -63,7 +63,6 @@ if http_host is None:
 if grpc_host is None:
     raise ValueError("GRPC_HOST environment variable is not set")
 
-
 def load_ingested_log(log_path: str) -> set[str]:
     """Load the log of ingested files from the specified log file.
 
@@ -85,7 +84,7 @@ def load_ingested_log(log_path: str) -> set[str]:
 
 def update_ingested_log(log_path: str, file_path: str) -> None:
     """Write a pickle file to the ingested log."""
-    with Path(log_path, "a").open() as f:
+    with Path(log_path).open("a") as f:
         f.write(file_path + "\n")
 
 
