@@ -29,6 +29,7 @@ import json
 import logging
 import os
 import time
+from datetime import datetime
 from functools import reduce
 from pathlib import Path
 from typing import Any
@@ -36,6 +37,7 @@ from typing import Any
 import requests
 import yaml
 from langchain_core.documents.base import Document
+from requests.auth import AuthBase
 from scrapers.utils import (
     batch_by_tokens,
     chunk_docs,
@@ -53,6 +55,51 @@ if username == "None":
     raise ValueError("Missing CONFLUENCE_USERNAME")
 if api_token == "None":
     raise ValueError("Missing CONFLUENCE_API_TOKEN")
+
+
+def get_with_retries(
+    url: str,
+    auth: AuthBase,
+    headers: dict[str, str],
+    timeout: int = 10,
+    retries: int = 3,
+    delay: int = 5,
+) -> requests.Response | None:
+    """Request from URL with retries on failure.
+
+    Parameters
+    ----------
+    url : str
+        Link to website.
+    auth : AuthBase
+        Authentication info, e.g., HTTPBasicAuth(email, token).
+    headers : dict
+        HTTP headers to include in the request.
+    timeout : int
+        Request timeout in seconds.
+    retries : int
+        Number of retry attempts.
+    delay : int
+        Delay in seconds between retries.
+
+    Returns
+    -------
+    requests.Response
+        The HTTP response.
+    """
+    for attempt in range(retries):
+        try:
+            return requests.get(
+                url, auth=auth, headers=headers, timeout=timeout
+            )
+        except requests.exceptions.ReadTimeout as e:
+            if attempt < retries - 1:
+                time.sleep(delay)
+                continue
+            raise requests.exceptions.RequestException(
+                f"GET request to {url} failed after {retries} retries."
+            ) from e
+    return None
 
 
 def get_jira_issue(
@@ -82,12 +129,14 @@ def get_jira_issue(
     url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
-    response = requests.get(url, auth=auth, headers=headers, timeout=10)
+    response = get_with_retries(url, auth, headers, timeout=5, retries=2)
 
-    if response.status_code == 200:
+    if response and response.status_code == 200:
         return response.json(), None
-    if response.status_code == 429:
+    if response and response.status_code == 429:
         return [], f"{issue_name}: {response.status_code}"
+    if not response:
+        return None, f"{issue_name}: request to URL failed."
     else:
         return None, f"{issue_name}: {response.status_code}"
 
@@ -646,11 +695,15 @@ def get_max_issue_number(
     url = f"https://rubinobs.atlassian.net/rest/api/latest/search?jql=project={project}+order+by+key+desc&maxResults=1"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
-    response = requests.get(url, auth=auth, headers=headers, timeout=10)
+    response = get_with_retries(url, auth, headers)
 
-    data = response.json()
-    issue_name = data["issues"][0]["key"]
-    return int(issue_name.split("-")[-1])
+    if response:
+        data = response.json()
+        issue_name = data["issues"][0]["key"]
+        return int(issue_name.split("-")[-1])
+    else:
+        _log.error(f"Unable to find max issue for {project}, skipping...")
+        return 0
 
 
 def sanitize_illegal_keys(meta: dict) -> None:
@@ -708,6 +761,43 @@ def sanitize_attachments(meta: dict) -> None:
     meta["attachments"] = sanitized
 
 
+def sanitize_dates(meta: dict) -> None:
+    """Sanitize date fields in metadata."""
+
+    def is_rfc3339(date_str: str) -> bool:
+        """Parse date and return True if in RFC3339 format."""
+        try:
+            if date_str.endswith("Z"):
+                date_str = date_str[:-1] + "+00:00"
+            datetime.fromisoformat(date_str)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    for key in ("creationdate", "moddate"):
+        date_val = meta.get(key)
+        if date_val is not None and not is_rfc3339(date_val):
+            meta.pop(key)
+
+
+def deep_sanitize_metadata(meta: dict) -> dict:
+    """Recursively sanitize metadata values into Weaviate-compatible types."""
+    out = {}
+    for k, v in meta.items():
+        if isinstance(v, dict):
+            out[k] = json.dumps(v)
+        elif isinstance(v, list):
+            # if it's a list of dicts, stringify each
+            if all(isinstance(i, dict) for i in v):
+                out[k] = json.dumps([json.dumps(i) for i in v])
+            else:
+                out[k] = ", ".join(str(i) for i in v)
+        else:
+            out[k] = str(v)
+    return out
+
+
 def sanitize_metadata(docs: list[Document]) -> list[Document]:
     """Sanitize related_issues, attachments, and parent_issue keys from
     metadata and add source and source_key keys.
@@ -732,6 +822,8 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
         sanitize_parent_issue(raw_meta)
         sanitize_related_issues(raw_meta)
         sanitize_attachments(raw_meta)
+        sanitize_dates(raw_meta)
+        raw_meta = deep_sanitize_metadata(raw_meta)
 
         raw_meta["source_key"] = "jira"
         issue_key = raw_meta.get("key", "")
