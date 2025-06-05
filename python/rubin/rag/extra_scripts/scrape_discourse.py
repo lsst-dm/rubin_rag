@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import time
 import requests
+import logging
 
 forum_username = 'leanne'
 forum_key = os.getenv("COMMUNITY_API_KEY")
@@ -133,7 +134,7 @@ def clean_filename(name):
 
 def scrape_all_topics():
     seen_topic_ids = set()
-    for page in tqdm(range(0, MAX_PAGES), desc="Fetching topics"):
+    for page in range(0, MAX_PAGES):
         topics = get_latest_topics(page)
         if not topics:
             print("No more topics found. Done.")
@@ -161,7 +162,7 @@ def scrape_and_aggregate():
     all_posts = []
     seen_topic_ids = set()
 
-    for page in tqdm(range(0, MAX_PAGES), desc="Fetching topics"):
+    for page in range(0, MAX_PAGES):
         topics = get_latest_topics(page)
         if not topics:
             print("No more topics found.")
