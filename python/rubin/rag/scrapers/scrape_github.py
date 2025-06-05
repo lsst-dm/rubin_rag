@@ -363,14 +363,16 @@ def scrape_repo(
             doc.metadata["source"] = (
                 f"https://github.com/{repo_org}/{converted_path}"
             )
-            creation_date = doc.metadata.get("creationdate")
-            if creation_date is not None:
-                if not is_rfc3339(creation_date):
-                    doc.metadata.pop("creationdate")
-            mod_date = doc.metadata.get("moddate")
-            if mod_date is not None:
-                if not is_rfc3339(mod_date):
-                    doc.metadata.pop("moddate")
+
+            creationdate = doc.metadata.get("creationdate")
+            if creationdate is not None and is_rfc3339(creationdate):
+                doc.metadata["creation_date"] = creationdate
+            doc.metadata.pop("creationdate", None)
+
+            moddate = doc.metadata.get("moddate")
+            if moddate is not None and is_rfc3339(moddate):
+                doc.metadata["mod_date"] = moddate
+            doc.metadata.pop("moddate", None)
 
             if not is_data_dump(doc):
                 documents.append(doc)
