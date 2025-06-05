@@ -16,6 +16,7 @@ HEADERS = {
     "Api-Username": forum_username
 }
 
+
 def count_all_pages(discourse_url):
     """
     Counts the total number of pages on the fourm.
@@ -120,6 +121,7 @@ def clean_post(post):
         "raw": post.get("raw", ""),
     }
 
+
 def clean_filename(name):
     """
     Format a filename
@@ -131,6 +133,7 @@ def clean_filename(name):
         str: The well-formatted filename
     """
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
+
 
 def scrape_all_topics():
     seen_topic_ids = set()
