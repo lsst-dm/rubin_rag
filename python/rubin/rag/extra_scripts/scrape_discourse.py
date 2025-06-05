@@ -9,6 +9,7 @@ from urllib.parse import urljoin
 forum_username = 'leanne'
 forum_key = os.getenv("COMMUNITY_API_KEY")
 
+SLEEP_TIME = 1.0
 DISCOURSE_URL = "https://community.lsst.org/" 
 HEADERS = {
     "Accept": "application/json",
@@ -136,8 +137,9 @@ def clean_filename(name):
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
 
 
-def scrape_all_topics():
+def scrape_all_topics(MAX_PAGES, OUTPUT_DIR):
     seen_topic_ids = set()
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
     for page in range(0, MAX_PAGES):
         topics = get_latest_topics(page)
         if not topics:
