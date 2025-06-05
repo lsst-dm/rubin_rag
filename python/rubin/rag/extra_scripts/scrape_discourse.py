@@ -4,6 +4,7 @@ from pathlib import Path
 import time
 import requests
 import logging
+from urllib.parse import urljoin
 
 forum_username = 'leanne'
 forum_key = os.getenv("COMMUNITY_API_KEY")
