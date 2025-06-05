@@ -215,7 +215,7 @@ def scrape_confluence(yaml_path: str, output_dir: str) -> None:
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 
-    with Path.open(yaml_path, encoding="utf-8") as f:
+    with Path(yaml_path).open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     completed_keys = load_progress(log_path)
