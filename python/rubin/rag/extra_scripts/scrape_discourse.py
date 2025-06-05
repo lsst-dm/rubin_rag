@@ -185,6 +185,6 @@ def scrape_and_aggregate():
     # Write everything to a single file
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(all_posts, f, indent=2, ensure_ascii=False)
-    print(f"✅ Saved {len(posts)} posts to {OUTPUT_FILE}")
+    print(f"Saved {len(posts)} posts to {OUTPUT_FILE}")
 
     return all_posts
