@@ -164,7 +164,7 @@ def scrape_all_topics(MAX_PAGES, OUTPUT_DIR):
                 continue
 
 
-def scrape_and_aggregate():
+def scrape_and_aggregate(MAX_PAGES, OUTPUT_FILE):
     all_posts = []
     seen_topic_ids = set()
 
