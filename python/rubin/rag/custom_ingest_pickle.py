@@ -63,6 +63,7 @@ if http_host is None:
 if grpc_host is None:
     raise ValueError("GRPC_HOST environment variable is not set")
 
+
 def load_ingested_log(log_path: str) -> set[str]:
     """Load the log of ingested files from the specified log file.
 
@@ -119,7 +120,7 @@ def push_pickle_to_weaviate(
             return False
 
         embeddings = OpenAIEmbeddings(
-            api_key=openai_api_key, # type: ignore[arg-type]
+            api_key=openai_api_key,  # type: ignore[arg-type]
             model="text-embedding-3-large",
             dimensions=1536,
         )
@@ -196,8 +197,8 @@ def ingest_all_pickles(
             grpc_host=grpc_host,
             grpc_port=50051,
             grpc_secure=False,
-            auth_credentials=Auth.api_key(weaviate_api_key), # type: ignore[arg-type]
-            headers={"X-OpenAI-Api-Key": openai_api_key}, #type: ignore[dict-item]
+            auth_credentials=Auth.api_key(weaviate_api_key),  # type: ignore[arg-type]
+            headers={"X-OpenAI-Api-Key": openai_api_key},  # type: ignore[dict-item]
         )
 
         for folder, _files in sorted(
