@@ -27,6 +27,7 @@ import time
 import requests
 import logging
 from urllib.parse import urljoin
+from langchain_core.documents.base import Document
 
 forum_username = 'leanne'
 forum_key = os.getenv("COMMUNITY_API_KEY")
@@ -186,6 +187,24 @@ def scrape_all_topics(MAX_PAGES, OUTPUT_DIR):
                 continue
 
 
+def topics_to_docs(topics):
+    docs = []
+    for topic in topics:
+        for post in topic["posts"]:
+            if post["cooked"] == "":
+                continue
+            metadata = post.copy()
+            del metadata["cooked"]
+            metadata["source_key"] = "discourse"
+            metadata["topic_id"] = topic["topic_id"]
+            metadata["topic_title"] = topic["topic_title"]
+            # https://community.lsst.org/t/10138
+            metadata["source"] = f"{DISCOURSE_URL}/t/{topic['topic_id']}"
+            doc = Document(page_content=post["cooked"], metadata=metadata)
+            docs.append(doc)
+
+    return docs
+
 def scrape_and_aggregate(MAX_PAGES, OUTPUT_FILE):
     all_posts = []
     seen_topic_ids = set()
@@ -213,6 +232,6 @@ def scrape_and_aggregate(MAX_PAGES, OUTPUT_FILE):
     # Write everything to a single file
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(all_posts, f, indent=2, ensure_ascii=False)
-    print(f"Saved {len(posts)} posts to {OUTPUT_FILE}")
+    print(f"Saved {len(all_posts)} posts to {OUTPUT_FILE}")
 
     return all_posts
