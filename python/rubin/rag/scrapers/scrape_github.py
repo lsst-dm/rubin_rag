@@ -18,15 +18,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.```
 
-"""Utilities for scraping GitHub repo contents into LangChain documents."""
+"""Scraping code for writing GitHub repo contents into LangChain documents."""
 
 import gc
+import json
 import logging
 import os
-import pickle
 import shutil
 import subprocess
 import time
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -34,9 +35,17 @@ import yaml
 from langchain_community.document_loaders import (
     BSHTMLLoader,
     NotebookLoader,
+    PyMuPDFLoader,
     TextLoader,
 )
 from langchain_core.documents.base import Document
+from scrapers.utils import (
+    batch_by_tokens,
+    chunk_docs,
+    load_progress,
+    save_progress,
+    write_batches_to_pickle,
+)
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -46,6 +55,18 @@ _log = logging.getLogger(__name__)
 access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
 if access_token is None:
     raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
+
+
+def is_rfc3339(date_str: str) -> bool:
+    """Parse date and return True if in RFC3339 format."""
+    try:
+        if date_str.endswith("Z"):
+            date_str = date_str[:-1] + "+00:00"
+        datetime.fromisoformat(date_str)
+    except ValueError:
+        return False
+    else:
+        return True
 
 
 def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
@@ -90,39 +111,9 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
         and ("dustmaps" not in repo["name"].lower())
         and ("gen2" not in repo["name"].lower())
         and ("legacy" not in repo["name"].lower())
-        and ("test" not in repo["name"].lower())
         and (int(repo["updated_at"][0:4]) > 2020)
         and (not repo["archived"])
     ]
-
-
-def file_modified_timestamp(fname: str) -> str:
-    """Get the Git last modified date of a file in a repo.
-
-    Parameters
-    ----------
-    fname : str
-        name of a file within a local GitHub repo clone.
-    """
-    if not Path(fname).exists():
-        return ""
-    command = [
-        "git",
-        "log",
-        "-1",
-        "--format=%ad",
-        "--date=format:%F %R ",
-        fname,
-    ]
-
-    try:
-        process = subprocess.run(
-            command, capture_output=True, text=True, check=True
-        )
-    except Exception:
-        return ""
-
-    return process.stdout.strip()
 
 
 def is_data_dump(doc: Document) -> bool:
@@ -173,39 +164,31 @@ def clean_file_list(directory: str = "rubin_rag") -> list[str]:
         files found within the specified directory.
     """
     files = file_list(directory=directory)
-    excluded_exts = {
-        ".fits",
-        ".eps",
-        ".tar",
-        ".zip",
-        ".out",
-        ".pkl",
-        ".dax",
-        ".svg",
-        ".pd",
-        ".trim",
-        ".SIMLIB",
-        ".pickle",
-        ".lvproj",
-        ".lvbitx",
-        ".tsbuildinfo",
-    }
-
-    excluded_dirs = {"images", "figures", "logs"}
-
     return [
         f
         for f in files
-        if (
-            not Path(f).name.startswith(".")
-            and "/." not in f
-            and not any(
-                f.lower().endswith(ext.lower()) for ext in excluded_exts
-            )
-            and "gen2" not in f.lower()
-            and "data" not in os.path.split(f)[0].lower()
-            and not any(part in excluded_dirs for part in f.split("/"))
-        )
+        if ((Path(f).name[0] != ".") and (f.find("/.") == -1))
+        and (not f.endswith("~"))
+        and (f[-5:] != ".fits")
+        and (f[-4:] != ".eps")
+        and (f[-4:] != ".tar")
+        and (f[-4:] != ".zip")
+        and (f[-4:] != ".out")
+        and (f[-4:] != ".pkl")
+        and (f[-4:] != ".dax")
+        and (f[-4:] != ".svg")
+        and (f[-3:] != ".pd")
+        and (f[-5:] != ".trim")
+        and (f[-7:] != ".SIMLIB")
+        and (f[-7:] != ".pickle")
+        and (f[-7:] != ".lvproj")
+        and (f[-7:] != ".lvbitx")
+        and (f[-12:] != ".tsbuildinfo")
+        and ("gen2" not in f.lower())
+        and ("data" not in os.path.split(f)[0].lower())
+        and ("images" not in f.split("/"))
+        and ("figures" not in f.split("/"))
+        and ("logs" not in f.split("/"))
     ]
 
 
@@ -270,8 +253,6 @@ def clone_repo(repo_name: str = "lsst/daf_butler") -> None:
 
 def delete_clone(repo_basename: str) -> None:
     """Delete a GitHub repo clone from local disk.
-       Be extremely careful with this function as it
-       spawns an rm -rf command.
 
     Parameters
     ----------
@@ -287,7 +268,7 @@ def delete_clone(repo_basename: str) -> None:
 
 def select_doc_loader(
     fname: str,
-) -> BSHTMLLoader | NotebookLoader | TextLoader:
+) -> BSHTMLLoader | NotebookLoader | TextLoader | PyMuPDFLoader:
     """Select which LangChain document loader to use for a file.
 
     Parameters
@@ -301,12 +282,31 @@ def select_doc_loader(
         return NotebookLoader(fname, remove_newline=True)
     elif suffix == ".html":
         return BSHTMLLoader(fname)
+    elif suffix == ".pdf":
+        return PyMuPDFLoader(fname)
     else:
         return TextLoader(fname, encoding="utf-8")
 
 
+def prepare_path_for_link(path_str: str) -> str:
+    """Inject /blob/main/ into the file path to allow source key to point to
+    direct link.
+    """
+    parts = path_str.split(
+        "/", 2
+    )  # maxsplit=2 ensures we preserve the full path
+    if len(parts) < 2:
+        raise ValueError("Expected input like 'repo/path/to/file'")
+    repo = parts[0]
+    rest = parts[1] if len(parts) == 2 else parts[1] + "/" + parts[2]
+    return f"{repo}/blob/main/{rest}"
+
+
 def scrape_repo(
-    repo_name: str = "lsst/daf_butler", max_mb: int = 1024
+    repo_name: str,
+    completed_keys: set[str],
+    log_path: Path,
+    output_dir: Path,
 ) -> None:
     """
     Scrape all non-hidden files in a locally cloned repo and batch
@@ -316,16 +316,18 @@ def scrape_repo(
     ----------
     repo_name : str
         GitHub repository in the format 'org/repo'.
-    max_mb : int
-        Maximum size of each pickle file in megabytes.
+    completed_keys: set[str]
+        set of repos that have been scraped and written to pkl files.
+    log_path: path
+        path to progress.log file the Github scraping run.
+    output_dir: path
+        path to output directory for the repo.
     """
-    # At start of scrape_repo
+    if repo_name in completed_keys:
+        _log.info(f"Skipping already processed space: {repo_name}")
+        return
 
     repo_org, repo_basename = repo_name.split("/", 1)
-    output_dir = Path(f"batched_github_output/{repo_org}/{repo_basename}")
-    if any(output_dir.glob(f"{repo_basename}_*.pkl")):
-        _log.info(f"Skipping {repo_name}, already has pickle files.")
-        return
 
     # Extract repo organization and name
     if "/" not in repo_name:
@@ -337,18 +339,18 @@ def scrape_repo(
     # Get list of files
     flist = clean_file_list(directory=repo_basename)
 
-    # Create output directory
-    output_dir.mkdir(parents=True, exist_ok=True)
+    org_output_dir = output_dir / repo_org
+    org_output_dir.mkdir(parents=True, exist_ok=True)
 
     # Process files
-    docs = []
-    current_batch: list = []
-    current_batch_size = 0
-    batch_number = 1
-    batch_size_limit = max_mb * 1024 * 1024  # Convert MB to bytes
+    documents = []
 
     for i, f in enumerate(flist):
-        _log.debug(f"working on file {i}, {f}")
+        converted_path = prepare_path_for_link(f)
+        _log.debug(
+            f"working on file {i}: "
+            f"https://github.com/{repo_org}/{converted_path}"
+        )
         loader = select_doc_loader(f)
 
         try:
@@ -358,58 +360,45 @@ def scrape_repo(
             doc.metadata["repo_basename"] = repo_basename
             doc.metadata["org_name"] = repo_org
             doc.metadata["repo"] = repo_name
+            doc.metadata["source"] = (
+                f"https://github.com/{repo_org}/{converted_path}"
+            )
 
-            # Get approximate size of this document
-            doc_size = len(pickle.dumps(doc))
+            creationdate = doc.metadata.get("creationdate")
+            if creationdate is not None and is_rfc3339(creationdate):
+                doc.metadata["creation_date"] = creationdate
+            doc.metadata.pop("creationdate", None)
+
+            moddate = doc.metadata.get("moddate")
+            if moddate is not None and is_rfc3339(moddate):
+                doc.metadata["mod_date"] = moddate
+            doc.metadata.pop("moddate", None)
 
             if not is_data_dump(doc):
-                # If adding this document would exceed the batch size limit,
-                # save the current batch
-                if (
-                    current_batch_size + doc_size > batch_size_limit
-                    and current_batch
-                ):
-                    batch_path = (
-                        output_dir / f"{repo_basename}_{batch_number}.pkl"
-                    )
-                    with Path(batch_path).open("wb") as f_out:
-                        pickle.dump(current_batch, f_out)
-                    _log.info(f"Saved batch {batch_number} to {batch_path}")
-
-                    # Reset batch
-                    current_batch = []
-                    current_batch_size = 0
-                    batch_number += 1
-
-                # Add document to current batch and overall docs list
-                current_batch.append(doc)
-                current_batch_size += doc_size
-                docs.append(doc)
+                documents.append(doc)
 
         except Exception as e:
             _log.debug(f"possible non-text file : {f} - Error: {e!s}")
 
-    # Save any remaining documents in the last batch
-    if current_batch:
-        batch_path = output_dir / f"{repo_basename}_{batch_number}.pkl"
-        with Path(batch_path).open("wb") as f_out:
-            pickle.dump(current_batch, f_out)
-        _log.info(f"Saved batch {batch_number} to {batch_path}")
+    chunked = chunk_docs(documents)
+    batched = batch_by_tokens(chunked)
+    write_batches_to_pickle(batched, repo_basename, org_output_dir)
+
+    completed_keys.add(repo_name)
+    save_progress(log_path, completed_keys)
+
+    del documents, chunked, batched
+    gc.collect()
 
     # Delete the git clone
     delete_clone(repo_basename)
 
-    # Log the completion message
-    _log.info(f"Saved {repo_basename} to pickle in {batch_number} batches.")
-
-    # Free up memory
-    del docs
-    gc.collect()
-
 
 def scrape_org(
-    org_name: str = "lsst-dmsst",
-    max_mb: int = 1024,
+    org_name: str,
+    completed_keys: set[str],
+    log_path: Path,
+    output_dir: Path,
     repos_ignore: list | None = None,
 ) -> None:
     """Scrape all repos within a GitHub org.
@@ -417,13 +406,15 @@ def scrape_org(
     Parameters
     ----------
     org_name : str
-        GitHub organization name including the organization name,
-        for instance lsst-dm.
-    max_mb : int
-        Maximum size of each pickle file in megabytes.
-    repos_ignore : list
-        List of repos to ignore (if any). Each repo in this list
-        should be just the base repo name without the org name.
+        GitHub organization
+    completed_keys: set[str]
+        set of repos that have been scraped and written to pkl files.
+    log_path: Path
+        path to progress.log file the Github scraping run.
+    output_dir: Path
+        path to output directory for the repo.
+    repos_ignore: list
+        List of repos to skip, specified in yaml file.
     """
     start_org = time.time()
 
@@ -438,7 +429,12 @@ def scrape_org(
 
     for i, repo in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
-        scrape_repo(repo_name=repo, max_mb=max_mb)
+        scrape_repo(
+            repo_name=repo,
+            completed_keys=completed_keys,
+            log_path=log_path,
+            output_dir=output_dir,
+        )
 
     end_org = time.time()
     _log.info(
@@ -459,47 +455,35 @@ def load_yaml_spec(yaml_file: str) -> dict:
         return yaml.safe_load(f)
 
 
-def get_all_repos(yaml_file: str) -> list[str]:
-    """Get list of repos across many orgs (exploratory utility).
+def scrape_github(yaml_path: str, output_dir: str) -> None:
+    """Scrape Github based on settings in yaml file and write pickle files to
+    output directory.
 
     Parameters
     ----------
-    yaml_file : str
-        file name of the YAML file specifying GitHub orgs to scrape
-
-    Returns
-    -------
-    all_repos : list[str]
-        list of repositories found across all orgs in 'org/repo' format.
+    yaml_path: str
+        String of path to github_sources.yaml
+    output_dir: str
+        String of path to output directory, typically a timestamped directory
+        specified in run_scraping.
     """
-    spec = load_yaml_spec(yaml_file)
+    base_dir = Path(output_dir)
+    log_path = base_dir / "progress.log"
 
-    orgs = spec["organization"]
-    all_repos: list = []
-    for org in orgs:
-        org_name = org["name"]
-        _log.info(f"retrieving repo list for org {org_name}")
-        repos = repos_in_org(org_name)
-        all_repos += repos
-
-    return all_repos
-
-
-def load_and_scrape(yaml_file: str) -> None:
-    """Scrape all GitHub repos within multiple GitHub orgs.
-
-    Parameters
-    ----------
-    yaml_file : str
-        file name of the YAML file specifying GitHub orgs to scrape
-    """
-    spec = load_yaml_spec(yaml_file)
+    completed_keys = load_progress(log_path)
+    spec = load_yaml_spec(yaml_path)
 
     orgs = spec["organization"]
     for org in orgs:
         repos_ignore = org.get("ignore_repos", [])
-        scrape_org(org_name=org["name"], repos_ignore=repos_ignore)
+        scrape_org(
+            org_name=org["name"],
+            completed_keys=completed_keys,
+            log_path=log_path,
+            output_dir=base_dir,
+            repos_ignore=repos_ignore,
+        )
 
-
-if __name__ == "__main__":
-    load_and_scrape("../../../../data/github_sources.yaml")
+    completed_keys.add("done")
+    with Path.open(log_path, "w", encoding="utf-8") as f:
+        json.dump(list(completed_keys), f, indent=2)

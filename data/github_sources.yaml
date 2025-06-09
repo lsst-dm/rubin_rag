@@ -7,15 +7,40 @@ organization:
     ignore_repos:
       - "community-operators"
       - "versiondb"
+      - "rc2_subset"
+      - "throughputs"
+      - "xrootd"
   - name: "lsst-it"
+    ignore_repos:
+      - "rook"
   - name: "lsst-dm"
-  - name: "lsst-dmsst"
+    ignore_repos:
+      - "bp"
+      - "consdb"
+      - "galaxy_shear_experiments"
+      - "HeaderService"
+      - "heliolinc2"
+      - "phosim_psf_tests"
+      - "qserv-ncsa-gaia"
+      - "qserv-slac"
   - name: "lsst-pst"
+    ignore_repos:
+      - "overview_paper"
+      - "syseng_throughputs"
   - name: "lsst-sqre"
+    ignore_repos:
+      - "fs-vs-netapp"
+      - "rc2_subset"
   - name: "lsst-sqre-testing"
   - name: "lsst-sitcom"
   - name: "lsst-ts"
+    ignore_repos:
+      - "robotframework_SAL"
+      - "ts_dcabt"
+      - "ts_sal_runtime"
   - name: "lsst-camera-dh"
+    ignore_repos:
+      - "bot-eotest-configs"
   - name: "rubin-observatory"
   - name: "rubin-dp0"
   - name: "lsst-sims"
@@ -25,6 +50,10 @@ organization:
   - name: "LSSTDESC"
     ignore_repos:
       - "PC5AtmosphericExtinction"
+      - "6x2pt_LSST_and_ext_Spec"
+      - "HOS-Y1-prep"
+      - "MG_constraint_kmax_dependence"
+      - "SkySim5000_IA_infusion"
   - name: "LSST-strong-lensing"
   - name: "LSST-TVSSC"
     ignore_repos:
