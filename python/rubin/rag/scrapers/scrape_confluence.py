@@ -58,7 +58,23 @@ if api_token is None:
 
 
 def get_child_page_ids(parent_id: str, limit: int = 100) -> list:
-    """Attempt to get the children of a given parent."""
+    """Attempt to get the children of a single parent Confluence page.
+
+    Parameters
+    ----------
+    parent_id : str
+        The content ID of the parent Confluence page whose child pages are to
+        be fetched.
+    limit : int, optional
+        The maximum number of child pages to retrieve (default is 100).
+
+    Returns
+    -------
+    list
+        A list of string IDs corresponding to the child pages of the given
+        parent. Returns an empty list if the request fails or if there are no
+        children.
+    """
     url = (
         f"https://rubinobs.atlassian.net/wiki/rest/api/content/{parent_id}"
         f"/child/page?limit={limit}"
@@ -81,7 +97,24 @@ def get_child_page_ids(parent_id: str, limit: int = 100) -> list:
 
 
 def get_all_child_page_ids(parent_id: str, limit: int = 100) -> list:
-    """Recursively loop through a parent to get all of its children."""
+    """Attempt to get all the children of a parent Confluence page. Uses
+    get_child_page_ids to recursively loop through all children.
+
+    Parameters
+    ----------
+    parent_id : str
+        The content ID of the parent Confluence page whose child pages are to
+        be fetched.
+    limit : int, optional
+        The maximum number of child pages to retrieve (default is 100).
+
+    Returns
+    -------
+    list
+        A list of string IDs corresponding to the child pages of the given
+        parent. Returns an empty list if the request fails or if there are no
+        children.
+    """
     try:
         all_child_ids = []
         child_ids = get_child_page_ids(parent_id, limit)

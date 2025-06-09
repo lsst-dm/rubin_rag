@@ -69,7 +69,16 @@ def chunk_docs(
 
 
 def count_tokens(text: str, encoding_name: str = "cl100k_base") -> int:
-    """Count tokens of a given chunk of text."""
+    """Count tokens of a given chunk of text.
+
+    Parameters
+    ----------
+    text: str
+        String of text to count tokens of.
+    encoding_name: str, Optional
+        Name of tokenizer encoding type. Default is cl100k_base, which is the
+        encoding used by all of OpenAI's embedding models.
+    """
     enc = tiktoken.get_encoding(encoding_name)
     return len(enc.encode(text))
 

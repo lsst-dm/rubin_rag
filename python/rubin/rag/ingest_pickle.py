@@ -67,8 +67,21 @@ def load_grouped_batches_from_pickle_dir(
     pickle_dir: Path,
 ) -> Generator[list[Document], None, None]:
     """Yield grouped batches of Documents from pickle files that share a
-    common prefix. pickle_dir is the output directory for scraped pickle
+    common prefix. `pickle_dir` is the output directory for scraped pickle
     files.
+
+    Parameters
+    ----------
+    pickle_dir : Path
+        The directory containing `.pkl` files of LangChain `Document` objects.
+        Files are expected to be named with a common prefix followed by an
+        underscore and index (e.g., `prefix_00.pkl`, `prefix_01.pkl`).
+
+    Returns
+    -------
+    Generator[list[Document], None, None]
+        A generator yielding lists of `Document` objects. Each list
+        corresponds to a group of pickle files that share a common prefix.
     """
     # Group .pkl files by their prefix
     groups = defaultdict(list)

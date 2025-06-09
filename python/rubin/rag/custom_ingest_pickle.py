@@ -84,7 +84,16 @@ def load_ingested_log(log_path: str) -> set[str]:
 
 
 def update_ingested_log(log_path: str, file_path: str) -> None:
-    """Write a pickle file to the ingested log."""
+    """Write a pickle file to the ingested log.
+
+    Parameters
+    ----------
+    log_path: str
+        String of path to the log file where progress is being tracked
+        (e.g. ingested_files.log).
+    file_path: str
+        Name of the completed pickle file.
+    """
     with Path(log_path).open("a") as f:
         f.write(file_path + "\n")
 
