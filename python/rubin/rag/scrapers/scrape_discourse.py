@@ -65,7 +65,9 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     while True:
         response = requests.get(next_url, headers=HEADERS)
         if response.status_code != 200:
-            _log.error(f"Error fetching page {page_count}: {response.status_code}")
+            _log.error(
+                f"Error fetching page {page_count}: {response.status_code}"
+            )
             continue
 
         data = response.json()
@@ -129,7 +131,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
     return {
         "topic_id": topic_id,
         "topic_title": topic_title,
-        "posts": cleaned_posts
+        "posts": cleaned_posts,
     }
 
 
@@ -185,8 +187,7 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
 
             try:
                 topic_data = get_posts_for_topic(topic_id)
-                filename = \
-                    f"{topic_id}_{clean_filename(topic_data['topic_title'][:50])}.json"
+                filename = f"{topic_id}_{clean_filename(topic_data['topic_title'][:50])}.json"
                 path = os.path.join(OUTPUT_DIR, filename)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(topic_data, f, indent=2, ensure_ascii=False)
@@ -214,6 +215,7 @@ def topics_to_docs(topics: dict) -> list:
             docs.append(doc)
 
     return docs
+
 
 def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
     """Aggregate scraped results for many pages/topics."""
