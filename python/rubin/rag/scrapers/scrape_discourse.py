@@ -245,7 +245,8 @@ def scrape_and_aggregate(max_pages: int, output_file: str) -> list:
                 continue
 
     # Write everything to a single file
-    with open(output_file, "w", encoding="utf-8") as f:
+    path = Path(output_file)
+    with path.open("w", encoding="utf-8") as f:
         json.dump(all_posts, f, indent=2, ensure_ascii=False)
     _log.info(f"Saved {len(all_posts)} posts to {output_file}")
 
