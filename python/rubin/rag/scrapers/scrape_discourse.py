@@ -106,7 +106,7 @@ def get_latest_topics(page: int) -> list:
 class StatusCodeError(Exception):
     """Custom exception class for bad requests response status code."""
 
-    def __init__(self, message: str) -> StatusCodeError:
+    def __init__(self, message: str) -> None:
         self.message = message
         super().__init__(self.message)
 
