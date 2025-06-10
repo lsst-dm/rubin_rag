@@ -118,7 +118,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
     url = f"{DISCOURSE_URL}/t/{topic_id}.json"
     response = requests.get(url, headers=headers, timeout=10)
     if response.status_code != 200:
-        raise Exception(f"HTTP {response.status_code}")
+        raise StatusCodeException(f"HTTP {response.status_code}")
     data = response.json()
     topic_title = data.get("title", f"topic_{topic_id}")
     posts = data.get("post_stream", {}).get("posts", [])
