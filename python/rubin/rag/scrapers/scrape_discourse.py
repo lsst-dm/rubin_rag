@@ -163,6 +163,7 @@ def clean_filename(name: str) -> str:
 
 
 def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
+    """Scrape all topics for the first MAX_PAGES pages."""
     seen_topic_ids = set()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     for page in range(0, MAX_PAGES):
@@ -190,6 +191,7 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
 
 
 def topics_to_docs(topics: dict) -> list:
+    """Convert scraped topics to a list of LangChain docs."""
     docs = []
     for topic in topics:
         for post in topic["posts"]:
@@ -208,6 +210,7 @@ def topics_to_docs(topics: dict) -> list:
     return docs
 
 def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
+    """Aggregate scraped results for many pages/topics."""
     all_posts = []
     seen_topic_ids = set()
 
