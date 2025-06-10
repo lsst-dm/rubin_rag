@@ -172,7 +172,7 @@ def clean_filename(name: str) -> str:
 def scrape_all_topics(max_pages: int, output_dir: str) -> None:
     """Scrape all topics for the first max_pages pages."""
     seen_topic_ids = set()
-    Path.mkdir(Path(output_dir), parents=True)
+    Path.mkdir(Path(output_dir), parents=True, exist_ok=True)
     for page in range(max_pages):
         topics = get_latest_topics(page)
         if not topics:
@@ -190,7 +190,7 @@ def scrape_all_topics(max_pages: int, output_dir: str) -> None:
                 clean_title = clean_filename(topic_data["topic_title"][:50])
                 filename = f"{topic_id}_{clean_title}.json"
                 path = Path(output_dir) / Path(filename)
-                with open(path, "w", encoding="utf-8") as f:
+                with path.open("w", encoding="utf-8") as f:
                     json.dump(topic_data, f, indent=2, ensure_ascii=False)
                 time.sleep(SLEEP_TIME)
             except Exception as e:
