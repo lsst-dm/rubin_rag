@@ -173,20 +173,6 @@ def clean_post(post: dict) -> dict:
     }
 
 
-def clean_filename(name: str) -> str:
-    """
-    Format a filename.
-
-    Args:
-        name (str): The filename
-
-    Returns
-    -------
-        str: The well-formatted filename
-    """
-    return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
-
-
 def topics_to_docs(topics: list) -> list:
     """Convert Discourse topics to a list of LangChain docs.
 
