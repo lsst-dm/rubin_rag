@@ -230,8 +230,8 @@ def topics_to_docs(topics: list) -> list:
     return docs
 
 
-def scrape_and_aggregate(max_pages: int, output_dir: str) -> list:
-    """Aggregate scraped results for many pages/topics."""
+def scrape_discourse(max_pages: int, output_dir: str) -> list:
+    """Scrape many Discourse pages/topics."""
     all_posts = []
     seen_topic_ids = set()
 
