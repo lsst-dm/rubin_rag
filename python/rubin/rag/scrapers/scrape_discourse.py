@@ -41,7 +41,7 @@ DISCOURSE_URL = "https://community.lsst.org/"
 HEADERS = {
     "Accept": "application/json",
     "Api-Key": forum_key,
-    "Api-Username": forum_username
+    "Api-Username": forum_username,
 }
 
 
@@ -52,7 +52,8 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     Args:
         discourse_url (type): URL of the discourse forum
 
-    Returns:
+    Returns
+    -------
         int: The number of pages
     """
     HEADERS = {
@@ -87,7 +88,8 @@ def get_latest_topics(page: int) -> list:
     Args:
         page (str): The page
 
-    Returns:
+    Returns
+    -------
         int: The list of topics
     """
     url = f"{DISCOURSE_URL}/latest.json?page={page}"
@@ -107,7 +109,8 @@ def get_posts_for_topic(topic_id: int) -> dict:
         discourse_url (type): URL of the discourse forum
         topic_id (int): The topic ID
 
-    Returns:
+    Returns
+    -------
         dict: The posts
     """
     url = f"{DISCOURSE_URL}/t/{topic_id}.json"
@@ -137,7 +140,8 @@ def clean_post(post: dict) -> dict:
     Args:
         post (str): The post
 
-    Returns:
+    Returns
+    -------
         str: The well-formatted post
     """
     return {
@@ -156,7 +160,8 @@ def clean_filename(name: str) -> str:
     Args:
         name (str): The filename
 
-    Returns:
+    Returns
+    -------
         str: The well-formatted filename
     """
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
