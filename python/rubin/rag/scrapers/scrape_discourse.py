@@ -39,7 +39,6 @@ SLEEP_TIME = 1.0
 DISCOURSE_URL = "https://community.lsst.org/"
 HEADERS = {
     "Accept": "application/json",
-    # Uncomment and set your API key/username if the forum requires it:
     "Api-Key": forum_key,
     "Api-Username": forum_username
 }
