@@ -123,15 +123,18 @@ class StatusCodeError(Exception):
 
 def get_posts_for_topic(topic_id: int) -> dict:
     """
-    Get all posts for a topic topics.
+    Get all posts for a Discourse topic.
 
-    Args:
-        discourse_url (type): URL of the discourse forum
-        topic_id (int): The topic ID
+    Parameters
+    ----------
+    topic_id : int
+        The discourse topic identifier, which is an integer.
 
     Returns
     -------
-        dict: The posts
+    dict
+        A dictionary containing the posts for the relevant
+        Discourse topic.
     """
     url = f"{DISCOURSE_URL}/t/{topic_id}.json"
     response = requests.get(url, headers=headers, timeout=10)
@@ -155,14 +158,17 @@ def get_posts_for_topic(topic_id: int) -> dict:
 
 def clean_post(post: dict) -> dict:
     """
-    Format the data in a post.
+    Format the data in a Discourse post.
 
-    Args:
-        post (str): The post
+    Arguments
+    ---------
+    post : dict
+        The post as retrieved from the Discourse API.
 
     Returns
     -------
-        str: The well-formatted post
+    dict
+        A well-formatted dictionary representing the post.
     """
     return {
         "post_id": post.get("id"),
