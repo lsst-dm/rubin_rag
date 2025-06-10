@@ -217,7 +217,18 @@ def scrape_all_topics(max_pages: int, output_dir: str) -> None:
 
 
 def topics_to_docs(topics: list) -> list:
-    """Convert scraped topics to a list of LangChain docs."""
+    """Convert Discourse topics to a list of LangChain docs.
+
+    Parameters
+    ----------
+    topics : list
+        list of Discourse topics, where each topic is a dictionary.
+
+    Returns
+    -------
+    docs : list
+       list of LangChain documents (not chunked).
+    """
     docs = []
     for topic in topics:
         for post in topic["posts"]:
