@@ -21,12 +21,13 @@
 """Utilities for scraping Discourse forum contents into LangChain documents."""
 
 import json
+import logging
 import os
 from pathlib import Path
 import time
-import requests
-import logging
 from urllib.parse import urljoin
+
+import requests
 from langchain_core.documents.base import Document
 
 logging.basicConfig(level=logging.INFO)
