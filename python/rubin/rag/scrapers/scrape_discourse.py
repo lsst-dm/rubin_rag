@@ -29,11 +29,7 @@ from urllib.parse import urljoin
 
 import requests
 from langchain_core.documents.base import Document
-from scrapers.utils import (
-    batch_by_tokens,
-    chunk_docs,
-    write_batches_to_pickle,
-)
+from scrapers.utils import batch_by_tokens, chunk_docs, write_batches_to_pickle
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
