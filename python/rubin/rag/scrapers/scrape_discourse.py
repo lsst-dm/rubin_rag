@@ -29,6 +29,11 @@ from urllib.parse import urljoin
 
 import requests
 from langchain_core.documents.base import Document
+from scrapers.utils import (
+    batch_by_tokens,
+    chunk_docs,
+    write_batches_to_pickle,
+)
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -229,7 +234,7 @@ def topics_to_docs(topics: dict) -> list:
     return docs
 
 
-def scrape_and_aggregate(max_pages: int, output_file: str) -> list:
+def scrape_and_aggregate(max_pages: int, output_dir: str) -> list:
     """Aggregate scraped results for many pages/topics."""
     all_posts = []
     seen_topic_ids = set()
@@ -255,10 +260,13 @@ def scrape_and_aggregate(max_pages: int, output_file: str) -> list:
                 _log.error(f"Error fetching topic {topic_id}: {e}")
                 continue
 
-    # Write everything to a single file
-    path = Path(output_file)
-    with path.open("w", encoding="utf-8") as f:
-        json.dump(all_posts, f, indent=2, ensure_ascii=False)
-    _log.info(f"Saved {len(all_posts)} posts to {output_file}")
+    all_docs = topics_to_docs(all_posts)
+
+    chunked = chunk_docs(all_docs)
+    batched = batch_by_tokens(chunked)
+    space_key = "community.lsst.org"
+    write_batches_to_pickle(batched, space_key, Path(output_dir))
+
+    _log.info(f"Saved {len(all_docs)} posts to {output_dir}")
 
     return all_posts
