@@ -210,7 +210,7 @@ def scrape_all_topics(max_pages: int, output_dir: str) -> None:
                 continue
 
 
-def topics_to_docs(topics: dict) -> list:
+def topics_to_docs(topics: list) -> list:
     """Convert scraped topics to a list of LangChain docs."""
     docs = []
     for topic in topics:
