@@ -231,6 +231,7 @@ def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
     n_pages_total = count_all_pages(DISCOURSE_URL)
     if max_pages is None:
         max_pages = n_pages_total
+    max_pages = min(max_pages, n_pages_total)
     seen_topic_ids = set()
 
     base_dir = Path(output_dir)
