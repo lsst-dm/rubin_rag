@@ -38,7 +38,7 @@ forum_key = os.getenv("COMMUNITY_API_KEY")
 
 SLEEP_TIME = 1.0
 DISCOURSE_URL = "https://community.lsst.org/"
-HEADERS = {
+headers = {
     "Accept": "application/json",
     "Api-Key": forum_key,
     "Api-Username": forum_username,
@@ -56,14 +56,14 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     -------
         int: The number of pages
     """
-    HEADERS = {
+    headers = {
         "Accept": "application/json",
     }
     page_count = 1
     next_url = f"{DISCOURSE_URL}/latest.json"
 
     while True:
-        response = requests.get(next_url, headers=HEADERS, timeout=10)
+        response = requests.get(next_url, headers=headers, timeout=10)
         if response.status_code != 200:
             _log.error(
                 f"Error fetching page {page_count}: {response.status_code}"
@@ -95,7 +95,7 @@ def get_latest_topics(page: int) -> list:
         int: The list of topics
     """
     url = f"{DISCOURSE_URL}/latest.json?page={page}"
-    response = requests.get(url, headers=HEADERS, timeout=10)
+    response = requests.get(url, headers=headers, timeout=10)
     if response.status_code != 200:
         _log.warning(f"Failed to fetch page {page}: {response.status_code}")
         return []
@@ -116,7 +116,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
         dict: The posts
     """
     url = f"{DISCOURSE_URL}/t/{topic_id}.json"
-    response = requests.get(url, headers=HEADERS, timeout=10)
+    response = requests.get(url, headers=headers, timeout=10)
     if response.status_code != 200:
         raise Exception(f"HTTP {response.status_code}")
     data = response.json()
