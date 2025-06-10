@@ -238,8 +238,9 @@ def topics_to_docs(topics: list) -> list:
 
 def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
     """Scrape many Discourse pages/topics."""
+    n_pages_total = count_all_pages(DISCOURSE_URL)
     if max_pages is None:
-        max_pages = count_all_pages(DISCOURSE_URL)
+        max_pages = n_pages_total
     seen_topic_ids = set()
 
     base_dir = Path(output_dir)
@@ -281,6 +282,7 @@ def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
 
         _log.info(f"Saved {len(all_docs)} posts to {output_dir}")
 
-    completed_keys.add("done")
+    if max_pages == n_pages_total:
+        completed_keys.add("done")
     with Path.open(log_path, "w", encoding="utf-8") as f:
         json.dump(list(completed_keys), f, indent=2)
