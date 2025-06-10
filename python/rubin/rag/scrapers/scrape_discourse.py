@@ -187,7 +187,8 @@ def scrape_all_topics(max_pages: int, output_dir: str) -> None:
 
             try:
                 topic_data = get_posts_for_topic(topic_id)
-                filename = f"{topic_id}_{clean_filename(topic_data['topic_title'][:50])}.json"
+                clean_title = clean_filename(topic_data['topic_title'][:50])
+                filename = f"{topic_id}_{clean_title}.json"
                 path = Path(output_dir) / Path(filename)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(topic_data, f, indent=2, ensure_ascii=False)
