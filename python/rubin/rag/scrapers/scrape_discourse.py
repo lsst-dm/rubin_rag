@@ -238,10 +238,16 @@ def topics_to_docs(topics: list) -> list:
 
 def scrape_discourse(max_pages: int, output_dir: str) -> None:
     """Scrape many Discourse pages/topics."""
-    all_posts = []
     seen_topic_ids = set()
 
+    base_dir = Path(output_dir)
+    log_path = base_dir / "progress.log"
+    completed_keys = load_progress(log_path)
+
     for page in range(max_pages):
+        space_key = f"page{page}"
+        if space_key in completed_keys:
+            continue
         _log.info(f"WORKING ON PAGE {page + 1} OF {max_pages}")
         all_posts = []
         topics = get_latest_topics(page)
@@ -267,7 +273,12 @@ def scrape_discourse(max_pages: int, output_dir: str) -> None:
 
         chunked = chunk_docs(all_docs)
         batched = batch_by_tokens(chunked)
-        space_key = f"page{page}"
-        write_batches_to_pickle(batched, space_key, Path(output_dir))
+        write_batches_to_pickle(batched, space_key, base_dir)
+        completed_keys.add(space_key)
+        save_progress(log_path, completed_keys)
 
         _log.info(f"Saved {len(all_docs)} posts to {output_dir}")
+
+    completed_keys.add("done")
+    with Path.open(log_path, "w", encoding="utf-8") as f:
+        json.dump(list(completed_keys), f, indent=2)
