@@ -33,7 +33,7 @@ forum_username = 'leanne'
 forum_key = os.getenv("COMMUNITY_API_KEY")
 
 SLEEP_TIME = 1.0
-DISCOURSE_URL = "https://community.lsst.org/" 
+DISCOURSE_URL = "https://community.lsst.org/"
 HEADERS = {
     "Accept": "application/json",
     # Uncomment and set your API key/username if the forum requires it:
@@ -54,7 +54,7 @@ def count_all_pages(discourse_url):
     """
     HEADERS = {
         "Accept": "application/json",
-    }    
+    }
     page_count = 1
     next_url = f"{DISCOURSE_URL}/latest.json"
 
@@ -64,13 +64,13 @@ def count_all_pages(discourse_url):
             # raise Exception(f"Error fetching page {page_count}: {response.status_code}")
             print(f"Error fetching page {page_count}: {response.status_code}")
             continue
-        
+
         data = response.json()
         more_url = data.get("topic_list", {}).get("more_topics_url")
- 
+
         if not more_url:
             break
-        
+
         next_url = urljoin(DISCOURSE_URL, more_url)
         page_count += 1
 
@@ -229,7 +229,7 @@ def scrape_and_aggregate(MAX_PAGES, OUTPUT_FILE):
             except Exception as e:
                 print(f"Error fetching topic {topic_id}: {e}")
                 continue
-                
+
     # Write everything to a single file
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(all_posts, f, indent=2, ensure_ascii=False)
