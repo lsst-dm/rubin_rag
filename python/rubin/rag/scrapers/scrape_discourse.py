@@ -63,7 +63,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     next_url = f"{DISCOURSE_URL}/latest.json"
 
     while True:
-        response = requests.get(next_url, headers=HEADERS)
+        response = requests.get(next_url, headers=HEADERS, timeout=10)
         if response.status_code != 200:
             _log.error(
                 f"Error fetching page {page_count}: {response.status_code}"
@@ -95,7 +95,7 @@ def get_latest_topics(page: int) -> list:
         int: The list of topics
     """
     url = f"{DISCOURSE_URL}/latest.json?page={page}"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, timeout=10)
     if response.status_code != 200:
         _log.warning(f"Failed to fetch page {page}: {response.status_code}")
         return []
@@ -116,7 +116,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
         dict: The posts
     """
     url = f"{DISCOURSE_URL}/t/{topic_id}.json"
-    response = requests.get(url, headers=HEADERS)
+    response = requests.get(url, headers=HEADERS, timeout=10)
     if response.status_code != 200:
         raise Exception(f"HTTP {response.status_code}")
     data = response.json()
