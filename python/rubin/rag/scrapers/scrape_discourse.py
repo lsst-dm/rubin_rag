@@ -23,8 +23,8 @@
 import json
 import logging
 import os
-from pathlib import Path
 import time
+from pathlib import Path
 from urllib.parse import urljoin
 
 import requests
