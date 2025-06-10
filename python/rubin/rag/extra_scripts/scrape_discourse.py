@@ -210,6 +210,7 @@ def scrape_and_aggregate(MAX_PAGES, OUTPUT_FILE):
     seen_topic_ids = set()
 
     for page in range(0, MAX_PAGES):
+        print('WORKING ON PAGE ', page + 1, ' OF ', MAX_PAGES)
         topics = get_latest_topics(page)
         if not topics:
             print("No more topics found.")
