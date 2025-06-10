@@ -47,7 +47,7 @@ headers = {
 
 def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     """
-    Counts the total number of pages on the forum.
+    Count the total number of pages on the forum.
 
     Args:
         discourse_url (type): URL of the discourse forum
