@@ -32,7 +32,7 @@ from langchain_core.documents.base import Document
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
-forum_username = 'leanne'
+forum_username = "leanne"
 forum_key = os.getenv("COMMUNITY_API_KEY")
 
 SLEEP_TIME = 1.0
@@ -63,7 +63,6 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     while True:
         response = requests.get(next_url, headers=HEADERS)
         if response.status_code != 200:
-            # raise Exception(f"Error fetching page {page_count}: {response.status_code}")
             _log.error(f"Error fetching page {page_count}: {response.status_code}")
             continue
 
@@ -180,7 +179,8 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
 
             try:
                 topic_data = get_posts_for_topic(topic_id)
-                filename = f"{topic_id}_{clean_filename(topic_data['topic_title'][:50])}.json"
+                filename = \
+                    f"{topic_id}_{clean_filename(topic_data['topic_title'][:50])}.json"
                 path = os.path.join(OUTPUT_DIR, filename)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(topic_data, f, indent=2, ensure_ascii=False)
