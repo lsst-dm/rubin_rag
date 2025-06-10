@@ -103,6 +103,16 @@ def get_latest_topics(page: int) -> list:
     return data.get("topic_list", {}).get("topics", [])
 
 
+class StatusCodeException(Exception):
+    """Custom exception class for bad requests response status code."""
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
+    def __str__(self):
+        return self.message
+
+
 def get_posts_for_topic(topic_id: int) -> dict:
     """
     Get all posts for a topic topics.
