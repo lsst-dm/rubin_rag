@@ -56,12 +56,15 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     """
     Count the total number of pages on the forum.
 
-    Args:
-        discourse_url (type): URL of the discourse forum
+    Parameters
+    ----------
+    discourse_url : str
+        URL of the discourse forum.
 
     Returns
     -------
-        int: The number of pages
+    page_count : int
+        the number of pages of Discourse API content.
     """
     headers = {
         "Accept": "application/json",
@@ -94,12 +97,15 @@ def get_latest_topics(page: int) -> list:
     """
     Get the latest topics on a page.
 
-    Args:
-        page (str): The page
+    Parameters
+    ----------
+    page : int
+        the page number within the Discourse API results.
 
     Returns
     -------
-        int: The list of topics
+    list
+        the list of Discourse topics found within the page.
     """
     url = f"{DISCOURSE_URL}/latest.json?page={page}"
     response = requests.get(url, headers=headers, timeout=10)
@@ -160,8 +166,8 @@ def clean_post(post: dict) -> dict:
     """
     Format the data in a Discourse post.
 
-    Arguments
-    ---------
+    Parameters
+    ----------
     post : dict
         The post as retrieved from the Discourse API.
 
