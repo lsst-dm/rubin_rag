@@ -165,7 +165,7 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
     """Scrape all topics for the first MAX_PAGES pages."""
     seen_topic_ids = set()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    for page in range(0, MAX_PAGES):
+    for page in range(MAX_PAGES):
         topics = get_latest_topics(page)
         if not topics:
             _log.info("No more topics found. Done.")
@@ -214,8 +214,8 @@ def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
     all_posts = []
     seen_topic_ids = set()
 
-    for page in range(0, MAX_PAGES):
-        _log.info(f"WORKING ON PAGE {page+1} OF {MAX_PAGES}")
+    for page in range(MAX_PAGES):
+        _log.info(f"WORKING ON PAGE {page + 1} OF {MAX_PAGES}")
         topics = get_latest_topics(page)
         if not topics:
             _log.info("No more topics found.")
