@@ -237,7 +237,17 @@ def topics_to_docs(topics: list) -> list:
 
 
 def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
-    """Scrape many Discourse pages/topics."""
+    """Scrape many Discourse pages/topics.
+
+    Parameters
+    ----------
+    output_dir : str
+        Name of output directory for pickle files and log file.
+    max_pages : int
+        Maximum page number of Discourse API content to scrape,
+        starting from page number 0. If not specified, max_pages
+        will be set to the total number of pages available.
+    """
     n_pages_total = count_all_pages(DISCOURSE_URL)
     if max_pages is None:
         max_pages = n_pages_total
