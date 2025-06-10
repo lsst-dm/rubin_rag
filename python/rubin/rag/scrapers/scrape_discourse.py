@@ -241,7 +241,7 @@ def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
     if max_pages is None:
         max_pages = count_all_pages(DISCOURSE_URL)
     seen_topic_ids = set()
-    
+
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
     completed_keys = load_progress(log_path)
