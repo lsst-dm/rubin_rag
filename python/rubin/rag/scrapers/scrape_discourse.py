@@ -46,7 +46,7 @@ HEADERS = {
 
 def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     """
-    Counts the total number of pages on the fourm.
+    Counts the total number of pages on the forum.
 
     Args:
         discourse_url (type): URL of the discourse forum
@@ -81,7 +81,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
 
 def get_latest_topics(page: int) -> list:
     """
-    Get the latest topics on a page
+    Get the latest topics on a page.
 
     Args:
         page (str): The page
@@ -100,7 +100,7 @@ def get_latest_topics(page: int) -> list:
 
 def get_posts_for_topic(topic_id: int) -> dict:
     """
-    Get all posts for a topic topics
+    Get all posts for a topic topics.
 
     Args:
         discourse_url (type): URL of the discourse forum
@@ -131,7 +131,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
 
 def clean_post(post: dict) -> dict:
     """
-    Format the data in a post
+    Format the data in a post.
 
     Args:
         post (str): The post
@@ -150,7 +150,7 @@ def clean_post(post: dict) -> dict:
 
 def clean_filename(name: str) -> str:
     """
-    Format a filename
+    Format a filename.
 
     Args:
         name (str): The filename
