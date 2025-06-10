@@ -42,7 +42,7 @@ HEADERS = {
 }
 
 
-def count_all_pages(discourse_url):
+def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     """
     Counts the total number of pages on the fourm.
 
@@ -78,7 +78,7 @@ def count_all_pages(discourse_url):
     return page_count
 
 
-def get_latest_topics(page):
+def get_latest_topics(page: int) -> list:
     """
     Get the latest topics on a page
 
@@ -97,7 +97,7 @@ def get_latest_topics(page):
     return data.get("topic_list", {}).get("topics", [])
 
 
-def get_posts_for_topic(topic_id):
+def get_posts_for_topic(topic_id: int) -> dict:
     """
     Get all posts for a topic topics
 
@@ -128,7 +128,7 @@ def get_posts_for_topic(topic_id):
     }
 
 
-def clean_post(post):
+def clean_post(post: dict) -> dict:
     """
     Format the data in a post
 
@@ -147,7 +147,7 @@ def clean_post(post):
     }
 
 
-def clean_filename(name):
+def clean_filename(name: str) -> str:
     """
     Format a filename
 
@@ -160,7 +160,7 @@ def clean_filename(name):
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
 
 
-def scrape_all_topics(MAX_PAGES, OUTPUT_DIR):
+def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
     seen_topic_ids = set()
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     for page in range(0, MAX_PAGES):
@@ -187,7 +187,7 @@ def scrape_all_topics(MAX_PAGES, OUTPUT_DIR):
                 continue
 
 
-def topics_to_docs(topics):
+def topics_to_docs(topics: dict) -> list:
     docs = []
     for topic in topics:
         for post in topic["posts"]:
@@ -205,7 +205,7 @@ def topics_to_docs(topics):
 
     return docs
 
-def scrape_and_aggregate(MAX_PAGES, OUTPUT_FILE):
+def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
     all_posts = []
     seen_topic_ids = set()
 
