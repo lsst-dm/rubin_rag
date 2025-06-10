@@ -29,7 +29,13 @@ from urllib.parse import urljoin
 
 import requests
 from langchain_core.documents.base import Document
-from scrapers.utils import batch_by_tokens, chunk_docs, write_batches_to_pickle
+from scrapers.utils import (
+    batch_by_tokens,
+    chunk_docs,
+    load_progress,
+    save_progress,
+    write_batches_to_pickle,
+)
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
@@ -230,13 +236,14 @@ def topics_to_docs(topics: list) -> list:
     return docs
 
 
-def scrape_discourse(max_pages: int, output_dir: str) -> list:
+def scrape_discourse(max_pages: int, output_dir: str) -> None:
     """Scrape many Discourse pages/topics."""
     all_posts = []
     seen_topic_ids = set()
 
     for page in range(max_pages):
         _log.info(f"WORKING ON PAGE {page + 1} OF {max_pages}")
+        all_posts = []
         topics = get_latest_topics(page)
         if not topics:
             _log.info("No more topics found.")
@@ -256,13 +263,11 @@ def scrape_discourse(max_pages: int, output_dir: str) -> list:
                 _log.error(f"Error fetching topic {topic_id}: {e}")
                 continue
 
-    all_docs = topics_to_docs(all_posts)
+        all_docs = topics_to_docs(all_posts)
 
-    chunked = chunk_docs(all_docs)
-    batched = batch_by_tokens(chunked)
-    space_key = "community.lsst.org"
-    write_batches_to_pickle(batched, space_key, Path(output_dir))
+        chunked = chunk_docs(all_docs)
+        batched = batch_by_tokens(chunked)
+        space_key = f"page{page}"
+        write_batches_to_pickle(batched, space_key, Path(output_dir))
 
-    _log.info(f"Saved {len(all_docs)} posts to {output_dir}")
-
-    return all_posts
+        _log.info(f"Saved {len(all_docs)} posts to {output_dir}")
