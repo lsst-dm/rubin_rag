@@ -187,35 +187,6 @@ def clean_filename(name: str) -> str:
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
 
 
-def scrape_all_topics(max_pages: int, output_dir: str) -> None:
-    """Scrape all topics for the first max_pages pages."""
-    seen_topic_ids = set()
-    Path.mkdir(Path(output_dir), parents=True, exist_ok=True)
-    for page in range(max_pages):
-        topics = get_latest_topics(page)
-        if not topics:
-            _log.info("No more topics found. Done.")
-            break
-
-        for topic in topics:
-            topic_id = topic["id"]
-            if topic_id in seen_topic_ids:
-                continue
-            seen_topic_ids.add(topic_id)
-
-            try:
-                topic_data = get_posts_for_topic(topic_id)
-                clean_title = clean_filename(topic_data["topic_title"][:50])
-                filename = f"{topic_id}_{clean_title}.json"
-                path = Path(output_dir) / Path(filename)
-                with path.open("w", encoding="utf-8") as f:
-                    json.dump(topic_data, f, indent=2, ensure_ascii=False)
-                time.sleep(SLEEP_TIME)
-            except Exception as e:
-                _log.error(f"Error fetching topic {topic_id}: {e}")
-                continue
-
-
 def topics_to_docs(topics: list) -> list:
     """Convert Discourse topics to a list of LangChain docs.
 
