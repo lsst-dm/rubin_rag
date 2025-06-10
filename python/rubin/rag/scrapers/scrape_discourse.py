@@ -172,7 +172,7 @@ def clean_filename(name: str) -> str:
 def scrape_all_topics(max_pages: int, output_dir: str) -> None:
     """Scrape all topics for the first max_pages pages."""
     seen_topic_ids = set()
-    Path.mkdir(output_dir, parents=True)
+    Path.mkdir(Path(output_dir), parents=True)
     for page in range(max_pages):
         topics = get_latest_topics(page)
         if not topics:
