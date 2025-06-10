@@ -169,11 +169,11 @@ def clean_filename(name: str) -> str:
     return "".join(c if c.isalnum() or c in "._-" else "_" for c in name)
 
 
-def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
-    """Scrape all topics for the first MAX_PAGES pages."""
+def scrape_all_topics(max_pages: int, output_dir: str) -> None:
+    """Scrape all topics for the first max_pages pages."""
     seen_topic_ids = set()
-    os.makedirs(OUTPUT_DIR, exist_ok=True)
-    for page in range(MAX_PAGES):
+    os.makedirs(output_dir, exist_ok=True)
+    for page in range(max_pages):
         topics = get_latest_topics(page)
         if not topics:
             _log.info("No more topics found. Done.")
@@ -188,7 +188,7 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
             try:
                 topic_data = get_posts_for_topic(topic_id)
                 filename = f"{topic_id}_{clean_filename(topic_data['topic_title'][:50])}.json"
-                path = os.path.join(OUTPUT_DIR, filename)
+                path = os.path.join(output_dir, filename)
                 with open(path, "w", encoding="utf-8") as f:
                     json.dump(topic_data, f, indent=2, ensure_ascii=False)
                 time.sleep(SLEEP_TIME)
@@ -217,13 +217,13 @@ def topics_to_docs(topics: dict) -> list:
     return docs
 
 
-def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
+def scrape_and_aggregate(max_pages: int, output_file: str) -> list:
     """Aggregate scraped results for many pages/topics."""
     all_posts = []
     seen_topic_ids = set()
 
-    for page in range(MAX_PAGES):
-        _log.info(f"WORKING ON PAGE {page + 1} OF {MAX_PAGES}")
+    for page in range(max_pages):
+        _log.info(f"WORKING ON PAGE {page + 1} OF {max_pages}")
         topics = get_latest_topics(page)
         if not topics:
             _log.info("No more topics found.")
@@ -244,8 +244,8 @@ def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
                 continue
 
     # Write everything to a single file
-    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump(all_posts, f, indent=2, ensure_ascii=False)
-    _log.info(f"Saved {len(all_posts)} posts to {OUTPUT_FILE}")
+    _log.info(f"Saved {len(all_posts)} posts to {output_file}")
 
     return all_posts
