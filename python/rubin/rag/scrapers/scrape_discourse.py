@@ -29,6 +29,9 @@ import logging
 from urllib.parse import urljoin
 from langchain_core.documents.base import Document
 
+logging.basicConfig(level=logging.INFO)
+_log = logging.getLogger(__name__)
+
 forum_username = 'leanne'
 forum_key = os.getenv("COMMUNITY_API_KEY")
 
@@ -62,7 +65,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
         response = requests.get(next_url, headers=HEADERS)
         if response.status_code != 200:
             # raise Exception(f"Error fetching page {page_count}: {response.status_code}")
-            print(f"Error fetching page {page_count}: {response.status_code}")
+            _log.error(f"Error fetching page {page_count}: {response.status_code}")
             continue
 
         data = response.json()
@@ -74,7 +77,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
         next_url = urljoin(DISCOURSE_URL, more_url)
         page_count += 1
 
-    print(f"\nTotal pages found: {page_count}")
+    _log.info(f"\nTotal pages found: {page_count}")
     return page_count
 
 
@@ -91,7 +94,7 @@ def get_latest_topics(page: int) -> list:
     url = f"{DISCOURSE_URL}/latest.json?page={page}"
     response = requests.get(url, headers=HEADERS)
     if response.status_code != 200:
-        print(f"Failed to fetch page {page}: {response.status_code}")
+        _log.warning(f"Failed to fetch page {page}: {response.status_code}")
         return []
     data = response.json()
     return data.get("topic_list", {}).get("topics", [])
@@ -166,7 +169,7 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
     for page in range(0, MAX_PAGES):
         topics = get_latest_topics(page)
         if not topics:
-            print("No more topics found. Done.")
+            _log.info("No more topics found. Done.")
             break
 
         for topic in topics:
@@ -183,7 +186,7 @@ def scrape_all_topics(MAX_PAGES: int, OUTPUT_DIR: str) -> None:
                     json.dump(topic_data, f, indent=2, ensure_ascii=False)
                 time.sleep(SLEEP_TIME)
             except Exception as e:
-                print(f"Error fetching topic {topic_id}: {e}")
+                _log.error(f"Error fetching topic {topic_id}: {e}")
                 continue
 
 
@@ -210,10 +213,10 @@ def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
     seen_topic_ids = set()
 
     for page in range(0, MAX_PAGES):
-        print('WORKING ON PAGE ', page + 1, ' OF ', MAX_PAGES)
+        _log.info(f"WORKING ON PAGE {page+1} OF {MAX_PAGES}")
         topics = get_latest_topics(page)
         if not topics:
-            print("No more topics found.")
+            _log.info("No more topics found.")
             break
 
         for topic in topics:
@@ -227,12 +230,12 @@ def scrape_and_aggregate(MAX_PAGES: int, OUTPUT_FILE: str) -> list:
                 all_posts.extend([posts])
                 time.sleep(SLEEP_TIME)
             except Exception as e:
-                print(f"Error fetching topic {topic_id}: {e}")
+                _log.error(f"Error fetching topic {topic_id}: {e}")
                 continue
 
     # Write everything to a single file
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         json.dump(all_posts, f, indent=2, ensure_ascii=False)
-    print(f"Saved {len(all_posts)} posts to {OUTPUT_FILE}")
+    _log.info(f"Saved {len(all_posts)} posts to {OUTPUT_FILE}")
 
     return all_posts
