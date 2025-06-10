@@ -103,13 +103,14 @@ def get_latest_topics(page: int) -> list:
     return data.get("topic_list", {}).get("topics", [])
 
 
-class StatusCodeException(Exception):
+class StatusCodeError(Exception):
     """Custom exception class for bad requests response status code."""
-    def __init__(self, message):
+
+    def __init__(self, message: str) -> StatusCodeError:
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.message
 
 
@@ -128,7 +129,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
     url = f"{DISCOURSE_URL}/t/{topic_id}.json"
     response = requests.get(url, headers=headers, timeout=10)
     if response.status_code != 200:
-        raise StatusCodeException(f"HTTP {response.status_code}")
+        raise StatusCodeError(f"HTTP {response.status_code}")
     data = response.json()
     topic_title = data.get("title", f"topic_{topic_id}")
     posts = data.get("post_stream", {}).get("posts", [])
