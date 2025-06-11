@@ -127,6 +127,29 @@ class StatusCodeError(Exception):
         return self.message
 
 
+def clean_post(post: dict) -> dict:
+    """
+    Format the data in a Discourse post.
+
+    Parameters
+    ----------
+    post : dict
+        The post as retrieved from the Discourse API.
+
+    Returns
+    -------
+    dict
+        A well-formatted dictionary representing the post.
+    """
+    return {
+        "post_id": post.get("id"),
+        "username": post.get("username", "unknown"),
+        "created_at": post.get("created_at"),
+        "cooked": post.get("cooked", ""),
+        "raw": post.get("raw", ""),
+    }
+
+
 def get_posts_for_topic(topic_id: int) -> dict:
     """
     Get all posts for a Discourse topic.
@@ -159,29 +182,6 @@ def get_posts_for_topic(topic_id: int) -> dict:
         "topic_id": topic_id,
         "topic_title": topic_title,
         "posts": cleaned_posts,
-    }
-
-
-def clean_post(post: dict) -> dict:
-    """
-    Format the data in a Discourse post.
-
-    Parameters
-    ----------
-    post : dict
-        The post as retrieved from the Discourse API.
-
-    Returns
-    -------
-    dict
-        A well-formatted dictionary representing the post.
-    """
-    return {
-        "post_id": post.get("id"),
-        "username": post.get("username", "unknown"),
-        "created_at": post.get("created_at"),
-        "cooked": post.get("cooked", ""),
-        "raw": post.get("raw", ""),
     }
 
 
