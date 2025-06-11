@@ -70,7 +70,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
         "Accept": "application/json",
     }
     page_count = 1
-    next_url = f"{DISCOURSE_URL}/latest.json"
+    next_url = f"{discourse_url}/latest.json"
 
     while True:
         response = requests.get(next_url, headers=headers, timeout=10)
@@ -86,7 +86,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
         if not more_url:
             break
 
-        next_url = urljoin(DISCOURSE_URL, more_url)
+        next_url = urljoin(discourse_url, more_url)
         page_count += 1
 
     _log.info(f"\nTotal pages found: {page_count}")
