@@ -142,8 +142,9 @@ def try_scrape_pdf(
         if not docs or len(docs) < 2:
             _log.warning(f"Small document from PDF at {full_url}")
 
-        sanitized = sanitize_dates(docs)
-        chunked = chunk_docs(sanitized)
+        for doc in docs:
+            sanitize_dates(doc.metadata)
+        chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
 
@@ -181,8 +182,9 @@ def try_scrape_web(url: str, paper_name: str, output_dir: Path) -> bool:
         if not docs or len(docs[0].page_content) < 2000:
             _log.warning(f"Small document from webpage at {url}")
 
-        sanitized = sanitize_dates(docs)
-        chunked = chunk_docs(sanitized)
+        for doc in docs:
+            sanitize_dates(doc.metadata)
+        chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
 
