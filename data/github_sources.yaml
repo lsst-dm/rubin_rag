@@ -54,9 +54,12 @@ organization:
       - "HOS-Y1-prep"
       - "MG_constraint_kmax_dependence"
       - "SkySim5000_IA_infusion"
+      - "txpipe-cosmodc2"
   - name: "LSST-strong-lensing"
   - name: "LSST-TVSSC"
     ignore_repos:
       - "LSST-TVSSC.github.io"
-  - name: "LSST-SSSC"
+  - name: "lsst-sssc"
+    ignore_repos:
+      - "SSSC_test_populations_gitlfs"
   - name: "LSSTScienceCollaborations"
