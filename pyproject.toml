@@ -41,7 +41,8 @@ dependencies = [
     "langchain-community==0.3.19",
     "markdownify==1.1.0",
     "slack_sdk==3.35.0",
-    "beautifulsoup4==4.13.3"
+    "beautifulsoup4==4.13.3",
+    "bibtexparser==1.4.3",
 ]
 dynamic = ["version"]
 

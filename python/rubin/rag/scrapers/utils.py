@@ -25,6 +25,7 @@
 import json
 import logging
 import pickle
+from datetime import datetime
 from pathlib import Path
 
 import tiktoken
@@ -33,6 +34,33 @@ from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
+
+
+def sanitize_dates(meta: dict) -> None:
+    """Rename valid RFC3339 date fields and remove invalid ones."""
+
+    def is_rfc3339(date_str: str) -> bool:
+        """Check if a string is in RFC3339 format."""
+        try:
+            if date_str.endswith("Z"):
+                date_str = date_str[:-1] + "+00:00"
+            datetime.fromisoformat(date_str)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    mapping = {
+        "creationdate": "creation_date",
+        "moddate": "mod_date",
+    }
+
+    for old_key, new_key in mapping.items():
+        date_val = meta.get(old_key)
+        if date_val is not None:
+            if is_rfc3339(date_val):
+                meta[new_key] = date_val
+            meta.pop(old_key)
 
 
 def chunk_docs(
