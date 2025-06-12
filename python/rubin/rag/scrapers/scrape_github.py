@@ -307,6 +307,18 @@ def select_doc_loader(
 def prepare_path_for_link(path_str: str, branch: str) -> str:
     """Inject /blob/{branch}/ into the file path to allow source key
     to point to direct link.
+
+    Parameters
+    ----------
+    path_str: str
+        string of path to the file
+    branch: str
+        the default branch of the repo for link (i.e. master, main)
+
+    Returns
+    -------
+    str
+        the URL to the exact file in GitHub
     """
     parts = path_str.split(
         "/", 2
