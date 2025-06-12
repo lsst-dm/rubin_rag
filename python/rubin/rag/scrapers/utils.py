@@ -37,10 +37,10 @@ _log = logging.getLogger(__name__)
 
 
 def sanitize_dates(meta: dict) -> None:
-    """Sanitize date fields in metadata."""
+    """Rename valid RFC3339 date fields and remove invalid ones."""
 
     def is_rfc3339(date_str: str) -> bool:
-        """Parse date and return True if in RFC3339 format."""
+        """Check if a string is in RFC3339 format."""
         try:
             if date_str.endswith("Z"):
                 date_str = date_str[:-1] + "+00:00"
@@ -50,10 +50,17 @@ def sanitize_dates(meta: dict) -> None:
         else:
             return True
 
-    for key in ("creationdate", "moddate"):
-        date_val = meta.get(key)
-        if date_val is not None and not is_rfc3339(date_val):
-            meta.pop(key)
+    mapping = {
+        "creationdate": "creation_date",
+        "moddate": "mod_date",
+    }
+
+    for old_key, new_key in mapping.items():
+        date_val = meta.get(old_key)
+        if date_val is not None:
+            if is_rfc3339(date_val):
+                meta[new_key] = date_val
+            meta.pop(old_key)
 
 
 def chunk_docs(
