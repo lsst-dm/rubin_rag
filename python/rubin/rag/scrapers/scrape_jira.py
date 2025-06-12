@@ -29,7 +29,6 @@ import json
 import logging
 import os
 import time
-from functools import reduce
 from pathlib import Path
 from typing import Any
 
@@ -309,11 +308,13 @@ def safe_get(
         Value found corresponding to (nested) key(s). Returns default
         if key(s) not found.
     """
-    return reduce(
-        lambda d, key: d.get(key, default) if isinstance(d, dict) else default,
-        keys,
-        dictionary,
-    )
+    d = dictionary
+    for key in keys:
+        if isinstance(d, dict) and key in d:
+            d = d[key]
+        else:
+            return default
+    return d
 
 
 def reformat_jira_data(jira_data: dict, ticket: str) -> dict:
