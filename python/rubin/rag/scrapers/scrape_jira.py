@@ -29,7 +29,6 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
 from functools import reduce
 from pathlib import Path
 from typing import Any
@@ -42,6 +41,7 @@ from scrapers.utils import (
     batch_by_tokens,
     chunk_docs,
     load_progress,
+    sanitize_dates,
     save_progress,
     write_batches_to_pickle,
 )
@@ -759,26 +759,6 @@ def sanitize_attachments(meta: dict) -> None:
             sanitized.append(str(att))
 
     meta["attachments"] = sanitized
-
-
-def sanitize_dates(meta: dict) -> None:
-    """Sanitize date fields in metadata."""
-
-    def is_rfc3339(date_str: str) -> bool:
-        """Parse date and return True if in RFC3339 format."""
-        try:
-            if date_str.endswith("Z"):
-                date_str = date_str[:-1] + "+00:00"
-            datetime.fromisoformat(date_str)
-        except ValueError:
-            return False
-        else:
-            return True
-
-    for key in ("creationdate", "moddate"):
-        date_val = meta.get(key)
-        if date_val is not None and not is_rfc3339(date_val):
-            meta.pop(key)
 
 
 def deep_sanitize_metadata(meta: dict) -> dict:

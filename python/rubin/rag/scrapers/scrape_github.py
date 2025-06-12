@@ -43,6 +43,7 @@ from scrapers.utils import (
     batch_by_tokens,
     chunk_docs,
     load_progress,
+    sanitize_dates,
     save_progress,
     write_batches_to_pickle,
 )
@@ -364,15 +365,7 @@ def scrape_repo(
                 f"https://github.com/{repo_org}/{converted_path}"
             )
 
-            creationdate = doc.metadata.get("creationdate")
-            if creationdate is not None and is_rfc3339(creationdate):
-                doc.metadata["creation_date"] = creationdate
-            doc.metadata.pop("creationdate", None)
-
-            moddate = doc.metadata.get("moddate")
-            if moddate is not None and is_rfc3339(moddate):
-                doc.metadata["mod_date"] = moddate
-            doc.metadata.pop("moddate", None)
+            sanitize_dates(doc.metadata)
 
             if not is_data_dump(doc):
                 documents.append(doc)

@@ -25,6 +25,7 @@
 import json
 import logging
 import pickle
+from datetime import datetime
 from pathlib import Path
 
 import tiktoken
@@ -33,6 +34,26 @@ from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
+
+
+def sanitize_dates(meta: dict) -> None:
+    """Sanitize date fields in metadata."""
+
+    def is_rfc3339(date_str: str) -> bool:
+        """Parse date and return True if in RFC3339 format."""
+        try:
+            if date_str.endswith("Z"):
+                date_str = date_str[:-1] + "+00:00"
+            datetime.fromisoformat(date_str)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    for key in ("creationdate", "moddate"):
+        date_val = meta.get(key)
+        if date_val is not None and not is_rfc3339(date_val):
+            meta.pop(key)
 
 
 def chunk_docs(
