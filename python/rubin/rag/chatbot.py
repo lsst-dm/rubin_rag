@@ -101,7 +101,7 @@ def configure_retriever() -> VectorStoreRetriever:
 
     return CustomWeaviateVectorStore(
         client=configure_client(),
-        index_name="Ingestion_20250605",
+        index_name="Ingestion_20250610",
         text_key="page_content",
         embedding=OpenAIEmbeddings(
             model="text-embedding-3-large", dimensions=1536
