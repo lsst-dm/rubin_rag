@@ -27,7 +27,6 @@ import os
 import shutil
 import subprocess
 import time
-from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -58,19 +57,7 @@ if access_token is None:
     raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
 
 
-def is_rfc3339(date_str: str) -> bool:
-    """Parse date and return True if in RFC3339 format."""
-    try:
-        if date_str.endswith("Z"):
-            date_str = date_str[:-1] + "+00:00"
-        datetime.fromisoformat(date_str)
-    except ValueError:
-        return False
-    else:
-        return True
-
-
-def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
+def repos_in_org(org_name: str = "lsst-dm") -> list[tuple[str, str]]:
     """Get list of repos within a GitHub organization.
 
     Parameters
@@ -81,34 +68,54 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[str]:
     Returns
     -------
     list
-        list of strings, where each string is a repo in the format
-        org_name/repo_name. Returns empty list in the case of a
-        failed GitHub API response.
+        list of tuples of strings, where the first is a repo in the format
+        org_name/repo_name and the second is it's default branch. Returns
+        empty list in the case of a failed GitHub API response.
     """
     url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
-
     try:
         res = requests.get(
             url, headers={"Authorization": access_token}, timeout=10
         )
+        res.raise_for_status()
     except Exception:
-        _log.exception(f"Failed to retrieve list of repos in org {org_name}.")
+        _log.exception(
+            f"Request to Github failed for {org_name}. Check that "
+            "you haven't exceded API rate limits."
+        )
         return []
 
     repos = res.json()
 
+    if repos and isinstance(repos[0], str):
+        _log.error(f"Unexpected response format: {repos[:2]}")
+        return []
+
     while "next" in res.links:
-        res = requests.get(
-            res.links["next"]["url"],
-            headers={"Authorization": access_token},
-            timeout=10,
-        )
-        repos.extend(res.json())
+        try:
+            res = requests.get(
+                res.links["next"]["url"],
+                headers={"Authorization": access_token},
+                timeout=10,
+            )
+            res.raise_for_status()
+            page_repos = res.json()
+            if page_repos and isinstance(page_repos[0], str):
+                _log.error(
+                    f"Unexpected response format in pagination: "
+                    f"{page_repos[:2]}"
+                )
+                break
+            repos.extend(page_repos)
+        except Exception:
+            _log.exception("Failed to retrieve paginated repos")
+            break
 
     return [
-        repo["full_name"]
+        (repo.get("full_name"), repo.get("default_branch", "main"))
         for repo in repos
-        if ("data" not in repo["name"].lower())
+        if isinstance(repo, dict)  # Add safety check
+        and ("data" not in repo["name"].lower())
         and ("dustmaps" not in repo["name"].lower())
         and ("gen2" not in repo["name"].lower())
         and ("legacy" not in repo["name"].lower())
@@ -289,9 +296,9 @@ def select_doc_loader(
         return TextLoader(fname, encoding="utf-8")
 
 
-def prepare_path_for_link(path_str: str) -> str:
-    """Inject /blob/main/ into the file path to allow source key to point to
-    direct link.
+def prepare_path_for_link(path_str: str, branch: str) -> str:
+    """Inject /blob/{branch}/ into the file path to allow source key
+    to point to direct link.
     """
     parts = path_str.split(
         "/", 2
@@ -300,11 +307,12 @@ def prepare_path_for_link(path_str: str) -> str:
         raise ValueError("Expected input like 'repo/path/to/file'")
     repo = parts[0]
     rest = parts[1] if len(parts) == 2 else parts[1] + "/" + parts[2]
-    return f"{repo}/blob/main/{rest}"
+    return f"{repo}/blob/{branch}/{rest}"
 
 
 def scrape_repo(
     repo_name: str,
+    default_branch: str,
     completed_keys: set[str],
     log_path: Path,
     output_dir: Path,
@@ -317,6 +325,8 @@ def scrape_repo(
     ----------
     repo_name : str
         GitHub repository in the format 'org/repo'.
+    default_branch: str
+        Used for creating link, typically main or master.
     completed_keys: set[str]
         set of repos that have been scraped and written to pkl files.
     log_path: path
@@ -347,7 +357,7 @@ def scrape_repo(
     documents = []
 
     for i, f in enumerate(flist):
-        converted_path = prepare_path_for_link(f)
+        converted_path = prepare_path_for_link(f, default_branch)
         _log.debug(
             f"working on file {i}: "
             f"https://github.com/{repo_org}/{converted_path}"
@@ -415,15 +425,16 @@ def scrape_org(
         repos_ignore = []
 
     repos = [
-        r
-        for r in repos_in_org(org_name)
+        (r, branch)
+        for r, branch in repos_in_org(org_name)
         if r.split("/")[1] not in repos_ignore
     ]
 
-    for i, repo in enumerate(repos):
+    for i, (repo, branch) in enumerate(repos):
         _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(repos)}")
         scrape_repo(
             repo_name=repo,
+            default_branch=branch,
             completed_keys=completed_keys,
             log_path=log_path,
             output_dir=output_dir,
