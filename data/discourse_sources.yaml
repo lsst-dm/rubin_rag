@@ -1,0 +1,4 @@
+description: Discourse forums to ingest into Rubin_RAG
+params:
+  SLEEP_TIME: 1.0
+  DISCOURSE_URL: "https://community.lsst.org/"
