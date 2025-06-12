@@ -81,7 +81,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[tuple[str, str]]:
     except Exception:
         _log.exception(
             f"Request to Github failed for {org_name}. Check that "
-            "you haven't exceded API rate limits."
+            "you haven't exceeded API rate limits."
         )
         return []
 
