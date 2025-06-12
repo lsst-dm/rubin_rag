@@ -33,6 +33,7 @@ from pathlib import Path
 
 from langchain_core.documents import Document
 from scrapers.scrape_confluence import scrape_confluence
+from scrapers.scrape_discourse import scrape_discourse
 from scrapers.scrape_github import scrape_github
 from scrapers.scrape_jira import scrape_jira
 from scrapers.scrape_lsst_bib import scrape_lsst_bib
@@ -64,6 +65,7 @@ def scrape_source(
     """
     scraper_scripts = {
         "confluence": scrape_confluence,
+        "discourse": scrape_discourse,
         "jira": scrape_jira,
         "lsst_bib": scrape_lsst_bib,
         "github": scrape_github,
@@ -104,7 +106,7 @@ def main(*, resume: bool = False) -> None:
     """Run main scraping logic. Set resume=False only if you want an entirely
     new scraping run.
     """
-    sources = ["github", "jira", "webpage", "lsst_bib"]
+    sources = ["github", "jira", "webpage", "lsst_bib", "discourse"]
     base_dir = Path()  # or wherever you want to look for these folders
 
     if resume:
