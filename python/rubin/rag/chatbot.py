@@ -104,7 +104,7 @@ def configure_retriever() -> VectorStoreRetriever:
         index_name="Ingestion_20250610",
         text_key="page_content",
         embedding=OpenAIEmbeddings(
-            model="text-embedding-3-large", dimensions=1536
+            model="text-embedding-3-small", dimensions=1536
         ),
         attributes=["source", "source_key"],  # Metadata to fetch
     ).as_retriever(
