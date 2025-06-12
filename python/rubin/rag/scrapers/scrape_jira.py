@@ -29,7 +29,6 @@ import json
 import logging
 import os
 import time
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -41,6 +40,7 @@ from scrapers.utils import (
     batch_by_tokens,
     chunk_docs,
     load_progress,
+    sanitize_dates,
     save_progress,
     write_batches_to_pickle,
 )
@@ -707,6 +707,16 @@ def get_max_issue_number(
         return 0
 
 
+def sanitize_comments(doc: Document) -> Document:
+    """Remove comments from the metadata and add them to page_content."""
+    if "comments" not in doc.metadata:
+        return doc
+
+    comments = doc.metadata.pop("comments", {})
+    new_content = f"{doc.page_content}\n\nComments:\n{comments}"
+    return Document(page_content=new_content, metadata=doc.metadata)
+
+
 def sanitize_illegal_keys(meta: dict) -> None:
     """Sanitize illegal keys."""
     for bad_key in ("id", "vector"):
@@ -762,43 +772,6 @@ def sanitize_attachments(meta: dict) -> None:
     meta["attachments"] = sanitized
 
 
-def sanitize_dates(meta: dict) -> None:
-    """Sanitize date fields in metadata."""
-
-    def is_rfc3339(date_str: str) -> bool:
-        """Parse date and return True if in RFC3339 format."""
-        try:
-            if date_str.endswith("Z"):
-                date_str = date_str[:-1] + "+00:00"
-            datetime.fromisoformat(date_str)
-        except ValueError:
-            return False
-        else:
-            return True
-
-    for key in ("creationdate", "moddate"):
-        date_val = meta.get(key)
-        if date_val is not None and not is_rfc3339(date_val):
-            meta.pop(key)
-
-
-def deep_sanitize_metadata(meta: dict) -> dict:
-    """Recursively sanitize metadata values into Weaviate-compatible types."""
-    out = {}
-    for k, v in meta.items():
-        if isinstance(v, dict):
-            out[k] = json.dumps(v)
-        elif isinstance(v, list):
-            # if it's a list of dicts, stringify each
-            if all(isinstance(i, dict) for i in v):
-                out[k] = json.dumps([json.dumps(i) for i in v])
-            else:
-                out[k] = ", ".join(str(i) for i in v)
-        else:
-            out[k] = str(v)
-    return out
-
-
 def sanitize_metadata(docs: list[Document]) -> list[Document]:
     """Sanitize related_issues, attachments, and parent_issue keys from
     metadata and add source and source_key keys.
@@ -816,15 +789,15 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
     out = []
 
     for doc in docs:
-        content = doc.page_content or ""
-        raw_meta = getattr(doc, "metadata", {}) or {}
+        clean_doc = sanitize_comments(doc)
+
+        raw_meta = getattr(clean_doc, "metadata", {}) or {}
 
         sanitize_illegal_keys(raw_meta)
         sanitize_parent_issue(raw_meta)
         sanitize_related_issues(raw_meta)
         sanitize_attachments(raw_meta)
         sanitize_dates(raw_meta)
-        raw_meta = deep_sanitize_metadata(raw_meta)
 
         raw_meta["source_key"] = "jira"
         issue_key = raw_meta.get("key", "")
@@ -832,7 +805,9 @@ def sanitize_metadata(docs: list[Document]) -> list[Document]:
             f"https://rubinobs.atlassian.net/browse/{issue_key}"
         )
 
-        out.append(Document(page_content=content, metadata=raw_meta))
+        out.append(
+            Document(page_content=clean_doc.page_content, metadata=raw_meta)
+        )
 
     return out
 

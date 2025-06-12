@@ -38,6 +38,7 @@ from scrapers.utils import (
     batch_by_tokens,
     chunk_docs,
     load_progress,
+    sanitize_dates,
     save_progress,
     write_batches_to_pickle,
 )
@@ -141,6 +142,8 @@ def try_scrape_pdf(
         if not docs or len(docs) < 2:
             _log.warning(f"Small document from PDF at {full_url}")
 
+        for doc in docs:
+            sanitize_dates(doc.metadata)
         chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
@@ -179,6 +182,8 @@ def try_scrape_web(url: str, paper_name: str, output_dir: Path) -> bool:
         if not docs or len(docs[0].page_content) < 2000:
             _log.warning(f"Small document from webpage at {url}")
 
+        for doc in docs:
+            sanitize_dates(doc.metadata)
         chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
