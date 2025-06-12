@@ -28,6 +28,7 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 import requests
+import yaml
 from langchain_core.documents.base import Document
 from scrapers.utils import (
     batch_by_tokens,
@@ -43,8 +44,6 @@ _log = logging.getLogger(__name__)
 forum_username = "leanne"
 forum_key = os.getenv("COMMUNITY_API_KEY")
 
-SLEEP_TIME = 1.0
-DISCOURSE_URL = "https://community.lsst.org/"
 headers = {
     "Accept": "application/json",
     "Api-Key": forum_key,
@@ -52,7 +51,7 @@ headers = {
 }
 
 
-def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
+def count_all_pages(discourse_url: str) -> int:
     """
     Count the total number of pages on the forum.
 
@@ -93,7 +92,7 @@ def count_all_pages(discourse_url: str = DISCOURSE_URL) -> int:
     return page_count
 
 
-def get_latest_topics(page: int) -> list:
+def get_latest_topics(page: int, discourse_url: str) -> list:
     """
     Get the latest topics on a page.
 
@@ -101,13 +100,15 @@ def get_latest_topics(page: int) -> list:
     ----------
     page : int
         the page number within the Discourse API results.
+    discourse_url : str
+        Discourse forum top-level URL.
 
     Returns
     -------
     list
         the list of Discourse topics found within the page.
     """
-    url = f"{DISCOURSE_URL}/latest.json?page={page}"
+    url = f"{discourse_url}/latest.json?page={page}"
     response = requests.get(url, headers=headers, timeout=10)
     if response.status_code != 200:
         _log.warning(f"Failed to fetch page {page}: {response.status_code}")
@@ -150,7 +151,7 @@ def clean_post(post: dict) -> dict:
     }
 
 
-def get_posts_for_topic(topic_id: int) -> dict:
+def get_posts_for_topic(topic_id: int, discourse_url: str) -> dict:
     """
     Get all posts for a Discourse topic.
 
@@ -158,6 +159,8 @@ def get_posts_for_topic(topic_id: int) -> dict:
     ----------
     topic_id : int
         The discourse topic identifier, which is an integer.
+    discourse_url : str
+        Discourse forum top-level URL.
 
     Returns
     -------
@@ -165,7 +168,7 @@ def get_posts_for_topic(topic_id: int) -> dict:
         A dictionary containing the posts for the relevant
         Discourse topic.
     """
-    url = f"{DISCOURSE_URL}/t/{topic_id}.json"
+    url = f"{discourse_url}/t/{topic_id}.json"
     response = requests.get(url, headers=headers, timeout=10)
     if response.status_code != 200:
         raise StatusCodeError(f"HTTP {response.status_code}")
@@ -185,13 +188,15 @@ def get_posts_for_topic(topic_id: int) -> dict:
     }
 
 
-def topics_to_docs(topics: list) -> list:
+def topics_to_docs(topics: list, discourse_url: str) -> list:
     """Convert Discourse topics to a list of LangChain docs.
 
     Parameters
     ----------
     topics : list
         list of Discourse topics, where each topic is a dictionary.
+    discourse_url : str
+        Discourse forum top-level URL.
 
     Returns
     -------
@@ -209,18 +214,20 @@ def topics_to_docs(topics: list) -> list:
             metadata["topic_id"] = topic["topic_id"]
             metadata["topic_title"] = topic["topic_title"]
             # https://community.lsst.org/t/10138
-            metadata["source"] = f"{DISCOURSE_URL}/t/{topic['topic_id']}"
+            metadata["source"] = f"{discourse_url}/t/{topic['topic_id']}"
             doc = Document(page_content=post["cooked"], metadata=metadata)
             docs.append(doc)
 
     return docs
 
 
-def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
+def scrape_discourse(yaml_path: str, output_dir: str, *, max_pages: int | None = None) -> None:
     """Scrape many Discourse pages/topics.
 
     Parameters
     ----------
+    yaml_path : str
+        String of path to discourse_sources.yaml
     output_dir : str
         Name of output directory for pickle files and log file.
     max_pages : int
@@ -228,6 +235,11 @@ def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
         starting from page number 0. If not specified, max_pages
         will be set to the total number of pages available.
     """
+    with Path(yaml_path).open(encoding="utf-8") as f:
+        data = yaml.safe_load(f)
+    DISCOURSE_URL = data['params']['DISCOURSE_URL']
+    SLEEP_TIME = data['params']['SLEEP_TIME']
+
     n_pages_total = count_all_pages(DISCOURSE_URL)
     if max_pages is None:
         max_pages = n_pages_total
@@ -244,7 +256,7 @@ def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
             continue
         _log.info(f"WORKING ON PAGE {page + 1} OF {max_pages}")
         all_posts = []
-        topics = get_latest_topics(page)
+        topics = get_latest_topics(page, DISCOURSE_URL)
         if not topics:
             _log.info("No more topics found.")
             break
@@ -256,14 +268,14 @@ def scrape_discourse(output_dir: str, *, max_pages: int | None = None) -> None:
             seen_topic_ids.add(topic_id)
 
             try:
-                posts = get_posts_for_topic(topic_id)
+                posts = get_posts_for_topic(topic_id, DISCOURSE_URL)
                 all_posts.extend([posts])
                 time.sleep(SLEEP_TIME)
             except Exception as e:
                 _log.error(f"Error fetching topic {topic_id}: {e}")
                 continue
 
-        all_docs = topics_to_docs(all_posts)
+        all_docs = topics_to_docs(all_posts, DISCOURSE_URL)
 
         chunked = chunk_docs(all_docs)
         batched = batch_by_tokens(chunked)
