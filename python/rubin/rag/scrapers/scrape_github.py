@@ -69,7 +69,7 @@ def repos_in_org(org_name: str = "lsst-dm") -> list[tuple[str, str]]:
     -------
     list
         list of tuples of strings, where the first is a repo in the format
-        org_name/repo_name and the second is it's default branch. Returns
+        org_name/repo_name and the second is its default branch. Returns
         empty list in the case of a failed GitHub API response.
     """
     url = f"https://api.github.com/orgs/{org_name}/repos?simple=yes&per_page=100&page=1"
