@@ -221,7 +221,9 @@ def topics_to_docs(topics: list, discourse_url: str) -> list:
     return docs
 
 
-def scrape_discourse(yaml_path: str, output_dir: str, *, max_pages: int | None = None) -> None:
+def scrape_discourse(
+    yaml_path: str, output_dir: str, *, max_pages: int | None = None
+) -> None:
     """Scrape many Discourse pages/topics.
 
     Parameters
@@ -237,10 +239,10 @@ def scrape_discourse(yaml_path: str, output_dir: str, *, max_pages: int | None =
     """
     with Path(yaml_path).open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
-    DISCOURSE_URL = data['params']['DISCOURSE_URL']
-    SLEEP_TIME = data['params']['SLEEP_TIME']
+    discourse_url = data["params"]["DISCOURSE_URL"]
+    sleep_time = data["params"]["SLEEP_TIME"]
 
-    n_pages_total = count_all_pages(DISCOURSE_URL)
+    n_pages_total = count_all_pages(discourse_url)
     if max_pages is None:
         max_pages = n_pages_total
     max_pages = min(max_pages, n_pages_total)
@@ -256,7 +258,7 @@ def scrape_discourse(yaml_path: str, output_dir: str, *, max_pages: int | None =
             continue
         _log.info(f"WORKING ON PAGE {page + 1} OF {max_pages}")
         all_posts = []
-        topics = get_latest_topics(page, DISCOURSE_URL)
+        topics = get_latest_topics(page, discourse_url)
         if not topics:
             _log.info("No more topics found.")
             break
@@ -268,14 +270,14 @@ def scrape_discourse(yaml_path: str, output_dir: str, *, max_pages: int | None =
             seen_topic_ids.add(topic_id)
 
             try:
-                posts = get_posts_for_topic(topic_id, DISCOURSE_URL)
+                posts = get_posts_for_topic(topic_id, discourse_url)
                 all_posts.extend([posts])
-                time.sleep(SLEEP_TIME)
+                time.sleep(sleep_time)
             except Exception as e:
                 _log.error(f"Error fetching topic {topic_id}: {e}")
                 continue
 
-        all_docs = topics_to_docs(all_posts, DISCOURSE_URL)
+        all_docs = topics_to_docs(all_posts, discourse_url)
 
         chunked = chunk_docs(all_docs)
         batched = batch_by_tokens(chunked)
