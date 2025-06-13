@@ -188,11 +188,14 @@ def sanitize_metadata(
         metadata = doc.metadata
         timestamp = metadata.get("timestamp", None)
         channel_name = metadata.get("channel", None)
-        if is_excluded_channel(channel_name):
+        if not channel_name:
+            _log.info(f"Channel name {channel_name} does not exist, skipping")
+            continue
+        if is_excluded_channel(str(channel_name)):
             continue
 
         if "source" in metadata and "channel" in metadata:
-            channel_id = get_channel_id(channel_name, lookup)
+            channel_id = get_channel_id(str(channel_name), lookup)
             if channel_id and timestamp:
                 metadata["source"] = source_2_link(
                     timestamp=timestamp, channel_id=channel_id
