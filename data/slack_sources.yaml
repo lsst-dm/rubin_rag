@@ -1,0 +1,9 @@
+description: Slack channels to ingest into rubin_rag
+
+anonymize: True
+use_zipfile: True
+
+zipfile: "Rubin_Observatory_Slack_export_oct_31_2014-May_02_2025.zip"
+
+channels:
+  - "dm-sst"
