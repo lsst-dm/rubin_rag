@@ -43,6 +43,8 @@ def setup_sidebar() -> None:
         st.session_state["required_sources"].append("lsst_bib")
     if st.sidebar.checkbox("Web Pages", value=True):
         st.session_state["required_sources"].append("webpage")
+    if st.sidebar.checkbox("LSST Community Forum", value=True):
+        st.session_state["required_sources"].append("discourse")
 
 
 def setup_landing_page() -> None:
