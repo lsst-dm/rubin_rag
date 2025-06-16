@@ -35,16 +35,16 @@ def setup_sidebar() -> None:
     select_sources_text = "Select sources to search from."
     st.sidebar.markdown(select_sources_text)
     st.session_state["required_sources"] = []
-    if st.sidebar.checkbox("Confluence", value=True):
-        st.session_state["required_sources"].append("confluence")
     if st.sidebar.checkbox("Jira", value=True):
         st.session_state["required_sources"].append("jira")
     if st.sidebar.checkbox("Github", value=True):
         st.session_state["required_sources"].append("github")
-    if st.sidebar.checkbox("Local Docs", value=True):
-        st.session_state["required_sources"].append("paper")
-    if st.sidebar.checkbox("Slack", value=True):
-        st.session_state["required_sources"].append("slack")
+    if st.sidebar.checkbox("LSST Bib PDFs", value=True):
+        st.session_state["required_sources"].append("lsst_bib")
+    if st.sidebar.checkbox("Web Pages", value=True):
+        st.session_state["required_sources"].append("webpage")
+    if st.sidebar.checkbox("LSST Community Forum", value=True):
+        st.session_state["required_sources"].append("discourse")
 
 
 def setup_landing_page() -> None:
