@@ -157,7 +157,7 @@ def anonymize_mentions(text: str) -> str:
     placeholder.
 
     Parameters
-    ---------
+    ----------
     text: str
         The page content of a Langchain document object produced by the
         Slack loader.
