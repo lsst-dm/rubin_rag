@@ -134,7 +134,20 @@ def get_channel_id(channel_name: str, lookup: dict[str, str]) -> str | None:
 
 
 def source_2_link(timestamp: str, channel_id: str) -> str:
-    """Write source information to a Slack link."""
+    """Write source information to a Slack link.
+
+    Parameters
+    ----------
+    timestamp: str
+        timestamp from the document metadata.
+    channel_id: str
+        channel ID obtained through get_channel_id.
+
+    Returns
+    -------
+    str
+        A direct link to the Slack message.
+    """
     ts = timestamp.replace(".", "")
     return f"https://rubin-obs.slack.com/archives/{channel_id}/p{ts}"
 
