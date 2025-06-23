@@ -411,10 +411,10 @@ def process_entry(
     paper_name = entry.get("ID")
     if not paper_name:
         _log.warning(f"No ID found in entry: {entry}")
-        return None
+        return
     if paper_name in completed_keys:
         _log.info(f"Skipping already processed space: {paper_name}")
-        return None
+        return
 
     bibcode = entry.get("ID", "")
     title = entry.get("title", "")
@@ -423,12 +423,12 @@ def process_entry(
         links = get_links_for_entry(bibcode, title)
         if not links:
             _log.info(f"No links found for bibcode {bibcode}")
-            return None
+            return
 
         docs = scrape_first_available_pdf(links)
         if not docs:
             _log.info(f"Failed to scrape PDF from {bibcode}")
-            return None
+            return
 
         _log.info(f"Scraped PDF from {bibcode} successfully.")
         for doc in docs:
