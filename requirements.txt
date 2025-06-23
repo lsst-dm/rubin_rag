@@ -19,3 +19,5 @@ markdownify==1.1.0
 slack_sdk==3.35.0
 beautifulsoup4==4.13.3
 bibtexparser==1.4.3
+ads==0.12.7
+pdf2image==1.17.0

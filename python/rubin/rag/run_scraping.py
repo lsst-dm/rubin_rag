@@ -37,6 +37,7 @@ from scrapers.scrape_discourse import scrape_discourse
 from scrapers.scrape_github import scrape_github
 from scrapers.scrape_jira import scrape_jira
 from scrapers.scrape_lsst_bib import scrape_lsst_bib
+from scrapers.scrape_refs_ads import scrape_refs_ads
 from scrapers.scrape_slack import scrape_slack
 from scrapers.scrape_webpage import scrape_webpage
 
@@ -71,6 +72,7 @@ def scrape_source(
         "lsst_bib": scrape_lsst_bib,
         "github": scrape_github,
         "webpage": scrape_webpage,
+        "refs_ads": scrape_refs_ads,
         "slack": scrape_slack,
     }
     return scraper_scripts[source](yaml_path, output_dir)
@@ -108,7 +110,14 @@ def main(*, resume: bool = False) -> None:
     """Run main scraping logic. Set resume=False only if you want an entirely
     new scraping run.
     """
-    sources = ["github", "jira", "webpage", "lsst_bib", "discourse"]
+    sources = [
+        "github",
+        "jira",
+        "webpage",
+        "lsst_bib",
+        "discourse",
+        "refs_ads",
+    ]
     base_dir = Path()  # or wherever you want to look for these folders
 
     if resume:

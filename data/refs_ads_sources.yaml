@@ -1,0 +1,3 @@
+description: Publications data sources for all deployments of Rubin_RAG
+sources:
+  - "https://raw.githubusercontent.com/lsst/lsst-texmf/main/texmf/bibtex/bib/refs_ads.bib"
