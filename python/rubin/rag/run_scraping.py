@@ -37,6 +37,7 @@ from scrapers.scrape_discourse import scrape_discourse
 from scrapers.scrape_github import scrape_github
 from scrapers.scrape_jira import scrape_jira
 from scrapers.scrape_lsst_bib import scrape_lsst_bib
+from scrapers.scrape_slack import scrape_slack
 from scrapers.scrape_webpage import scrape_webpage
 
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +71,7 @@ def scrape_source(
         "lsst_bib": scrape_lsst_bib,
         "github": scrape_github,
         "webpage": scrape_webpage,
+        "slack": scrape_slack,
     }
     return scraper_scripts[source](yaml_path, output_dir)
 
