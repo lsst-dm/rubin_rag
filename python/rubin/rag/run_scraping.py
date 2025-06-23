@@ -38,6 +38,7 @@ from scrapers.scrape_github import scrape_github
 from scrapers.scrape_jira import scrape_jira
 from scrapers.scrape_lsst_bib import scrape_lsst_bib
 from scrapers.scrape_refs_ads import scrape_refs_ads
+from scrapers.scrape_slack import scrape_slack
 from scrapers.scrape_webpage import scrape_webpage
 
 logging.basicConfig(level=logging.INFO)
@@ -72,6 +73,7 @@ def scrape_source(
         "github": scrape_github,
         "webpage": scrape_webpage,
         "refs_ads": scrape_refs_ads,
+        "slack": scrape_slack,
     }
     return scraper_scripts[source](yaml_path, output_dir)
 
