@@ -27,7 +27,9 @@ return documents with their corresponding similarity scores.
 from collections.abc import Callable
 from typing import Any
 
+from langchain_core.documents.base import Document
 from langchain_weaviate.vectorstores import WeaviateVectorStore
+from weaviate.classes.query import MetadataQuery
 
 
 class CustomWeaviateVectorStore(WeaviateVectorStore):
@@ -47,6 +49,11 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
         if use_multi_tenancy is None:
             use_multi_tenancy = False
 
+        self.client = client
+        self.index_name = index_name
+        self.text_key = text_key
+        self.embedding = embedding
+
         super().__init__(
             client=client,
             index_name=index_name,
@@ -57,27 +64,29 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
             use_multi_tenancy=use_multi_tenancy,
         )
 
-    def similarity_search(self, query: str, k: int = 4, **kwargs: Any) -> list:
+    def similarity_search(
+        self, query: str, k: int = 4, **kwargs: Any
+    ) -> list[Document]:
         """
-        Perform a similarity search and return documents
-        along with their similarity scores.
-
-        Args:
-            query (str): The query text to search for.
-            k (int): The number of results to return (default: 4).
-            **kwargs: Additional keyword arguments to pass.
-
-        Returns
-        -------
-            List[Tuple[Document, float]]: A list of tuples
-            where each tuple contains a
-            document and its corresponding similarity score.
+        Return list of documents most similar to the query text and their
+        score. A higher score means more similarity, with a max of 1.
         """
-        docs = self._perform_search(query, k, return_score=True, **kwargs)
+        where_filter = kwargs.get("where_filter")
+        collection = self.client.collections.get(self.index_name)
+        response = collection.query.hybrid(
+            query=query,
+            limit=k,
+            filters=where_filter,
+            alpha=1,
+            return_metadata=MetadataQuery(score=True, explain_score=True),
+        )
 
         results = []
-        for doc in docs:
-            doc[0].metadata["score"] = doc[1]
-            results.append(doc[0])
-
+        for obj in response.objects:
+            text = obj.properties.get("page_content", "")
+            metadata = obj.properties.copy() if obj.properties else {}
+            metadata["score"] = (
+                obj.metadata.score
+            )  # Inject the score into metadata
+            results.append(Document(page_content=text, metadata=metadata))
         return results
