@@ -87,7 +87,6 @@ def configure_retriever() -> VectorStoreRetriever:
     """Configure the Weaviate retriever."""
     search_kwargs = {
         "k": 6,
-        "return_metadata": ["score"],
     }
 
     selected_sources = [
@@ -97,7 +96,7 @@ def configure_retriever() -> VectorStoreRetriever:
         filters = Filter.by_property("source_key").contains_any(
             selected_sources
         )
-        search_kwargs["filters"] = filters
+        search_kwargs["where_filter"] = filters
 
     return CustomWeaviateVectorStore(
         client=configure_client(),
