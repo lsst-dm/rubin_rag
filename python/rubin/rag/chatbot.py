@@ -85,10 +85,6 @@ def configure_client() -> WeaviateClient:
 
 def configure_retriever() -> VectorStoreRetriever:
     """Configure the Weaviate retriever."""
-    search_kwargs = {
-        "k": 6,
-    }
-
     selected_sources = [
         source.lower() for source in st.session_state["required_sources"]
     ]
@@ -96,7 +92,7 @@ def configure_retriever() -> VectorStoreRetriever:
         filters = Filter.by_property("source_key").contains_any(
             selected_sources
         )
-        search_kwargs["where_filter"] = filters
+    search_kwargs = {"k": 6, "where_filter": filters}
 
     return CustomWeaviateVectorStore(
         client=configure_client(),

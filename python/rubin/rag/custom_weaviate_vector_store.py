@@ -29,7 +29,7 @@ from typing import Any
 
 from langchain_core.documents.base import Document
 from langchain_weaviate.vectorstores import WeaviateVectorStore
-from weaviate.classes.query import Filter, MetadataQuery
+from weaviate.classes.query import MetadataQuery
 
 
 class CustomWeaviateVectorStore(WeaviateVectorStore):
@@ -65,12 +65,13 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
         )
 
     def similarity_search(
-        self, query: str, where_filter: Filter, k: int = 4
+        self, query: str, k: int = 4, **kwargs: Any
     ) -> list[Document]:
         """
         Return list of documents most similar to the query text and their
         score. A higher score means more similarity, with a max of 1.
         """
+        where_filter = kwargs.get("where_filter")
         collection = self.client.collections.get(self.index_name)
         response = collection.query.hybrid(
             query=query,
