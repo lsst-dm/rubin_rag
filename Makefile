@@ -2,7 +2,7 @@
 help:
 	@echo "Make targets for rubin_rag:"
 	@echo "make clean - Remove generated files"
-	@echo "make init - Set up dev environment (install pre-commit hooks)"
+	@echo "make init - Set up dev environment (create .venv, install deps, pre-commit hooks)"
 	@echo "make linkcheck - Check for broken links in documentation"
 	@echo "make update - Update pre-commit dependencies and run make init"
 	@echo "make update-deps - Update pre-commit dependencies"
@@ -16,9 +16,11 @@ clean:
 .PHONY: init
 init:
 	pip install --upgrade uv
+	test -d .venv || uv venv .venv --prompt rubin-rag
 	uv pip install --upgrade pre-commit tox tox-uv
 	uv pip install --upgrade -e ".[dev]"
-	pre-commit install
+	. .venv/bin/activate && pre-commit install
+	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt
 	rm -rf .tox
 
 # This is defined as a Makefile target instead of only a tox command because
@@ -42,4 +44,6 @@ update: update-deps init
 update-deps:
 	pip install --upgrade uv
 	uv pip install --upgrade pre-commit
-	pre-commit autoupdate
+	. .venv/bin/activate && pre-commit autoupdate
+	uv lock --upgrade
+	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt

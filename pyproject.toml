@@ -20,36 +20,34 @@ classifiers = [
     "Operating System :: POSIX",
     "Typing :: Typed",
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.13"
 dependencies = [
-    "types-PyYAML==6.0.12.20250402",
-    "requests==2.32.3",
-    "pinecone==6.0.1",
-    "python-dotenv==1.0.1",
-    "tiktoken==0.9.0",
-    "streamlit==1.43.0",
-    "weaviate-client==4.11.1",
-    "atlassian-python-api==3.41.19",
-    "pytesseract==0.3.13",
-    "pillow==11.1.0",
-    "reportlab==4.3.1",
-    "svglib==1.5.1",
-    "langchain==0.3.20",
-    "openai==1.65.4",
-    "langchain-openai==0.3.7",
-    "langchain-weaviate==0.0.4",
-    "langchain-community==0.3.19",
-    "markdownify==1.1.0",
-    "slack_sdk==3.35.0",
-    "beautifulsoup4==4.13.3",
-    "bibtexparser==1.4.3",
-    "ads==0.12.7",
-    "pdf2image==1.17.0",
+    "PyYAML>=6",
+    "requests>=2",
+    "python-dotenv>=1",
+    "tiktoken>=0.9",
+    "streamlit>=1",
+    "weaviate-client>=4",
+    "pytesseract>=0.3",
+    "pillow>=11",
+    "langchain>=0.3",
+    "langchain-core>=0.3",
+    "langchain-openai>=0.3",
+    "langchain-weaviate>=0.0.4",
+    "langchain-community>=0.3",
+    "langchain-text-splitters>=0.3",
+    "slack_sdk>=3",
+    "beautifulsoup4>=4",
+    "bibtexparser>=1",
+    "ads>=0.12",
+    "pdf2image>=1",
 ]
 dynamic = ["version"]
 
 [project.optional-dependencies]
 dev = [
+    # Type stubs
+    "types-PyYAML",
     # Testing
     "coverage[toml]",
     "pytest",
@@ -155,3 +153,9 @@ format = "md"
 md_header_level = "2"
 new_fragment_template = "file:changelog.d/_template.md.jinja"
 skip_fragments = "_template.md.jinja"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.2.0",
+    "ragas>=0.4.3",
+]
