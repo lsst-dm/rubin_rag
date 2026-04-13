@@ -17,9 +17,8 @@ clean:
 init:
 	pip install --upgrade uv
 	test -d .venv || uv venv .venv --prompt rubin-rag
-	uv pip install --upgrade pre-commit tox tox-uv
-	uv pip install --upgrade -e ".[dev]"
-	. .venv/bin/activate && pre-commit install
+	uv sync --group dev
+	uv run pre-commit install
 	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt
 	rm -rf .tox
 
@@ -43,7 +42,6 @@ update: update-deps init
 .PHONY: update-deps
 update-deps:
 	pip install --upgrade uv
-	uv pip install --upgrade pre-commit
-	. .venv/bin/activate && pre-commit autoupdate
 	uv lock --upgrade
+	uv run pre-commit autoupdate
 	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt

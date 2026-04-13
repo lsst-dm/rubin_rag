@@ -44,19 +44,6 @@ dependencies = [
 ]
 dynamic = ["version"]
 
-[project.optional-dependencies]
-dev = [
-    # Type stubs
-    "types-PyYAML",
-    # Testing
-    "coverage[toml]",
-    "pytest",
-    "pytest-asyncio",
-    "mypy",
-    # Documentation
-    "documenteer[guide]<2",
-    "scriv",
-]
 
 [project.urls]
 Homepage = "https://rubin_rag.lsst.io"
@@ -156,6 +143,21 @@ skip_fragments = "_template.md.jinja"
 
 [dependency-groups]
 dev = [
+    # Type stubs
+    "types-PyYAML",
+    # Testing
+    "coverage[toml]",
+    "pytest",
+    "pytest-asyncio",
+    "mypy",
+    # Documentation
+    "documenteer[guide]<2",
+    "scriv",
+    # Dev tooling
+    "pre-commit",
+    "tox",
+    "tox-uv",
+    # Notebooks & evaluation
     "ipykernel>=7.2.0",
     "ragas>=0.4.3",
 ]
