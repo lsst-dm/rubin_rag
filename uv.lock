@@ -478,6 +478,18 @@ wheels = [
 ]
 
 [[package]]
+name = "deprecation"
+version = "2.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5a/d3/8ae2869247df154b64c1884d7346d412fed0c49df84db635aab2d1c40e62/deprecation-2.1.0.tar.gz", hash = "sha256:72b3bde64e5d778694b0cf68178aed03d15e15477116add3fb773e581f9518ff", size = 173788, upload-time = "2020-04-20T14:23:38.738Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/02/c3/253a89ee03fc9b9682f1541728eb66db7db22148cd94f89ab22528cd1e1b/deprecation-2.1.0-py2.py3-none-any.whl", hash = "sha256:a10811591210e1fb0e768a8c25517cabeabcba6f0bf96564f8ff45189f90b14a", size = 11178, upload-time = "2020-04-20T14:23:36.581Z" },
+]
+
+[[package]]
 name = "dill"
 version = "0.4.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2236,7 +2248,7 @@ requires-dist = [
     { name = "slack-sdk", specifier = ">=3" },
     { name = "streamlit", specifier = ">=1" },
     { name = "tiktoken", specifier = ">=0.9" },
-    { name = "weaviate-client", specifier = ">=4" },
+    { name = "weaviate-client", specifier = ">=4,<4.17.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3028,19 +3040,20 @@ wheels = [
 
 [[package]]
 name = "weaviate-client"
-version = "4.20.5"
+version = "4.16.10"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "authlib" },
+    { name = "deprecation" },
     { name = "grpcio" },
     { name = "httpx" },
     { name = "protobuf" },
     { name = "pydantic" },
     { name = "validators" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/81/c8/aa47cfa0a2b1e260846eaf04ce4cc2ab1bb03f29d793e7b009bc3e3babc7/weaviate_client-4.20.5.tar.gz", hash = "sha256:c07c688f0e6b78723dfecbcfeebf897cefa75f1a89c63ebd84aab88c662e4394", size = 811866, upload-time = "2026-04-09T20:08:45.268Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/59/ff6d910425985e6ae19b17f9f9b1511aafb38cc2a146c9dbb01ffe3e3542/weaviate_client-4.16.10.tar.gz", hash = "sha256:c041e6ae5416b8db8ed53d961722f122b52516175da1d249601a87db327e9288", size = 770181, upload-time = "2025-09-15T15:21:45.091Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/ba/d55f1a665802f736436d09198afc0d00806a405aadb9977193a2f009cfcb/weaviate_client-4.20.5-py3-none-any.whl", hash = "sha256:3f508e3dc08257f85230f9d2ea0562443ed0715e7e89156f22b7e950d6c08cdb", size = 620766, upload-time = "2026-04-09T20:08:43.215Z" },
+    { url = "https://files.pythonhosted.org/packages/e8/d6/347df480ba767d241bbf08321da593207d7188028a064568ffaa6cbdd1c1/weaviate_client-4.16.10-py3-none-any.whl", hash = "sha256:a2009530951ca08dc071dd74e13052de9ccc3830e9e57a3f292656efa386d6de", size = 583768, upload-time = "2025-09-15T15:21:43.274Z" },
 ]
 
 [[package]]

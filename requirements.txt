@@ -50,6 +50,8 @@ cryptography==46.0.7
     # via authlib
 dataclasses-json==0.6.7
     # via langchain-community
+deprecation==2.1.0
+    # via weaviate-client
 distro==1.9.0
     # via openai
 frozenlist==1.8.0
@@ -152,6 +154,7 @@ orjson==3.11.8 ; platform_python_implementation != 'PyPy'
 packaging==25.0
     # via
     #   altair
+    #   deprecation
     #   langchain-core
     #   langsmith
     #   marshmallow
@@ -300,7 +303,7 @@ validators==0.35.0
     # via weaviate-client
 watchdog==6.0.0 ; sys_platform != 'darwin'
     # via streamlit
-weaviate-client==4.20.5
+weaviate-client==4.16.10
     # via
     #   langchain-weaviate
     #   rubin-rag
