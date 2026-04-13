@@ -70,7 +70,6 @@ httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via
-    #   langgraph-sdk
     #   langsmith
     #   openai
     #   weaviate-client
@@ -96,45 +95,31 @@ jsonschema==4.26.0
     # via altair
 jsonschema-specifications==2025.9.1
     # via jsonschema
-langchain==1.2.15
+langchain==0.3.28
+    # via
+    #   langchain-community
+    #   rubin-rag
+langchain-community==0.3.31
     # via rubin-rag
-langchain-classic==1.0.3
-    # via langchain-community
-langchain-community==0.4.1
-    # via rubin-rag
-langchain-core==1.2.28
+langchain-core==0.3.84
     # via
     #   langchain
-    #   langchain-classic
     #   langchain-community
     #   langchain-openai
     #   langchain-text-splitters
     #   langchain-weaviate
-    #   langgraph
-    #   langgraph-checkpoint
-    #   langgraph-prebuilt
     #   rubin-rag
-langchain-openai==1.1.12
+langchain-openai==0.3.35
     # via rubin-rag
-langchain-text-splitters==1.1.1
+langchain-text-splitters==0.3.11
     # via
-    #   langchain-classic
+    #   langchain
     #   rubin-rag
 langchain-weaviate==0.0.6
     # via rubin-rag
-langgraph==1.1.6
-    # via langchain
-langgraph-checkpoint==4.0.1
-    # via
-    #   langgraph
-    #   langgraph-prebuilt
-langgraph-prebuilt==1.0.9
-    # via langgraph
-langgraph-sdk==0.3.13
-    # via langgraph
 langsmith==0.7.30
     # via
-    #   langchain-classic
+    #   langchain
     #   langchain-community
     #   langchain-core
 markupsafe==3.0.3
@@ -162,13 +147,9 @@ numpy==2.4.4
     #   streamlit
 openai==2.31.0
     # via langchain-openai
-orjson==3.11.8
-    # via
-    #   langgraph-sdk
-    #   langsmith
-ormsgpack==1.12.2
-    # via langgraph-checkpoint
-packaging==26.0
+orjson==3.11.8 ; platform_python_implementation != 'PyPy'
+    # via langsmith
+packaging==25.0
     # via
     #   altair
     #   langchain-core
@@ -201,9 +182,7 @@ pycparser==3.0 ; implementation_name != 'PyPy' and platform_python_implementatio
 pydantic==2.12.5
     # via
     #   langchain
-    #   langchain-classic
     #   langchain-core
-    #   langgraph
     #   langsmith
     #   openai
     #   pydantic-settings
@@ -226,7 +205,7 @@ python-dotenv==1.2.2
     #   rubin-rag
 pyyaml==6.0.3
     # via
-    #   langchain-classic
+    #   langchain
     #   langchain-community
     #   langchain-core
     #   rubin-rag
@@ -239,7 +218,7 @@ regex==2026.4.4
 requests==2.33.1
     # via
     #   ads
-    #   langchain-classic
+    #   langchain
     #   langchain-community
     #   langsmith
     #   requests-toolbelt
@@ -268,7 +247,7 @@ soupsieve==2.8.3
     # via beautifulsoup4
 sqlalchemy==2.0.49
     # via
-    #   langchain-classic
+    #   langchain
     #   langchain-community
 streamlit==1.56.0
     # via rubin-rag
@@ -328,9 +307,7 @@ weaviate-client==4.20.5
 werkzeug==3.1.8
     # via ads
 xxhash==3.6.0
-    # via
-    #   langgraph
-    #   langsmith
+    # via langsmith
 yarl==1.23.0
     # via aiohttp
 zstandard==0.25.0
