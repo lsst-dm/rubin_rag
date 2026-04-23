@@ -47,7 +47,7 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from ragas import evaluate
 from ragas.dataset_schema import EvaluationDataset, SingleTurnSample
 from ragas.metrics import ContextPrecision, LLMContextRecall
-from weaviate.classes.init import Auth
+from weaviate.classes.init import AdditionalConfig, Auth, Timeout
 from weaviate.classes.query import MetadataQuery
 
 load_dotenv(override=True)
@@ -80,6 +80,7 @@ def connect_weaviate() -> weaviate.WeaviateClient:
             cluster_url=cloud_url,
             auth_credentials=Auth.api_key(api_key),
             headers={"X-OpenAI-Api-Key": openai_key},
+            additional_config=AdditionalConfig(timeout=Timeout(query=120)),
         )
 
     http_host = os.environ["HTTP_HOST"]
@@ -94,6 +95,7 @@ def connect_weaviate() -> weaviate.WeaviateClient:
         grpc_secure=False,
         auth_credentials=Auth.api_key(api_key),
         headers={"X-OpenAI-Api-Key": openai_key},
+        additional_config=AdditionalConfig(timeout=Timeout(query=120)),
         skip_init_checks=True,
     )
 
