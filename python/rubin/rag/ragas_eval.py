@@ -1,11 +1,10 @@
-"""Retrieval quality evaluation for Weaviate using RAGAS synthetic QA.
+"""Retrieval quality evaluation for Weaviate using a pre-generated RAGAS testset.
 
 Workflow
 --------
-1. Load raw Jira documents from a pickle file.
-2. Generate a synthetic test set (questions + reference answers) with RAGAS.
-3. For each question, retrieve contexts from Weaviate.
-4. Evaluate retrieval quality with RAGAS metrics:
+1. Load a pre-generated testset from a JSON file (produced by ragas_generate_testset.py).
+2. For each question, retrieve contexts from Weaviate.
+3. Evaluate retrieval quality with RAGAS metrics:
      - ContextPrecision  : of retrieved chunks, how many are useful? (precision)
      - LLMContextRecall  : does retrieved context cover the reference answer? (recall)
 
@@ -18,14 +17,13 @@ Usage
 
     # Run evaluation:
     python ragas_eval.py \
-        --pkl-path rubin_rag_20260415_034318/jira/SP_raw.pkl \
+        --testset-path testset.json \
         --collection LangChain_xxxx \
-        --testset-size 20 \
         --output ragas_results.csv
 
 Required environment variables
 -------------------------------
-    OPENAI_API_KEY      — used for testset generation and RAGAS metrics
+    OPENAI_API_KEY      — used for RAGAS evaluation metrics
     WEAVIATE_API_KEY    — Weaviate auth key
 
 Weaviate connection (pick one):
@@ -38,19 +36,17 @@ Weaviate connection (pick one):
 """
 
 import argparse
+import json
 import logging
 import os
-import pickle
 from pathlib import Path
 
 import weaviate
 from dotenv import load_dotenv
-from langchain_core.documents.base import Document
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from ragas import evaluate
 from ragas.dataset_schema import EvaluationDataset, SingleTurnSample
 from ragas.metrics import ContextPrecision, LLMContextRecall
-from ragas.testset import TestsetGenerator
 from weaviate.classes.init import Auth
 from weaviate.classes.query import MetadataQuery
 
@@ -118,22 +114,15 @@ def list_collections() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Document loading
+# Testset loading
 # ---------------------------------------------------------------------------
 
 
-def load_docs(pkl_path: Path) -> list[Document]:
-    """Load LangChain Documents from a single pickle file."""
-    with pkl_path.open("rb") as fh:
-        docs: list[Document] = pickle.load(fh)  # noqa: S301
-    non_empty = [d for d in docs if d.page_content and d.page_content.strip()]
-    _log.info(
-        "Loaded %d docs (%d non-empty) from %s",
-        len(docs),
-        len(non_empty),
-        pkl_path.name,
-    )
-    return non_empty
+def load_testset(testset_path: Path) -> list[dict]:
+    """Load a pre-generated testset from a JSON file."""
+    samples = json.loads(testset_path.read_text())
+    _log.info("Loaded %d samples from %s", len(samples), testset_path.name)
+    return samples
 
 
 # ---------------------------------------------------------------------------
@@ -173,14 +162,13 @@ def retrieve_contexts(
 
 
 def run_evaluation(
-    pkl_path: Path,
+    testset_path: Path,
     collection_name: str,
-    testset_size: int,
     output_path: Path,
     source_key: str | None = "jira",
     retrieval_k: int = 6,
 ) -> None:
-    """Generate synthetic QA, retrieve from Weaviate, and evaluate retrieval."""
+    """Load pre-generated testset, retrieve from Weaviate, and evaluate retrieval."""
     openai_api_key = os.environ["OPENAI_API_KEY"]
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -188,34 +176,17 @@ def run_evaluation(
         model="text-embedding-3-small", dimensions=1536, api_key=openai_api_key
     )
 
-    # --- Step 1: load documents ---------------------------------------------
-    docs = load_docs(pkl_path)
+    # --- Step 1: load testset -----------------------------------------------
+    testset = load_testset(testset_path)
 
-    # --- Step 2: generate synthetic test set --------------------------------
-    _log.info(
-        "Generating synthetic test set (%d samples) from %d docs…",
-        testset_size,
-        len(docs),
-    )
-    generator = TestsetGenerator.from_langchain(
-        llm=llm, embedding_model=embeddings
-    )
-    testset = generator.generate_with_langchain_docs(
-        docs,
-        testset_size=testset_size,
-        raise_exceptions=False,
-    )
-    _log.info("Generated %d test samples", len(testset.samples))
-
-    # --- Step 3: retrieve contexts from Weaviate ----------------------------
+    # --- Step 2: retrieve contexts from Weaviate ----------------------------
     client = connect_weaviate()
     samples: list[SingleTurnSample] = []
 
     try:
-        for i, test_sample in enumerate(testset.samples):
-            eval_s = test_sample.eval_sample
-            question = getattr(eval_s, "user_input", None)
-            reference = getattr(eval_s, "reference", None)
+        for i, entry in enumerate(testset):
+            question = entry.get("user_input")
+            reference = entry.get("reference")
 
             if not question:
                 _log.warning("Sample %d has no user_input, skipping.", i + 1)
@@ -229,7 +200,7 @@ def run_evaluation(
             _log.info(
                 "[%d/%d] Retrieving for: %s",
                 i + 1,
-                len(testset.samples),
+                len(testset),
                 question[:80],
             )
             contexts = retrieve_contexts(
@@ -300,20 +271,14 @@ def parse_args() -> argparse.Namespace:
         help="Print available Weaviate collections and exit",
     )
     p.add_argument(
-        "--pkl-path",
-        default="rubin_rag_20260415_034318/jira/SP_raw.pkl",
-        help="Path to the *_raw.pkl file of scraped Jira documents",
+        "--testset-path",
+        default="testset.json",
+        help="Path to the testset JSON file produced by ragas_generate_testset.py",
     )
     p.add_argument(
         "--collection",
         default=None,
         help="Weaviate collection name (required unless --list-collections)",
-    )
-    p.add_argument(
-        "--testset-size",
-        type=int,
-        default=20,
-        help="Number of synthetic QA pairs to generate (default: 20)",
     )
     p.add_argument(
         "--output",
@@ -345,9 +310,8 @@ if __name__ == "__main__":
                 "error: --collection is required (run --list-collections to discover it)"
             )
         run_evaluation(
-            pkl_path=Path(args.pkl_path),
+            testset_path=Path(args.testset_path),
             collection_name=args.collection,
-            testset_size=args.testset_size,
             output_path=Path(args.output),
             source_key=args.source_key or None,
             retrieval_k=args.retrieval_k,
