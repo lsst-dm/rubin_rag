@@ -25,6 +25,7 @@
 import gc
 import json
 import logging
+import random
 import re
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -41,6 +42,7 @@ from scrapers.utils import (
     sanitize_dates,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -144,6 +146,7 @@ def try_scrape_pdf(
 
         for doc in docs:
             sanitize_dates(doc.metadata)
+        write_raw_to_pickle(docs, paper_name, output_dir)
         chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
@@ -184,6 +187,7 @@ def try_scrape_web(url: str, paper_name: str, output_dir: Path) -> bool:
 
         for doc in docs:
             sanitize_dates(doc.metadata)
+        write_raw_to_pickle(docs, paper_name, output_dir)
         chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
@@ -243,7 +247,9 @@ def process_entry(
     _log.warning(f"No URL or handle found in entry: {entry}")
 
 
-def scrape_lsst_bib(yaml_path: str, output_dir: str) -> None:
+def scrape_lsst_bib(
+    yaml_path: str, output_dir: str, n: int | None = None
+) -> None:
     """Load the bibtex file from Github and scrape the content.
 
     Parameters
@@ -253,6 +259,9 @@ def scrape_lsst_bib(yaml_path: str, output_dir: str) -> None:
     output_dir: str
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
+    n: int | None
+        If provided, randomly sample n bibtex entries instead of scraping all.
+        Defaults to None (scrape all entries).
     """
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
@@ -266,7 +275,11 @@ def scrape_lsst_bib(yaml_path: str, output_dir: str) -> None:
     bib_database = bibtexparser.loads(response.text)
     completed_keys = load_progress(log_path)
 
-    for entry in bib_database.entries:
+    entries = bib_database.entries
+    if n is not None:
+        entries = random.sample(entries, min(n, len(entries)))
+
+    for entry in entries:
         process_entry(entry, completed_keys, log_path, base_dir)
 
     completed_keys.add("done")

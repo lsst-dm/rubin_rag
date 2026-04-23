@@ -31,6 +31,7 @@ import gc
 import logging
 import os
 import pickle
+import re
 import time
 from collections import defaultdict
 from pathlib import Path
@@ -187,7 +188,11 @@ def ingest_all_pickles(
     log_file: str
         logging file for tracking progress of ingestion.
     """
-    pickle_files = sorted(base_dir.rglob("*.pkl"), key=lambda p: str(p))
+    _batch_pattern = re.compile(r"^(.*)_\d+\.pkl$")
+    pickle_files = sorted(
+        [p for p in base_dir.rglob("*.pkl") if _batch_pattern.match(p.name)],
+        key=lambda p: str(p),
+    )
     ingested_files = load_ingested_log(log_file)
 
     # Group files for logging by repo/subfolder

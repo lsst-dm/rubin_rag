@@ -23,6 +23,7 @@
 import json
 import logging
 import os
+import random
 import time
 from pathlib import Path
 from urllib.parse import urljoin
@@ -36,6 +37,7 @@ from scrapers.utils import (
     load_progress,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -222,7 +224,11 @@ def topics_to_docs(topics: list, discourse_url: str) -> list:
 
 
 def scrape_discourse(
-    yaml_path: str, output_dir: str, *, max_pages: int | None = None
+    yaml_path: str,
+    output_dir: str,
+    n: int | None = None,
+    *,
+    max_pages: int | None = None,
 ) -> None:
     """Scrape many Discourse pages/topics.
 
@@ -232,11 +238,17 @@ def scrape_discourse(
         String of path to discourse_sources.yaml
     output_dir : str
         Name of output directory for pickle files and log file.
+    n : int | None
+        If provided, randomly sample n pages instead of scraping sequentially.
+        Takes precedence over max_pages. Defaults to None.
     max_pages : int
         Maximum page number of Discourse API content to scrape,
         starting from page number 0. If not specified, max_pages
-        will be set to the total number of pages available.
+        will be set to the total number of pages available. Ignored
+        when n is provided.
     """
+    if forum_key is None:
+        raise ValueError("Missing COMMUNITY_API_KEY")
     with Path(yaml_path).open(encoding="utf-8") as f:
         data = yaml.safe_load(f)
     discourse_url = data["params"]["DISCOURSE_URL"]
@@ -252,7 +264,14 @@ def scrape_discourse(
     log_path = base_dir / "progress.log"
     completed_keys = load_progress(log_path)
 
-    for page in range(max_pages):
+    if n is not None:
+        pages_to_scrape = random.sample(
+            range(n_pages_total), min(n, n_pages_total)
+        )
+    else:
+        pages_to_scrape = range(max_pages)
+
+    for page in pages_to_scrape:
         space_key = f"page{page}"
         if space_key in completed_keys:
             continue
@@ -279,6 +298,7 @@ def scrape_discourse(
 
         all_docs = topics_to_docs(all_posts, discourse_url)
 
+        write_raw_to_pickle(all_docs, space_key, base_dir)
         chunked = chunk_docs(all_docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, space_key, base_dir)

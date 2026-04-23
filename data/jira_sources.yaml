@@ -1,13 +1,23 @@
+type: "rest_api"
 description: Jira issues to ingest into Rubin_RAG
 
+api:
+  base_url: "https://rubinobs.atlassian.net"
+  api_root: "/rest/api/2"
+  endpoints:
+    - name: "get_issue"
+      path: "/issue/{key}"
+    - name: "search_jql"
+      path: "/search/jql"
+
 projects:
-    - name: "TAXICAB"
-    - name: "RFC"
-    - name: "SP"
-    - name: "CCB"
-    - name: "CAP"
-    - name: "DM"
+#  - name: "TAXICAB"
+#  - name: "RFC"
+  - name: "SP"
+#  - name: "CCB"
+#  - name: "CAP"
+#  - name: "DM"
 
 exclude_status:
-    - "Won't Fix"
-    - "Invalid"
+  - "Won't Fix"
+  - "Invalid"

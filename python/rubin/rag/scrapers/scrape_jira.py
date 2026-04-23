@@ -28,6 +28,7 @@ import gc
 import json
 import logging
 import os
+import random
 import time
 from pathlib import Path
 from typing import Any
@@ -43,6 +44,7 @@ from scrapers.utils import (
     sanitize_dates,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -50,10 +52,6 @@ _log = logging.getLogger(__name__)
 
 username = str(os.getenv("CONFLUENCE_USERNAME"))
 api_token = str(os.getenv("CONFLUENCE_API_TOKEN"))
-if username == "None":
-    raise ValueError("Missing CONFLUENCE_USERNAME")
-if api_token == "None":
-    raise ValueError("Missing CONFLUENCE_API_TOKEN")
 
 
 def get_with_retries(
@@ -103,6 +101,7 @@ def get_with_retries(
 
 def get_jira_issue(
     issue_name: str,
+    issue_url_template: str,
     email: str = username,
     api_token: str = api_token,
 ) -> tuple:
@@ -125,7 +124,7 @@ def get_jira_issue(
         the first element is a JSON dict. If unsuccessful, the first element
         is either an empty list or None depending on the status code.
     """
-    url = f"https://rubinobs.atlassian.net/rest/api/latest/issue/{issue_name}"
+    url = issue_url_template.format(key=issue_name)
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
     response = get_with_retries(url, auth, headers, timeout=5, retries=2)
@@ -444,6 +443,7 @@ def write_to_file(
 
 def fetch_ticket(
     ticket: str,
+    issue_url_template: str,
     email: str = username,
     api_token: str = api_token,
 ) -> tuple:
@@ -469,12 +469,15 @@ def fetch_ticket(
             error message.
     """
     _log.debug(f"Fetching Jira issue {ticket}")
-    jira_data, error_message = get_jira_issue(ticket, email, api_token)
+    jira_data, error_message = get_jira_issue(
+        ticket, issue_url_template, email, api_token
+    )
     return reformat_jira_data(jira_data, ticket), error_message
 
 
 def retry_fetch_ticket(
     ticket: str,
+    issue_url_template: str,
     email: str = username,
     api_token: str = api_token,
     max_retries: int = 5,
@@ -503,7 +506,9 @@ def retry_fetch_ticket(
     """
     for attempt in range(max_retries):
         try:
-            result, error_message = fetch_ticket(ticket, email, api_token)
+            result, error_message = fetch_ticket(
+                ticket, issue_url_template, email, api_token
+            )
         except Exception:
             _log.warning(f"Failure #{attempt + 1} retrieving {ticket}.")
             if attempt + 1 == max_retries:
@@ -547,6 +552,7 @@ def jira_to_document(jira_data: dict) -> Document:
 
 def jira_tickets_from_list(
     ticket_list: list,
+    issue_url_template: str,
     email: str = username,
     api_token: str = api_token,
     folder: str = ".",
@@ -598,7 +604,7 @@ def jira_tickets_from_list(
 
     for ticket_name in ticket_list:
         jira_data, status = retry_fetch_ticket(
-            ticket_name, email, api_token, max_retries
+            ticket_name, issue_url_template, email, api_token, max_retries
         )
         # only output the results if fetching was successful
         if status is None:
@@ -615,6 +621,7 @@ def jira_tickets_in_range(
     ticket_prefix: str,
     min_ticket_num: int,
     max_ticket_num: int,
+    issue_url_template: str,
     email: str = username,
     api_token: str = api_token,
     folder: str = ".",
@@ -668,12 +675,19 @@ def jira_tickets_in_range(
         for i in range(min_ticket_num, max_ticket_num + 1)
     ]
     return jira_tickets_from_list(
-        ticket_list, email, api_token, folder, max_retries, write=write
+        ticket_list,
+        issue_url_template,
+        email,
+        api_token,
+        folder,
+        max_retries,
+        write=write,
     )
 
 
 def get_max_issue_number(
     project: str,
+    search_url: str,
     email: str = username,
     api_token: str = api_token,
 ) -> int:
@@ -693,7 +707,7 @@ def get_max_issue_number(
     int
         the maximum extant Jira ticket number for the specified project
     """
-    url = f"https://rubinobs.atlassian.net/rest/api/latest/search?jql=project={project}+order+by+key+desc&maxResults=1"
+    url = f"{search_url}?jql=project={project}+order+by+key+desc&maxResults=1&fields=key"
     auth = requests.auth.HTTPBasicAuth(email, api_token)
     headers = {"Content-Type": "application/json"}
     response = get_with_retries(url, auth, headers)
@@ -818,6 +832,10 @@ def process_project(
     log_path: Path,
     output_dir: Path,
     exclude_status: list[str],
+    base_api_url: str,
+    endpoints: dict[str, str],
+    n: int | None = None,
+    min_words: int = 0,
 ) -> None:
     """Scrape a Jira project and write to pickle files.
 
@@ -833,14 +851,21 @@ def process_project(
         path to output directory for the repo.
     exclude_status: list[str]
         list of status types to exclude.
+    n: int | None
+        If provided, randomly sample n tickets instead of scraping all.
+        Fetches in batches of n and repeats until n docs pass all filters
+        or all ticket IDs are exhausted. Defaults to None (scrape all).
+    min_words: int
+        Minimum number of words required in a document's page_content
+        (description + comments) to keep it. Documents with fewer words
+        are dropped after fetching. 0 means no filtering. Defaults to 0.
 
     Returns
     -------
     documents : list
         list of LangChain documents, one per successfully retrieved
         Jira issue. Documents corresponding to Jira issues with
-        certain statuses are dropped according to the YAML's
-        specficiations.
+        certain statuses or insufficient content are dropped.
     """
     project_name = project["name"]
 
@@ -848,18 +873,61 @@ def process_project(
         _log.info(f"Skipping already processed space: {project_name}")
         return
 
+    issue_url_template = base_api_url + endpoints["get_issue"]
+    search_url = base_api_url + endpoints["search_jql"]
+
     _log.info(f"Scraping from {project_name}...")
     start = project.get("start", 1)
     if "end" not in project:
-        end = get_max_issue_number(project_name)
+        end = get_max_issue_number(project_name, search_url)
     else:
         end = project["end"]
-    project_docs, failures = jira_tickets_in_range(project_name, start, end)
-    project_docs = [
-        d for d in project_docs if d.metadata["status"] not in exclude_status
-    ]
+
+    if n is not None:
+        all_tickets = [f"{project_name}-{i}" for i in range(start, end + 1)]
+        random.shuffle(all_tickets)
+        remaining = all_tickets
+        accepted: list = []
+
+        while len(accepted) < n and remaining:
+            batch, remaining = remaining[:n], remaining[n:]
+            batch_docs, _ = jira_tickets_from_list(batch, issue_url_template)
+            batch_docs = [
+                d
+                for d in batch_docs
+                if d.metadata["status"] not in exclude_status
+            ]
+            if min_words > 0:
+                batch_docs = [
+                    d
+                    for d in batch_docs
+                    if len(d.page_content.split()) >= min_words
+                ]
+            accepted.extend(batch_docs)
+            _log.info(
+                f"{project_name}: {min(len(accepted), n)}/{n} docs collected "
+                f"({len(remaining)} ticket IDs remaining)"
+            )
+
+        project_docs = accepted[:n]
+    else:
+        project_docs, _ = jira_tickets_in_range(
+            project_name, start, end, issue_url_template
+        )
+        project_docs = [
+            d
+            for d in project_docs
+            if d.metadata["status"] not in exclude_status
+        ]
+        if min_words > 0:
+            project_docs = [
+                d
+                for d in project_docs
+                if len(d.page_content.split()) >= min_words
+            ]
 
     cleaned = sanitize_metadata(project_docs)
+    write_raw_to_pickle(cleaned, project_name, output_dir)
     chunked = chunk_docs(cleaned)
     batched = batch_by_tokens(chunked)
 
@@ -872,7 +940,12 @@ def process_project(
     gc.collect()
 
 
-def scrape_jira(yaml_path: str, output_dir: str) -> None:
+def scrape_jira(
+    yaml_path: str,
+    output_dir: str,
+    n: int | None = None,
+    min_words: int = 0,
+) -> None:
     """Scrape Jira into LangChain documents and write docs to pickle files.
 
     Parameters
@@ -882,7 +955,19 @@ def scrape_jira(yaml_path: str, output_dir: str) -> None:
     output_dir: str
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
+    n: int | None
+        If provided, randomly sample n tickets per project instead of scraping
+        all of them. Fetches in batches and repeats until n docs pass all
+        filters or all ticket IDs are exhausted. Defaults to None (scrape all).
+    min_words: int
+        Minimum number of words required in a document's page_content
+        (description + comments) to keep it. Documents with fewer words are
+        dropped after fetching. 0 means no filtering. Defaults to 0.
     """
+    if username == "None":
+        raise ValueError("Missing CONFLUENCE_USERNAME")
+    if api_token == "None":
+        raise ValueError("Missing CONFLUENCE_API_TOKEN")
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 
@@ -892,12 +977,23 @@ def scrape_jira(yaml_path: str, output_dir: str) -> None:
 
     completed_keys = load_progress(log_path)
 
+    api = data["api"]
+    base_api_url = api["base_url"] + api["api_root"]
+    endpoints = {e["name"]: e["path"] for e in api["endpoints"]}
     exclude_status = data.get("exclude_status", [])
 
     for project in data["projects"]:
         start = time.time()
         process_project(
-            project, completed_keys, log_path, base_dir, exclude_status
+            project,
+            completed_keys,
+            log_path,
+            base_dir,
+            exclude_status,
+            base_api_url,
+            endpoints,
+            n=n,
+            min_words=min_words,
         )
         end = time.time()
         _log.info(

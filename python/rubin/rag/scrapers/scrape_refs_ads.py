@@ -26,6 +26,7 @@ import gc
 import json
 import logging
 import os
+import random
 import re
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -48,6 +49,7 @@ from scrapers.utils import (
     sanitize_dates,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -131,7 +133,7 @@ def clean_metadata_entry(value: str | tuple[str, ...]) -> str:
     # Handle tuple wrapping
     if isinstance(value, tuple) and len(value) > 0:
         value = value[0]
-    value = cast(str, value)
+    value = cast("str", value)
     # Remove LaTeX braces and escape sequences (like {G{'o}rski})
     value = re.sub(r"{\\?['`^\"~=.]*([a-zA-Z])}", r"\1", value)
     value = re.sub(r"[{}]", "", value)
@@ -444,6 +446,7 @@ def process_entry(
 
         for doc in docs:
             sanitize_dates(doc.metadata)
+        write_raw_to_pickle(docs, paper_name, output_dir)
         chunked = chunk_docs(docs)
         batched = batch_by_tokens(chunked)
         write_batches_to_pickle(batched, paper_name, output_dir)
@@ -457,7 +460,9 @@ def process_entry(
         _log.info(f"Paper Scrape Success {paper_name}")
 
 
-def scrape_refs_ads(yaml_path: str, output_dir: str) -> None:
+def scrape_refs_ads(
+    yaml_path: str, output_dir: str, n: int | None = None
+) -> None:
     """Load the bibtex file from Github and scrape the content.
 
     Parameters
@@ -467,7 +472,12 @@ def scrape_refs_ads(yaml_path: str, output_dir: str) -> None:
     output_dir: str
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
+    n: int | None
+        If provided, randomly sample n bibtex entries instead of scraping all.
+        Defaults to None (scrape all entries).
     """
+    if os.getenv("ADS_API_KEY") is None:
+        raise ValueError("Missing ADS_API_KEY")
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 
@@ -480,7 +490,11 @@ def scrape_refs_ads(yaml_path: str, output_dir: str) -> None:
     bib_database = bibtexparser.loads(response.text)
     completed_keys = load_progress(log_path)
 
-    for entry in bib_database.entries:
+    entries = bib_database.entries
+    if n is not None:
+        entries = random.sample(entries, min(n, len(entries)))
+
+    for entry in entries:
         process_entry(entry, completed_keys, log_path, base_dir)
 
     completed_keys.add("done")

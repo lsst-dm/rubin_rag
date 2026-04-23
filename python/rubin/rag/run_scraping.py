@@ -26,6 +26,7 @@ scraped from.
 """
 
 import logging
+import random
 import re
 import time
 from datetime import UTC, datetime
@@ -44,11 +45,17 @@ from scrapers.scrape_webpage import scrape_webpage
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
+# data/ directory sits four levels above this file:
+# python/rubin/rag/run_scraping.py -> python/rubin/rag/ -> python/rubin/ -> python/ -> <repo root>
+_DATA_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data"
+
 
 def scrape_source(
     yaml_path: Path,
     source: str,
     output_dir: Path,
+    n: int | None = None,
+    min_words: int = 0,
 ) -> list[Document]:
     """Run scraper function corresponding to source, helper function for main.
 
@@ -60,6 +67,13 @@ def scrape_source(
         source to scrape (e.g. confluence, jira, etc.)
     output_dir: Path
         Path to output directory for scraped pickles.
+    n: int | None
+        If provided, randomly sample n items from the source instead of
+        scraping all of them.
+    min_words: int
+        Minimum page_content length to keep a document. Only applied to
+        the Jira scraper; ignored for other sources. 0 means no filtering.
+        Defaults to 0.
 
     Returns
     -------
@@ -75,7 +89,11 @@ def scrape_source(
         "refs_ads": scrape_refs_ads,
         "slack": scrape_slack,
     }
-    return scraper_scripts[source](yaml_path, output_dir)
+    if source == "jira":
+        return scraper_scripts[source](
+            yaml_path, output_dir, n=n, min_words=min_words
+        )
+    return scraper_scripts[source](yaml_path, output_dir, n=n)
 
 
 def find_latest_rubin_rag_dir(base_path: Path) -> Path | None:
@@ -106,11 +124,35 @@ def find_latest_rubin_rag_dir(base_path: Path) -> Path | None:
     return candidates[0][1]
 
 
-def main(*, resume: bool = False) -> None:
+def main(
+    *,
+    resume: bool = False,
+    n: int | None = None,
+    sources: list[str] | None = None,
+    seed: int = 42,
+    min_words: int = 0,
+) -> None:
     """Run main scraping logic. Set resume=False only if you want an entirely
     new scraping run.
+
+    Parameters
+    ----------
+    resume: bool
+        If True, resume a previous scraping run. Defaults to False.
+    n: int | None
+        If provided, randomly sample n items per source instead of scraping
+        all items. Defaults to None (scrape everything).
+    sources: list[str] | None
+        List of sources to scrape. Defaults to all active sources.
+    seed: int
+        Random seed for reproducibility. Defaults to 42.
+    min_words: int
+        Minimum page_content length to keep a Jira document. Documents
+        shorter than this threshold are dropped after fetching. 0 means no
+        filtering. Defaults to 0.
     """
-    sources = [
+    random.seed(seed)
+    all_sources = [
         "github",
         "jira",
         "webpage",
@@ -118,6 +160,7 @@ def main(*, resume: bool = False) -> None:
         "discourse",
         "refs_ads",
     ]
+    active_sources = sources if sources is not None else all_sources
     base_dir = Path()  # or wherever you want to look for these folders
 
     if resume:
@@ -138,15 +181,17 @@ def main(*, resume: bool = False) -> None:
         base_output_dir.mkdir(parents=True, exist_ok=True)
         _log.info(f"Starting fresh with directory {base_output_dir}")
 
-    for source in sources:
+    for source in active_sources:
         start = time.time()
-        yaml_path = Path(f"data/{source}_sources.yaml")
+        yaml_path = _DATA_DIR / f"{source}_sources.yaml"
         _log.info(f"Scraping documents from {source}")
 
         source_output_dir = base_output_dir / source
         source_output_dir.mkdir(parents=True, exist_ok=True)
 
-        scrape_source(yaml_path, source, source_output_dir)
+        scrape_source(
+            yaml_path, source, source_output_dir, n=n, min_words=min_words
+        )
         end = time.time()
         _log.info(f"Scraped {source} in {(end - start) / 60:.2f} minutes.")
 

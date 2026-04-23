@@ -25,6 +25,7 @@
 import gc
 import json
 import logging
+import random
 import re
 from collections import deque
 from pathlib import Path
@@ -41,6 +42,7 @@ from scrapers.utils import (
     load_progress,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -224,9 +226,10 @@ def process_link(
         docs.extend(webpage_loader(internal_link))
     _log.info(f"Scraped {len(docs)} documents")
 
+    site_name = extract_website_name(link)
+    write_raw_to_pickle(docs, site_name, output_dir)
     chunked = chunk_docs(docs)
     batched = batch_by_tokens(chunked)
-    site_name = extract_website_name(link)
 
     write_batches_to_pickle(batched, site_name, output_dir)
 
@@ -237,7 +240,9 @@ def process_link(
     gc.collect()
 
 
-def scrape_webpage(yaml_path: str, output_dir: str) -> None:
+def scrape_webpage(
+    yaml_path: str, output_dir: str, n: int | None = None
+) -> None:
     """Scrape web pages and write them to pickle files.
 
     Parameters
@@ -247,11 +252,16 @@ def scrape_webpage(yaml_path: str, output_dir: str) -> None:
     output_dir: str
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
+    n: int | None
+        If provided, randomly sample n URLs instead of scraping all.
+        Defaults to None (scrape all URLs).
     """
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 
     urls = get_urls_from_yaml(yaml_path)
+    if n is not None:
+        urls = random.sample(urls, min(n, len(urls)))
     completed_keys = load_progress(log_path)
 
     for url in urls:

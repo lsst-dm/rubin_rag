@@ -157,6 +157,28 @@ def batch_by_tokens(
     return batches
 
 
+def write_raw_to_pickle(
+    docs: list[Document], space: str, base_dir: Path = Path()
+) -> None:
+    """Write raw (pre-chunk) documents into a single pickle file.
+
+    Parameters
+    ----------
+    docs: list[Document]
+        list of documents to write.
+    space: str
+        name of identifier (space, repo, project, URL, etc.).
+    base_dir: Path
+        path of base directory to output pickle file.
+    """
+    base_dir.mkdir(parents=True, exist_ok=True)
+    filename = f"{space}_raw.pkl"
+    path = base_dir / filename
+    with Path.open(path, "wb") as f:
+        pickle.dump(docs, f)
+    _log.info(f"Wrote {len(docs)} raw docs to {path}")
+
+
 def write_batches_to_pickle(
     batches: list[list[Document]], space: str, base_dir: Path = Path()
 ) -> Path:

@@ -44,6 +44,7 @@ from scrapers.utils import (
     load_progress,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 from slack_sdk import WebClient
 
@@ -51,9 +52,6 @@ logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 
 slack_token = os.getenv("SLACK_API_TOKEN")
-
-if slack_token is None:
-    raise ValueError("SLACK_API_TOKEN environment variable is not set.")
 
 headers = {"Authorization": f"Bearer {slack_token}"}
 
@@ -317,6 +315,7 @@ def process_channel(
         doc = Document(page_content=text, metadata=metadata)
         documents.append(doc)
 
+    write_raw_to_pickle(documents, channel_name, output_dir)
     chunked = chunk_docs(documents)
     batched = batch_by_tokens(chunked)
     write_batches_to_pickle(batched, channel_name, output_dir)
@@ -390,6 +389,15 @@ def scrape_slack_zip(
     _log.info(f"Loaded {len(docs)} documents from {zipfile}")
 
     documents = sanitize_metadata(docs, lookup_table, anonymize=anon)
+
+    # Group raw docs by channel and write one raw pickle per channel
+    raw_channel_docs: dict[str, list] = defaultdict(list)
+    for doc in documents:
+        channel = doc.metadata.get("channel", "unknown")
+        raw_channel_docs[channel].append(doc)
+    for channel, channel_raw_list in raw_channel_docs.items():
+        write_raw_to_pickle(channel_raw_list, channel, output_dir)
+
     chunked_docs = chunk_docs(documents)
 
     channel_docs = defaultdict(list)
@@ -427,6 +435,8 @@ def scrape_slack(yaml_path: str, output_dir: str) -> None:
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
     """
+    if slack_token is None:
+        raise ValueError("SLACK_API_TOKEN environment variable is not set.")
     _log.info("using new scrape slack function")
     base_dir = Path(output_dir)
 

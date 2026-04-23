@@ -42,6 +42,7 @@ from scrapers.utils import (
     load_progress,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 load_dotenv()
@@ -51,10 +52,6 @@ _log = logging.getLogger(__name__)
 
 username = os.getenv("CONFLUENCE_USERNAME")
 api_token = os.getenv("CONFLUENCE_API_TOKEN")
-if username is None:
-    raise ValueError("Missing CONFLUENCE_USERNAME")
-if api_token is None:
-    raise ValueError("Missing CONFLUENCE_API_TOKEN")
 
 
 def get_child_page_ids(parent_id: str, limit: int = 100) -> list:
@@ -222,7 +219,8 @@ def process_space(
         doc.metadata.pop("id", None)
         doc.metadata.pop("vector", None)
 
-    chunked = chunk_docs(docs)
+    write_raw_to_pickle(documents, space_key, output_dir)
+    chunked = chunk_docs(documents)
     batched = batch_by_tokens(chunked)
     write_batches_to_pickle(batched, space_key, output_dir)
 
@@ -245,6 +243,10 @@ def scrape_confluence(yaml_path: str, output_dir: str) -> None:
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
     """
+    if username is None:
+        raise ValueError("Missing CONFLUENCE_USERNAME")
+    if api_token is None:
+        raise ValueError("Missing CONFLUENCE_API_TOKEN")
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 

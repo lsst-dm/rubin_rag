@@ -24,6 +24,7 @@ import gc
 import json
 import logging
 import os
+import random
 import shutil
 import subprocess
 import time
@@ -45,6 +46,7 @@ from scrapers.utils import (
     sanitize_dates,
     save_progress,
     write_batches_to_pickle,
+    write_raw_to_pickle,
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -53,8 +55,6 @@ _log = logging.getLogger(__name__)
 # note that it's necessary to have set the env var
 # GITHUB_PERSONAL_ACCESS_TOKEN to the relevant GitHub API access token
 access_token = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
-if access_token is None:
-    raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
 
 
 def repos_in_org(org_name: str = "lsst-dm") -> list[tuple[str, str]]:
@@ -403,6 +403,7 @@ def scrape_repo(
         except Exception as e:
             _log.debug(f"possible non-text file : {f} - Error: {e!s}")
 
+    write_raw_to_pickle(documents, repo_basename, org_output_dir)
     chunked = chunk_docs(documents)
     batched = batch_by_tokens(chunked)
     write_batches_to_pickle(batched, repo_basename, org_output_dir)
@@ -479,7 +480,9 @@ def load_yaml_spec(yaml_file: str) -> dict:
         return yaml.safe_load(f)
 
 
-def scrape_github(yaml_path: str, output_dir: str) -> None:
+def scrape_github(
+    yaml_path: str, output_dir: str, n: int | None = None
+) -> None:
     """Scrape Github based on settings in yaml file and write pickle files to
     output directory.
 
@@ -490,22 +493,42 @@ def scrape_github(yaml_path: str, output_dir: str) -> None:
     output_dir: str
         String of path to output directory, typically a timestamped directory
         specified in run_scraping.
+    n: int | None
+        If provided, randomly sample n repos from the combined pool of all
+        orgs instead of scraping all repos. Defaults to None (scrape all).
     """
+    if access_token is None:
+        raise ValueError("Missing GITHUB_PERSONAL_ACCESS_TOKEN")
     base_dir = Path(output_dir)
     log_path = base_dir / "progress.log"
 
     completed_keys = load_progress(log_path)
     spec = load_yaml_spec(yaml_path)
 
+    # Collect all eligible repos from all orgs into a combined pool,
+    # applying ignore_repos filtering per org after repos_in_org() filters.
+    all_repos: list[tuple[str, str]] = []
     orgs = spec["organization"]
     for org in orgs:
         repos_ignore = org.get("ignore_repos", [])
-        scrape_org(
-            org_name=org["name"],
+        org_repos = [
+            (r, branch)
+            for r, branch in repos_in_org(org["name"])
+            if r.split("/")[1] not in repos_ignore
+        ]
+        all_repos.extend(org_repos)
+
+    if n is not None:
+        all_repos = random.sample(all_repos, min(n, len(all_repos)))
+
+    for i, (repo, branch) in enumerate(all_repos):
+        _log.info(f"WORKING ON REPO : {repo} {i + 1} of {len(all_repos)}")
+        scrape_repo(
+            repo_name=repo,
+            default_branch=branch,
             completed_keys=completed_keys,
             log_path=log_path,
             output_dir=base_dir,
-            repos_ignore=repos_ignore,
         )
 
     completed_keys.add("done")
