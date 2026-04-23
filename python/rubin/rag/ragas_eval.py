@@ -170,7 +170,12 @@ def run_evaluation(
     source_key: str | None = "jira",
     retrieval_k: int = 6,
 ) -> None:
-    """Load pre-generated testset, retrieve from Weaviate, and evaluate retrieval."""
+    """Load pre-generated testset, retrieve from Weaviate, and evaluate retrieval.
+
+    Results are written to the output CSV incrementally — one row per sample as
+    it completes. Re-running with the same output path resumes from where it left
+    off, skipping questions already present in the file.
+    """
     openai_api_key = os.environ["OPENAI_API_KEY"]
 
     llm = ChatOpenAI(model="gpt-4o", temperature=0)
@@ -178,12 +183,26 @@ def run_evaluation(
         model="text-embedding-3-small", dimensions=1536, api_key=openai_api_key
     )
 
-    # --- Step 1: load testset -----------------------------------------------
+    # --- Step 1: load testset and check for prior progress ------------------
     testset = load_testset(testset_path)
 
-    # --- Step 2: retrieve contexts from Weaviate ----------------------------
+    done_questions: set[str] = set()
+    if output_path.exists():
+        import pandas as pd
+
+        existing = pd.read_csv(output_path)
+        done_questions = set(existing["user_input"].tolist())
+        _log.info(
+            "Resuming: %d samples already evaluated, %d remaining",
+            len(done_questions),
+            len(testset) - len(done_questions),
+        )
+
+    write_header = not output_path.exists()
+
+    # --- Step 2: retrieve and evaluate one sample at a time -----------------
     client = connect_weaviate()
-    samples: list[SingleTurnSample] = []
+    evaluated = 0
 
     try:
         for i, entry in enumerate(testset):
@@ -196,6 +215,15 @@ def run_evaluation(
             if not reference:
                 _log.warning(
                     "Sample %d has no reference answer, skipping.", i + 1
+                )
+                continue
+
+            if question in done_questions:
+                _log.info(
+                    "[%d/%d] Skipping (already done): %s",
+                    i + 1,
+                    len(testset),
+                    question[:80],
                 )
                 continue
 
@@ -219,41 +247,40 @@ def run_evaluation(
                 )
                 continue
 
-            samples.append(
-                SingleTurnSample(
-                    user_input=question,
-                    retrieved_contexts=contexts,
-                    reference=reference,
-                )
+            sample = SingleTurnSample(
+                user_input=question,
+                retrieved_contexts=contexts,
+                reference=reference,
             )
+
+            result = evaluate(
+                dataset=EvaluationDataset(samples=[sample]),
+                metrics=[LLMContextRecall(), ContextPrecision()],
+                llm=llm,
+                embeddings=embeddings,
+            )
+
+            df = result.to_pandas()
+            df.to_csv(output_path, mode="a", header=write_header, index=False)
+            write_header = False
+            evaluated += 1
+            _log.info("Saved sample %d to %s", evaluated, output_path)
+
     finally:
         client.close()
 
-    if not samples:
-        _log.error("No samples with retrieved contexts — cannot evaluate.")
+    if evaluated == 0 and not done_questions:
+        _log.error("No samples evaluated.")
         return
 
-    _log.info("Running RAGAS evaluation on %d samples…", len(samples))
+    import pandas as pd
 
-    # --- Step 4: evaluate retrieval -----------------------------------------
-    eval_dataset = EvaluationDataset(samples=samples)
-    result = evaluate(
-        dataset=eval_dataset,
-        metrics=[LLMContextRecall(), ContextPrecision()],
-        llm=llm,
-        embeddings=embeddings,
-    )
-
-    # --- Step 5: save and print results -------------------------------------
-    df = result.to_pandas()
-    df.to_csv(output_path, index=False)
-    _log.info("Results saved to %s", output_path)
-
+    df_all = pd.read_csv(output_path)
     print("\n=== RAGAS Retrieval Evaluation ===")
     for col in ["llm_context_recall", "context_precision"]:
-        if col in df.columns:
+        if col in df_all.columns:
             print(
-                f"  {col:<25} {df[col].mean():.4f}  (mean over {len(df)} samples)"
+                f"  {col:<25} {df_all[col].mean():.4f}  (mean over {len(df_all)} samples)"
             )
     print(f"\nFull results: {output_path}")
 
