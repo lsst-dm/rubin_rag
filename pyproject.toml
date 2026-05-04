@@ -44,6 +44,10 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[tool.uv]
+constraint-dependencies = [
+    "setuptools<82",  # sphinxcontrib-redoc uses pkg_resources, removed in setuptools 82
+]
 
 [project.urls]
 Homepage = "https://rubin_rag.lsst.io"
