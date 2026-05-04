@@ -118,7 +118,7 @@ def clean_metadata_entry(value: str | tuple[str, ...]) -> str:
     # Handle tuple wrapping
     if isinstance(value, tuple) and len(value) > 0:
         value = value[0]
-    value = cast(str, value)
+    value = cast("str", value)
     # Remove LaTeX braces and escape sequences (like {G{'o}rski})
     value = re.sub(r"{\\?['`^\"~=.]*([a-zA-Z])}", r"\1", value)
     value = re.sub(r"[{}]", "", value)

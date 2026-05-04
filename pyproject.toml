@@ -119,7 +119,7 @@ asyncio_mode = "strict"
 python_files = ["tests/*.py", "tests/*/*.py"]
 
 # Use the generic Ruff configuration in ruff.toml and extend it with only
-# project-specific settings. Add a [tool.ruff.lint.extend-per-file-ignores]
+# project-specific settings. Add a [tool.ruff.lint]
 # section for project-specific ignore rules.
 [tool.ruff]
 extend = "ruff-shared.toml"
@@ -127,6 +127,9 @@ extend = "ruff-shared.toml"
 [tool.ruff.lint.isort]
 known-first-party = ["rubin.rag", "tests"]
 split-on-trailing-comma = false
+
+[tool.ruff.lint]
+extend-ignore = ["FBT001"]
 
 [tool.scriv]
 categories = [
