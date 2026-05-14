@@ -1,3 +1,5 @@
+PYTHON_VERSION := $(shell cat .python-version)
+
 .PHONY: help
 help:
 	@echo "Make targets for rubin_rag:"
@@ -19,7 +21,7 @@ init:
 	test -d .venv || uv venv .venv --prompt rubin-rag
 	uv sync --group dev
 	uv run pre-commit install
-	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt
+	uv export --frozen --no-dev --no-hashes --no-emit-project --python $(PYTHON_VERSION) -o requirements.txt
 	rm -rf .tox
 
 # This is defined as a Makefile target instead of only a tox command because
@@ -43,7 +45,7 @@ update:
 	uv lock --upgrade-package pre-commit
 	uv sync --group dev
 	uv run pre-commit autoupdate
-	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt
+	uv export --frozen --no-dev --no-hashes --no-emit-project --python $(PYTHON_VERSION) -o requirements.txt
 
 
 # .PHONY: update-deps
