@@ -187,7 +187,7 @@ def ingest_all_pickles(
     log_file: str
         logging file for tracking progress of ingestion.
     """
-    pickle_files = sorted(base_dir.rglob("*.pkl"), key=lambda p: str(p))
+    pickle_files = sorted(base_dir.rglob("*.pkl"), key=str)
     ingested_files = load_ingested_log(log_file)
 
     # Group files for logging by repo/subfolder

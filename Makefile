@@ -1,8 +1,10 @@
+PYTHON_VERSION := $(shell cat .python-version)
+
 .PHONY: help
 help:
 	@echo "Make targets for rubin_rag:"
 	@echo "make clean - Remove generated files"
-	@echo "make init - Set up dev environment (install pre-commit hooks)"
+	@echo "make init - Set up dev environment (create .venv, install deps, pre-commit hooks)"
 	@echo "make linkcheck - Check for broken links in documentation"
 	@echo "make update - Update pre-commit dependencies and run make init"
 	@echo "make update-deps - Update pre-commit dependencies"
@@ -16,9 +18,10 @@ clean:
 .PHONY: init
 init:
 	pip install --upgrade uv
-	uv pip install --upgrade pre-commit tox tox-uv
-	uv pip install --upgrade -e ".[dev]"
-	pre-commit install
+	test -d .venv || uv venv .venv --prompt rubin-rag
+	uv sync --group dev
+	uv run pre-commit install
+	uv export --frozen --no-dev --no-hashes --no-emit-project --python $(PYTHON_VERSION) -o requirements.txt
 	rm -rf .tox
 
 # This is defined as a Makefile target instead of only a tox command because
@@ -31,15 +34,23 @@ linkcheck:
 	    docs/_build/linkcheck				\
 	    || (cat docs/_build/linkcheck/output.txt; exit 1)
 
-# update and update-deps aren't that meaningful for PyPI packages that do
-# not have pinned Python package dependencies, but provide the same targets
-# as the FastAPI Safir app template so that people can use the same command
-# to update everything at the start of development (here, just pre-commit).
+# update updates uv, pre-commit, and pre-commit hook versions only.
+# Other dependencies are intentionally not upgraded here for safety reasons; to upgrade a
+# specific package run uv lock --upgrade-package <name>, or
+# run uv lock --upgrade to review and update all pinned dependencies.
 .PHONY: update
-update: update-deps init
-
-.PHONY: update-deps
-update-deps:
+update:
 	pip install --upgrade uv
-	uv pip install --upgrade pre-commit
-	pre-commit autoupdate
+	uv lock --upgrade-package uv
+	uv lock --upgrade-package pre-commit
+	uv sync --group dev
+	uv run pre-commit autoupdate
+	uv export --frozen --no-dev --no-hashes --no-emit-project --python $(PYTHON_VERSION) -o requirements.txt
+
+
+# .PHONY: update-deps
+# update-deps:
+# 	pip install --upgrade uv
+# 	uv lock --upgrade
+# 	uv run pre-commit autoupdate
+# 	uv export --frozen --no-dev --no-hashes --no-emit-project -o requirements.txt

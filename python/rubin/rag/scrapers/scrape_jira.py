@@ -854,7 +854,7 @@ def process_project(
         end = get_max_issue_number(project_name)
     else:
         end = project["end"]
-    project_docs, failures = jira_tickets_in_range(project_name, start, end)
+    project_docs, _ = jira_tickets_in_range(project_name, start, end)
     project_docs = [
         d for d in project_docs if d.metadata["status"] not in exclude_status
     ]
