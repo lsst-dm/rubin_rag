@@ -48,7 +48,7 @@ def test_load_config_missing_file(tmp_path: Path) -> None:
 
 
 def test_real_config_schema() -> None:
-    config = load_config()
+    config = load_config(Path(__file__).parent.parent / "config.yaml")
     assert isinstance(config["embedding"]["provider"], str)
     assert isinstance(config["embedding"]["model"], str)
     assert isinstance(config["embedding"]["dimensions"], int)
