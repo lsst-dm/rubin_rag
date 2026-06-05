@@ -56,12 +56,14 @@ class ConfluenceScraper(BaseScraper):
 
     def __init__(self, yaml_path: Path, output_dir: Path) -> None:
         super().__init__(yaml_path, output_dir)
-        self._username = os.getenv("CONFLUENCE_USERNAME")
-        self._api_token = os.getenv("CONFLUENCE_API_TOKEN")
-        if self._username is None:
+        username = os.getenv("CONFLUENCE_USERNAME")
+        api_token = os.getenv("CONFLUENCE_API_TOKEN")
+        if username is None:
             raise ValueError("Missing CONFLUENCE_USERNAME")
-        if self._api_token is None:
+        if api_token is None:
             raise ValueError("Missing CONFLUENCE_API_TOKEN")
+        self._username: str = username
+        self._api_token: str = api_token
 
     @property
     def source_key(self) -> str:
@@ -149,9 +151,13 @@ class ConfluenceScraper(BaseScraper):
         """Get the homepage ID of a Confluence space using the v2 API."""
         url = f"{wiki_url}/api/v2/spaces"
         try:
+            space_params: dict[str, str | int] = {
+                "keys": space_key,
+                "limit": 1,
+            }
             response = requests.get(
                 url,
-                params={"keys": space_key, "limit": 1},
+                params=space_params,
                 auth=HTTPBasicAuth(self._username, self._api_token),
                 timeout=10,
             )
@@ -174,9 +180,9 @@ class ConfluenceScraper(BaseScraper):
         parsed = urlparse(wiki_url)
         base_domain = f"{parsed.scheme}://{parsed.netloc}"
 
-        pages = []
+        pages: list[dict] = []
         url: str | None = f"{wiki_url}/api/v2/pages/{homepage_id}/children"
-        params: dict = {"limit": 100}
+        params: dict[str, int] = {"limit": 100}
 
         while url:
             try:
@@ -248,7 +254,7 @@ class ConfluenceScraper(BaseScraper):
         base_domain = f"{parsed.scheme}://{parsed.netloc}"
 
         url: str | None = f"{wiki_url}/rest/api/content/{parent_id}/child/page"
-        params: dict = {"limit": 100}
+        params: dict[str, int] = {"limit": 100}
         direct_children: list[str] = []
 
         while url:
