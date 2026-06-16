@@ -41,6 +41,10 @@ dependencies = [
     "bibtexparser>=1",
     "ads>=0.12",
     "pdf2image>=1",
+    "atlassian-python-api>=3",
+    "markdownify>=1",
+    "openai>=1",
+    "pymupdf>=1",
 ]
 dynamic = ["version"]
 
