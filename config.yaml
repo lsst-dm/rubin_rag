@@ -1,0 +1,17 @@
+embedding:
+  provider: openai
+  model: text-embedding-3-small
+  dimensions: 1536
+
+weaviate:
+  collection: Ingestion_20250610
+  http_host: weaviate-headless.rubin-rag.svc.cluster.local
+  http_port: 8080
+  http_secure: false
+  grpc_host: weaviate-grpc.rubin-rag.svc.cluster.local
+  grpc_port: 50051
+  grpc_secure: false
+
+llm:
+  provider: openai
+  model: gpt-4o-mini

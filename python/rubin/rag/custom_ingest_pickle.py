@@ -43,25 +43,22 @@ from langchain_weaviate.vectorstores import WeaviateVectorStore
 from weaviate import WeaviateClient
 from weaviate.classes.init import Auth
 
+from rubin.rag.utils import load_config
+
 logging.basicConfig(level=logging.INFO)
 _log = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 load_dotenv()
 
+_config = load_config()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
-http_host = "weaviate-headless.rubin-rag.svc.cluster.local"
-grpc_host = "weaviate-grpc.rubin-rag.svc.cluster.local"
 
 if openai_api_key is None:
     raise ValueError("OPENAI_API_KEY environment variable is not set")
 if weaviate_api_key is None:
     raise ValueError("WEAVIATE_API_KEY environment variable is not set")
-if http_host is None:
-    raise ValueError("HTTP_HOST environment variable is not set")
-if grpc_host is None:
-    raise ValueError("GRPC_HOST environment variable is not set")
 
 
 def load_ingested_log(log_path: str) -> set[str]:
@@ -130,8 +127,8 @@ def push_pickle_to_weaviate(
 
         embeddings = OpenAIEmbeddings(
             api_key=openai_api_key,  # type: ignore[arg-type]
-            model="text-embedding-3-large",
-            dimensions=1536,
+            model=_config["embedding"]["model"],
+            dimensions=_config["embedding"]["dimensions"],
         )
 
         vectorstore = WeaviateVectorStore(
@@ -200,12 +197,12 @@ def ingest_all_pickles(
     try:
         # Initialize the Weaviate client
         client = weaviate.connect_to_custom(
-            http_host=http_host,
-            http_port=8080,
-            http_secure=False,
-            grpc_host=grpc_host,
-            grpc_port=50051,
-            grpc_secure=False,
+            http_host=_config["weaviate"]["http_host"],
+            http_port=_config["weaviate"]["http_port"],
+            http_secure=_config["weaviate"]["http_secure"],
+            grpc_host=_config["weaviate"]["grpc_host"],
+            grpc_port=_config["weaviate"]["grpc_port"],
+            grpc_secure=_config["weaviate"]["grpc_secure"],
             auth_credentials=Auth.api_key(weaviate_api_key),  # type: ignore[arg-type]
             headers={"X-OpenAI-Api-Key": openai_api_key},  # type: ignore[dict-item]
         )

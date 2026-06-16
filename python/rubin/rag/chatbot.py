@@ -43,9 +43,12 @@ from langchain_core.prompts import MessagesPlaceholder
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from streamlit_callback import get_streamlit_cb
+from utils import load_config
 from weaviate.classes.init import Auth
 from weaviate.classes.query import Filter
 from weaviate.client import WeaviateClient
+
+_config = load_config()
 
 
 def submit_text() -> None:
@@ -58,25 +61,20 @@ def configure_client() -> WeaviateClient:
     """Configure the Weaviate client."""
     openai_api_key = os.getenv("OPENAI_API_KEY")
     weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
-    http_host = os.getenv("HTTP_HOST")
-    grpc_host = os.getenv("GRPC_HOST")
 
     if openai_api_key is None:
         raise ValueError("OPENAI_API_KEY environment variable is not set")
     if weaviate_api_key is None:
         raise ValueError("WEAVIATE_API_KEY environment variable is not set")
-    if http_host is None:
-        raise ValueError("HTTP_HOST environment variable is not set")
-    if grpc_host is None:
-        raise ValueError("GRPC_HOST environment variable is not set")
 
     return weaviate.connect_to_custom(
-        http_host=http_host,
-        http_port=8080,  # Database on port 80 in USDF
-        http_secure=False,
-        grpc_host=grpc_host,
-        grpc_port=50051,
-        grpc_secure=False,
+        http_host=_config["weaviate"]["http_host"],
+        # Database on port 8080 in USDF
+        http_port=_config["weaviate"]["http_port"],
+        http_secure=_config["weaviate"]["http_secure"],
+        grpc_host=_config["weaviate"]["grpc_host"],
+        grpc_port=_config["weaviate"]["grpc_port"],
+        grpc_secure=_config["weaviate"]["grpc_secure"],
         auth_credentials=Auth.api_key(weaviate_api_key),
         headers={"X-OpenAI-Api-Key": openai_api_key},
         skip_init_checks=True,
@@ -96,10 +94,11 @@ def configure_retriever() -> VectorStoreRetriever:
 
     return CustomWeaviateVectorStore(
         client=configure_client(),
-        index_name="Ingestion_20250610",
+        index_name=_config["weaviate"]["collection"],
         text_key="page_content",
         embedding=OpenAIEmbeddings(
-            model="text-embedding-3-small", dimensions=1536
+            model=_config["embedding"]["model"],
+            dimensions=_config["embedding"]["dimensions"],
         ),
         attributes=["source", "source_key"],  # Metadata to fetch
     ).as_retriever(
@@ -113,7 +112,9 @@ def create_qa_chain(
 ) -> ChatPromptTemplate:
     """Create a QA chain for the chatbot."""
     # Setup ChatOpenAI (Language Model)
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
+    llm = ChatOpenAI(
+        model=_config["llm"]["model"], temperature=0, streaming=True
+    )
 
     # Define the system message template
     system_template = """You are Rubin AI Assistant, a helpful assistant at
