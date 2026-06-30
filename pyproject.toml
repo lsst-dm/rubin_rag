@@ -110,6 +110,7 @@ strict_equality = true
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_ignores = true
+
 # Uncomment and add the "pydantic.mypy" plugin if using Pydantic. Add the
 # "sqlalchemy.ext.mypy.plugin" if using SQL Alchemy.
 # plugins = []
@@ -157,6 +158,7 @@ skip_fragments = "_template.md.jinja"
 dev = [
     # Type stubs
     "types-PyYAML",
+    "types-requests",
     # Testing
     "coverage[toml]",
     "pytest",
