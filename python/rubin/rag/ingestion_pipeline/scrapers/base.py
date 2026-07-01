@@ -28,6 +28,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import IO
 
 from dotenv import load_dotenv
 
@@ -170,31 +171,50 @@ class BaseScraper(ABC):
     def scrape_item(
         self,
         item: dict,
-        jsonl_path: Path,
-        max_pages: int | None,
-        pages_scraped: int,
         written_ids: set[str],
-    ) -> int:
-        """Fetch content for one item and append to the JSONL file.
+    ) -> Iterator[dict]:
+        """Fetch content for one item and yield canonical dicts.
+
+        Fetches native objects for the item (e.g. all pages in a
+        Confluence page tree), converts each via ``_to_canonical()``,
+        and yields canonical dicts one at a time. No file writing or
+        mode awareness — output decisions belong to the caller.
 
         Parameters
         ----------
         item : dict
             A single entry from the items list.
-        jsonl_path : Path
-            Path to the output JSONL file (opened in append mode).
-        max_pages : int | None
-            Global page cap across all items. Stop writing when reached.
-        pages_scraped : int
-            Pages already written before this item starts.
         written_ids : set[str]
-            Page IDs already present in the JSONL file for this item.
+            IDs already present in the JSONL file for this item.
             These should be skipped to avoid duplication on resume.
+
+        Yields
+        ------
+        dict
+            One canonical record per native object.
+        """
+
+    @abstractmethod
+    def _to_canonical(self, native: object, item: dict) -> dict:
+        """Convert one native scraped object to a canonical dict.
+
+        The native type (e.g. a LangChain ``Document``) is a private
+        implementation detail of the subclass and must not cross the
+        scraper boundary. This method is the single conversion point.
+
+        Parameters
+        ----------
+        native : object
+            One native object as returned by the source loader.
+        item : dict
+            The item dict from the manifest that produced this native
+            object. Provides source-level context (e.g. space key, wiki
+            URL) that may not be present in the native object itself.
 
         Returns
         -------
-        int
-            Updated total pages written after this item.
+        dict
+            Canonical record with ``text`` and ``metadata`` fields.
         """
 
     def _read_lines_from_end(
@@ -292,6 +312,68 @@ class BaseScraper(ABC):
         self._log.info(f"Written {manifest.total} items to {items_path}")
         return manifest
 
+    def _load_manifest(self) -> tuple[ItemsManifest, Path, int]:
+        """Load (or build) the items manifest and compute the resume index.
+
+        Returns
+        -------
+        tuple[ItemsManifest, Path, int]
+            The manifest, the path to its JSON file, and the index of the
+            first item that still needs to be processed.
+        """
+        items_path = self._output_dir / f"{self.source_key}_items.json"
+        if not items_path.exists():
+            self._log.info(f"{items_path.name} not found; building item list.")
+            self.create_items_json()
+
+        manifest = ItemsManifest.read(items_path)
+
+        start_idx = 0
+        if manifest.last_completed is not None:
+            for i, item in enumerate(manifest.items):
+                if self.item_key(item) == manifest.last_completed:
+                    start_idx = i + 1
+                    break
+
+        return manifest, items_path, start_idx
+
+    def stream(self) -> Iterator[dict]:
+        """Yield canonical dicts for all items, driven by the caller.
+
+        Reads the items manifest for the item list and resume point. If
+        the manifest does not exist, it is built first. Yields one
+        canonical dict per native object across all items, in order.
+
+        Intended for the orchestrator's streaming mode where the caller
+        (e.g. the Chunker) drives the pipeline — no intermediate JSONL
+        file is written.
+
+        Yields
+        ------
+        dict
+            Canonical records in manifest order.
+        """
+        manifest, _, start_idx = self._load_manifest()
+
+        if start_idx >= manifest.total:
+            self._log.info("All items already completed.")
+            return
+
+        self._log.info(
+            f"Streaming from item {start_idx + 1}/{manifest.total}"
+            + (
+                f" (resuming after {manifest.last_completed})"
+                if manifest.last_completed
+                else ""
+            )
+        )
+
+        for idx in range(start_idx, len(manifest.items)):
+            item = manifest.items[idx]
+            key = self.item_key(item)
+            self._log.info(f"Streaming item {idx + 1}/{manifest.total}: {key}")
+            yield from self.scrape_item(item, set())
+
     def scrape(self, max_pages: int | None = None) -> None:
         """Scrape all items and write documents to
         ``{source_key}.jsonl``.
@@ -305,21 +387,8 @@ class BaseScraper(ABC):
             Maximum total pages to write across all items. Useful as a
             run budget (e.g. time-limited runs or testing).
         """
-        items_path = self._output_dir / f"{self.source_key}_items.json"
         jsonl_path = self._output_dir / f"{self.source_key}.jsonl"
-
-        if not items_path.exists():
-            self._log.info(f"{items_path.name} not found; building item list.")
-            self.create_items_json()
-
-        manifest = ItemsManifest.read(items_path)
-
-        start_idx = 0
-        if manifest.last_completed is not None:
-            for i, item in enumerate(manifest.items):
-                if self.item_key(item) == manifest.last_completed:
-                    start_idx = i + 1
-                    break
+        manifest, items_path, start_idx = self._load_manifest()
 
         if start_idx >= manifest.total:
             self._log.info("All items already completed.")
@@ -339,43 +408,69 @@ class BaseScraper(ABC):
             jsonl_path, manifest.last_completed
         )
 
-        for idx in range(start_idx, len(manifest.items)):
-            if max_pages is not None and pages_scraped >= max_pages:
-                self._log.info(f"Reached max_pages={max_pages}, stopping.")
-                break
+        with jsonl_path.open("a", encoding="utf-8") as f:
+            for idx in range(start_idx, len(manifest.items)):
+                if max_pages is not None and pages_scraped >= max_pages:
+                    self._log.info(f"Reached max_pages={max_pages}, stopping.")
+                    break
 
-            item = manifest.items[idx]
-            key = self.item_key(item)
-            ids_to_skip = written_ids if key == partial_key else set()
+                item = manifest.items[idx]
+                key = self.item_key(item)
+                ids_to_skip = written_ids if key == partial_key else set()
 
-            if ids_to_skip:
-                self._log.info(
-                    f"Resuming partial item {key}:"
-                    f" skipping {len(ids_to_skip)} already-written pages."
-                )
-            else:
-                self._log.info(
-                    f"Scraping item {idx + 1}/{manifest.total}: {key}"
+                if ids_to_skip:
+                    self._log.info(
+                        f"Resuming partial item {key}:"
+                        f" skipping {len(ids_to_skip)} already-written pages."
+                    )
+                else:
+                    self._log.info(
+                        f"Scraping item {idx + 1}/{manifest.total}: {key}"
+                    )
+
+                pages_scraped, interrupted = self._write_item(
+                    item, ids_to_skip, f, max_pages, pages_scraped
                 )
 
-            pages_scraped = self.scrape_item(
-                item, jsonl_path, max_pages, pages_scraped, ids_to_skip
-            )
-
-            interrupted = max_pages is not None and pages_scraped >= max_pages
-            if not interrupted:
-                manifest.last_completed = key
-                manifest.processed = idx + 1
-                manifest.update_progress(items_path)
-                self._log.info(
-                    f"Completed {key} ({pages_scraped} total pages written)"
-                )
-            else:
-                self._log.info(
-                    f"Interrupted mid-item {key}."
-                    " Item not marked as completed."
-                )
+                if not interrupted:
+                    manifest.last_completed = key
+                    manifest.processed = idx + 1
+                    manifest.update_progress(items_path)
+                    self._log.info(
+                        f"Completed {key}"
+                        f" ({pages_scraped} total pages written)"
+                    )
+                else:
+                    self._log.info(
+                        f"Interrupted mid-item {key}."
+                        " Item not marked as completed."
+                    )
 
         self._log.info(
             f"Scraping finished. Total pages written: {pages_scraped}"
         )
+
+    def _write_item(
+        self,
+        item: dict,
+        written_ids: set[str],
+        f: IO[str],
+        max_pages: int | None,
+        pages_scraped: int,
+    ) -> tuple[int, bool]:
+        """Write records from one item to an open file handle.
+
+        Returns updated ``pages_scraped`` and an ``interrupted`` flag
+        that is ``True`` if ``max_pages`` was hit before the item finished.
+        """
+        interrupted = False
+        for record in self.scrape_item(item, written_ids):
+            if max_pages is not None and pages_scraped >= max_pages:
+                self._log.info(
+                    f"Reached max_pages={max_pages}, stopping mid-item."
+                )
+                interrupted = True
+                break
+            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+            pages_scraped += 1
+        return pages_scraped, interrupted

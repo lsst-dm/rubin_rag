@@ -26,9 +26,9 @@ Each item is a first-level page under a space homepage (or an explicitly
 configured page), covering that page plus all its descendants when scraped.
 """
 
-import json
 import logging
 import os
+from collections.abc import Iterator
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -91,11 +91,8 @@ class ConfluenceScraper(BaseScraper):
     def scrape_item(
         self,
         item: dict,
-        jsonl_path: Path,
-        max_pages: int | None,
-        pages_scraped: int,
         written_ids: set[str],
-    ) -> int:
+    ) -> Iterator[dict]:
         wiki_url = item["wiki_url"]
         root_id = item["id"]
 
@@ -132,18 +129,8 @@ class ConfluenceScraper(BaseScraper):
             keep_newlines=True,
         )
 
-        with jsonl_path.open("a", encoding="utf-8") as f:
-            for doc in loader.lazy_load():
-                if max_pages is not None and pages_scraped >= max_pages:
-                    self._log.info(
-                        f"Reached max_pages={max_pages}, stopping mid-item."
-                    )
-                    return pages_scraped
-                record = self._doc_to_jsonl_record(doc, item)
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
-                pages_scraped += 1
-
-        return pages_scraped
+        for doc in loader.lazy_load():
+            yield self._to_canonical(doc, item)
 
     def _get_space_homepage_id(
         self, wiki_url: str, space_key: str
@@ -288,9 +275,9 @@ class ConfluenceScraper(BaseScraper):
 
         return all_ids
 
-    def _doc_to_jsonl_record(self, doc: object, item: dict) -> dict:
-        """Convert a LangChain Document to the JSONL record format."""
-        meta = doc.metadata  # type: ignore[attr-defined]
+    def _to_canonical(self, native: object, item: dict) -> dict:
+        """Convert a LangChain Document to the canonical record format."""
+        meta = native.metadata  # type: ignore[attr-defined]
         key = self.item_key(item)
 
         source_metadata: dict = {
@@ -303,7 +290,7 @@ class ConfluenceScraper(BaseScraper):
             source_metadata["when_edited"] = meta["when_edited"]
 
         return {
-            "text": doc.page_content,  # type: ignore[attr-defined]
+            "text": native.page_content,  # type: ignore[attr-defined]
             "metadata": {
                 "source": meta.get("source", ""),
                 "source_key": self.source_key,
