@@ -38,6 +38,7 @@ dependencies = [
     "langchain-text-splitters>=0.3,<1.0",
     "slack_sdk>=3",
     "beautifulsoup4>=4",
+    "lxml>=5",
     "bibtexparser>=1",
     "ads>=0.12",
     "pdf2image>=1",
