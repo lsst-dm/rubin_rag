@@ -38,9 +38,14 @@ dependencies = [
     "langchain-text-splitters>=0.3,<1.0",
     "slack_sdk>=3",
     "beautifulsoup4>=4",
+    "lxml>=5",
     "bibtexparser>=1",
     "ads>=0.12",
     "pdf2image>=1",
+    "atlassian-python-api>=3",
+    "markdownify>=1",
+    "openai>=1",
+    "pymupdf>=1",
 ]
 dynamic = ["version"]
 
@@ -105,6 +110,7 @@ strict_equality = true
 warn_redundant_casts = true
 warn_unreachable = true
 warn_unused_ignores = true
+
 # Uncomment and add the "pydantic.mypy" plugin if using Pydantic. Add the
 # "sqlalchemy.ext.mypy.plugin" if using SQL Alchemy.
 # plugins = []
@@ -152,6 +158,7 @@ skip_fragments = "_template.md.jinja"
 dev = [
     # Type stubs
     "types-PyYAML",
+    "types-requests",
     # Testing
     "coverage[toml]",
     "pytest",

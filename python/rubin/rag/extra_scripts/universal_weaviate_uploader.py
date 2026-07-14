@@ -32,6 +32,8 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_weaviate.vectorstores import WeaviateVectorStore
 
+from rubin.rag.utils import load_config
+
 
 def push_docs_to_weaviate(
     raw_docs: list, do_chunk: bool | None = None
@@ -43,17 +45,18 @@ def push_docs_to_weaviate(
     # Load environment variables from .env file
     load_dotenv()
 
+    config = load_config()
     openai_api_key = os.getenv("OPENAI_API_KEY")
     if openai_api_key is None:
         raise ValueError("OPENAI_API_KEY environment variable is not set")
 
     client = weaviate.connect_to_custom(
-        http_host="localhost",
-        http_port=8080,
-        http_secure=False,
-        grpc_host="localhost",
-        grpc_port=50051,
-        grpc_secure=False,
+        http_host=config["weaviate"]["http_host"],
+        http_port=config["weaviate"]["http_port"],
+        http_secure=config["weaviate"]["http_secure"],
+        grpc_host=config["weaviate"]["grpc_host"],
+        grpc_port=config["weaviate"]["grpc_port"],
+        grpc_secure=config["weaviate"]["grpc_secure"],
         headers={"X-OpenAI-Api-Key": openai_api_key},
     )
 

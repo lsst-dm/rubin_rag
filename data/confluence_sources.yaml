@@ -1,4 +1,11 @@
 description: Confluence spaces to ingest into Rubin_RAG
+
+chunking:
+  strategy: recursive_character
+  params:
+    chunk_size: 1000
+    chunk_overlap: 50
+
 wikis:
   - url: "https://rubinobs.atlassian.net/wiki"
     spaces:
