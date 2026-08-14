@@ -72,9 +72,12 @@ class CustomWeaviateVectorStore(WeaviateVectorStore):
         score. A higher score means more similarity, with a max of 1.
         """
         where_filter = kwargs.get("where_filter")
+        query_vector = self.embedding.embed_query(query)
         collection = self.client.collections.get(self.index_name)
+
         response = collection.query.hybrid(
             query=query,
+            vector=query_vector,
             limit=k,
             filters=where_filter,
             alpha=1,
