@@ -44,7 +44,6 @@ from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from streamlit_callback import get_streamlit_cb
 from weaviate.classes.init import Auth
-from weaviate.classes.query import Filter
 from weaviate.client import WeaviateClient
 
 
@@ -85,15 +84,6 @@ def configure_client() -> WeaviateClient:
 
 def configure_retriever() -> VectorStoreRetriever:
     """Configure the Weaviate retriever."""
-    selected_sources = [
-        source.lower() for source in st.session_state["required_sources"]
-    ]
-    if selected_sources:
-        filters = Filter.by_property("source_key").contains_any(
-            selected_sources
-        )
-    search_kwargs = {"k": 6, "where_filter": filters}
-
     return CustomWeaviateVectorStore(
         client=configure_client(),
         index_name="Ingestion_20250610",
@@ -101,10 +91,11 @@ def configure_retriever() -> VectorStoreRetriever:
         embedding=OpenAIEmbeddings(
             model="text-embedding-3-small", dimensions=1536
         ),
-        attributes=["source", "source_key"],  # Metadata to fetch
+        attributes=[
+            "source",
+        ],  # Metadata to fetch
     ).as_retriever(
         search_type="similarity",
-        search_kwargs=search_kwargs,
     )
 
 
