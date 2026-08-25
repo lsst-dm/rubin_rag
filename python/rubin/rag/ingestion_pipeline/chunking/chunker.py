@@ -97,12 +97,12 @@ class Chunker:
             )
             for i, chunk_text in enumerate(chunks):
                 yield {
-                    "text": chunk_text,
                     "metadata": {
                         **record["metadata"],
                         "chunk_index": i,
                         "chunking_strategy": self._strategy_name,
                     },
+                    "text": chunk_text,
                 }
 
     def chunk_file(

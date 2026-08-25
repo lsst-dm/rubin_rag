@@ -214,7 +214,21 @@ class BaseScraper(ABC):
         Returns
         -------
         dict
-            Canonical record with ``text`` and ``metadata`` fields.
+            Canonical record with ``metadata`` and ``text`` fields
+            (metadata first, so identifying fields precede the long
+            ``text`` when inspecting JSONL). ``metadata`` must include:
+
+            - ``doc_id`` — stable, globally-unique, **immutable**
+              per-document id of the form ``{source_key}/{stable_native_id}``.
+              It must survive content, title, and location edits, so it
+              cannot be derived from the URL. Downstream it seeds the
+              deterministic chunk UUID and the per-document delete filter.
+              Uniqueness must hold within one source deployment; a second
+              instance of the same source needs an instance qualifier.
+            - ``source`` — human-facing URL (may change on rename).
+            - ``source_key`` — this scraper's ``source_key``.
+            - ``item_key`` — the scrape/resume unit key (see ``item_key``).
+            - ``source_metadata`` — source-specific dict, opaque downstream.
         """
 
     def _read_lines_from_end(
