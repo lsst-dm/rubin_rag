@@ -79,8 +79,10 @@ def _sanitize(s: str) -> str:
 def _vector_name(embedding_cfg: dict) -> str:
     provider = _sanitize(embedding_cfg["provider"])
     model = _sanitize(embedding_cfg["model"])
-    dimensions = embedding_cfg["dimensions"]
-    return f"__{provider}__{model}__{dimensions}"
+    dimensions = embedding_cfg.get("dimensions")
+    if dimensions is not None:
+        return f"__{provider}__{model}__{dimensions}"
+    return f"__{provider}__{model}"
 
 
 def _manifest_properties() -> list[Property]:
@@ -102,6 +104,12 @@ def _manifest_properties() -> list[Property]:
 def _data_properties() -> list[Property]:
     return [
         Property(name="text", data_type=DataType.TEXT),
+        Property(
+            name="doc_id",
+            data_type=DataType.TEXT,
+            tokenization=Tokenization.FIELD,
+            index_filterable=True,
+        ),
         Property(name="source", data_type=DataType.TEXT),
         Property(
             name="source_key",
@@ -297,13 +305,18 @@ class CollectionManager:
         uuid = generate_uuid5(f"{collection_name}__{vec_name}")
         now = datetime.now(UTC).isoformat()
         try:
+            dimensions = embedding_cfg.get("dimensions")
             manifest.data.insert(
                 properties={
                     "collection_name": collection_name,
                     "vector_name": vec_name,
                     "embedding_provider": embedding_cfg["provider"],
                     "embedding_model": embedding_cfg["model"],
-                    "embedding_dimensions": int(embedding_cfg["dimensions"]),
+                    **(
+                        {"embedding_dimensions": int(dimensions)}
+                        if dimensions is not None
+                        else {}
+                    ),
                     "created_at": now,
                 },
                 uuid=uuid,
