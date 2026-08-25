@@ -279,24 +279,29 @@ class ConfluenceScraper(BaseScraper):
         """Convert a LangChain Document to the canonical record format."""
         meta = native.metadata  # type: ignore[attr-defined]
         key = self.item_key(item)
+        # page_id is instance-wide unique and immutable across renames and
+        # space moves (unlike the URL or space_key), so it is the stable
+        # basis for doc_id. See BaseScraper._to_canonical.
+        page_id = meta.get("id", item["id"])
 
         source_metadata: dict = {
             "space_key": item["space_key"],
             "wiki_url": item["wiki_url"],
-            "page_id": meta.get("id", item["id"]),
+            "page_id": page_id,
             "page_title": meta.get("title", ""),
         }
         if "when_edited" in meta:
             source_metadata["when_edited"] = meta["when_edited"]
 
         return {
-            "text": native.page_content,  # type: ignore[attr-defined]
             "metadata": {
+                "doc_id": f"{self.source_key}/{page_id}",
                 "source": meta.get("source", ""),
                 "source_key": self.source_key,
                 "item_key": key,
                 "source_metadata": source_metadata,
             },
+            "text": native.page_content,  # type: ignore[attr-defined]
         }
 
 
