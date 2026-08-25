@@ -7,7 +7,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.10
+    rev: v0.15.21
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
@@ -24,3 +24,14 @@ repos:
     rev: 0.9.1
     hooks:
       - id: nbstripout
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy python/rubin tests
+        language: system
+        types: [python]
+        pass_filenames: false
+        require_serial: true
+        stages: [pre-push]
