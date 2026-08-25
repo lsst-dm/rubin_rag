@@ -48,12 +48,16 @@ Filterable nested properties in ``source_metadata`` require Weaviate
 import logging
 import re
 import sys
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Literal
 
 import weaviate
 from weaviate.classes.config import Configure, DataType, Property, Tokenization
+from weaviate.collections.classes.config_vector_index import (
+    _VectorIndexConfigCreate,
+)
 from weaviate.exceptions import UnexpectedStatusCodeError
 from weaviate.util import generate_uuid5
 
@@ -319,7 +323,7 @@ class CollectionManager:
         vector_index: str,
     ) -> None:
         embedding_cfg = self._config["embedding"]
-        _index_builders = {
+        _index_builders: dict[str, Callable[..., _VectorIndexConfigCreate]] = {
             "hfresh": Configure.VectorIndex.hfresh,
             "hnsw": Configure.VectorIndex.hnsw,
             "flat": Configure.VectorIndex.flat,
