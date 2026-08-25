@@ -24,3 +24,13 @@ repos:
     rev: 0.9.1
     hooks:
       - id: nbstripout
+
+  - repo: local
+    hooks:
+      - id: mypy
+        name: mypy
+        entry: mypy python/rubin tests
+        language: system
+        types: [python]
+        pass_filenames: false
+        require_serial: true
