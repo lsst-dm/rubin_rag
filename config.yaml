@@ -15,13 +15,6 @@ weaviate:
   grpc_port: 50051
   grpc_secure: false
 
-  # weaviate_cloud
-  # cluster_url: https://your-cluster.weaviate.network
-
-  # local (Docker)
-  # port: 8080
-  # grpc_port: 50051
-
 llm:
   provider: openai
   model: gpt-4o-mini

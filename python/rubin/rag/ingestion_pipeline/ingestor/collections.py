@@ -172,11 +172,6 @@ def _warn_schema_drift(client: weaviate.WeaviateClient) -> None:
         )
 
 
-# ---------------------------------------------------------------------------
-# Public entry point 1: manifest collection (one-time setup)
-# ---------------------------------------------------------------------------
-
-
 def create_manifest_collection(
     config: dict,
     headers: dict[str, str] | None = None,
@@ -210,11 +205,6 @@ def create_manifest_collection(
         _log.info("Created manifest collection %r.", MANIFEST_COLLECTION)
     finally:
         client.close()
-
-
-# ---------------------------------------------------------------------------
-# Public entry point 2: data collections
-# ---------------------------------------------------------------------------
 
 
 class CollectionManager:
