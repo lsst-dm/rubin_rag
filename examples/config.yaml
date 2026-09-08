@@ -1,0 +1,13 @@
+embedding:
+  provider: openai
+  model: text-embedding-3-small
+  dimensions: 1536
+
+weaviate:
+  connection_mode: weaviate_cloud   # custom | weaviate_cloud | local
+  collection: test_260714
+  cluster_url: htvb5ekyqfeapg1xoaik6g.c0.eu-central-1.aws.weaviate.cloud
+
+llm:
+  provider: openai
+  model: gpt-4o-mini

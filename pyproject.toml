@@ -46,6 +46,7 @@ dependencies = [
     "markdownify>=1",
     "openai>=1",
     "pymupdf>=1",
+    "voyageai",
 ]
 dynamic = ["version"]
 
@@ -167,6 +168,8 @@ dev = [
     # Documentation
     "documenteer[guide]<2",
     "scriv",
+    # Embedding providers (dev/experimentation only — production uses voyageai)
+    "cohere",
     # Dev tooling
     "pre-commit",
     "tox",

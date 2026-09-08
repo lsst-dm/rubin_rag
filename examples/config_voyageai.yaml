@@ -1,0 +1,12 @@
+embedding:
+  provider: voyageai
+  model: voyage-3
+
+weaviate:
+  connection_mode: weaviate_cloud   # custom | weaviate_cloud | local
+  collection: Ingestion_20250610
+  cluster_url: your-cluster.weaviate.cloud
+
+llm:
+  provider: openai
+  model: gpt-4o-mini
