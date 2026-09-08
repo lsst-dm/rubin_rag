@@ -24,8 +24,11 @@
 
 import json
 import logging
+import sys
 from collections.abc import Iterator
 from pathlib import Path
+
+from ...utils import load_config
 
 # Import strategies to trigger auto-registration before registry is accessed.
 from . import strategies as _strategies  # noqa: F401
@@ -141,3 +144,14 @@ class Chunker:
                 stripped = raw_line.strip()
                 if stripped:
                     yield json.loads(stripped)
+
+
+if __name__ == "__main__":
+    config = load_config(
+        Path(sys.argv[1])
+    )  # e.g. data/confluence_sources.yaml
+    chunker = Chunker(config)
+    chunker.chunk_file(
+        source=Path(sys.argv[2]),  # e.g. output/confluence.jsonl
+        out_path=Path(sys.argv[3]),  # e.g. output/confluence_chunked.jsonl
+    )

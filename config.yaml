@@ -4,7 +4,10 @@ embedding:
   dimensions: 1536
 
 weaviate:
+  connection_mode: custom   # custom | weaviate_cloud | local
   collection: Ingestion_20250610
+
+  # custom (Kubernetes / self-hosted)
   http_host: weaviate-headless.rubin-rag.svc.cluster.local
   http_port: 8080
   http_secure: false
