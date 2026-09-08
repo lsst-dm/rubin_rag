@@ -12,6 +12,7 @@ from rubin.rag.ingestion_pipeline.ingestor import ingestor as ingestor_mod
 from rubin.rag.ingestion_pipeline.ingestor.collections import _vector_name
 from rubin.rag.ingestion_pipeline.ingestor.embedder import EmbeddingLimits
 from rubin.rag.ingestion_pipeline.ingestor.ingestor import (
+    _DEFAULT_MAX_ITEMS_PER_BATCH,
     _TOKEN_SAFETY,
     Ingestor,
     IngestStatus,
@@ -87,6 +88,32 @@ class TestIterEmbeddingBatches:
         )
         assert [len(b) for b in batches] == [3, 1]
 
+    def test_none_item_cap_enforces_only_token_budget(self) -> None:
+        limits = EmbeddingLimits(
+            max_tokens_per_item=10_000,
+            max_items_per_batch=None,
+            max_tokens_per_batch=100,
+        )
+        per_item = int(100 * _TOKEN_SAFETY) // 2
+        records = [_rec(f"d/{i}", "x" * per_item) for i in range(5)]
+        batches = list(
+            iter_embedding_batches(iter(records), limits, estimate=_by_char)
+        )
+        assert [len(b) for b in batches] == [2, 2, 1]
+
+    def test_both_caps_none_falls_back_to_default_item_cap(self) -> None:
+        limits = EmbeddingLimits(
+            max_tokens_per_item=10_000,
+            max_items_per_batch=None,
+            max_tokens_per_batch=None,
+        )
+        n = _DEFAULT_MAX_ITEMS_PER_BATCH + 1
+        records = [_rec(f"d/{i}", "a") for i in range(n)]
+        batches = list(
+            iter_embedding_batches(iter(records), limits, estimate=_by_char)
+        )
+        assert [len(b) for b in batches] == [_DEFAULT_MAX_ITEMS_PER_BATCH, 1]
+
     def test_trailing_partial_batch_is_yielded(self) -> None:
         limits = EmbeddingLimits(10_000, 5, None)
         records = [_rec(f"d/{i}", "a") for i in range(3)]
@@ -134,7 +161,7 @@ class TestIterEmbeddingBatches:
             max_tokens_per_batch=None,
         )
         skipped: list[tuple[dict, str]] = []
-        over = "x" * 100  # 100 > int(10 * _TOKEN_SAFETY)
+        over = "x" * 100  # 100 > max_tokens_per_item (raw, no buffer)
         records = [_rec("d/1", over), _rec("d/2", "ok")]
         batches = list(
             iter_embedding_batches(
@@ -147,6 +174,29 @@ class TestIterEmbeddingBatches:
         assert [r["metadata"]["doc_id"] for b in batches for r in b] == ["d/2"]
         assert len(skipped) == 1
         assert "exceeds max_tokens_per_item" in skipped[0][1]
+
+    def test_item_reject_is_unbuffered_at_the_raw_limit(self) -> None:
+        # A chunk exactly at max_tokens_per_item is kept; only strictly-over
+        # is skipped. No _TOKEN_SAFETY margin on the per-item reject.
+        limits = EmbeddingLimits(
+            max_tokens_per_item=10,
+            max_items_per_batch=10,
+            max_tokens_per_batch=None,
+        )
+        skipped: list[tuple[dict, str]] = []
+        records = [_rec("d/at", "x" * 10), _rec("d/over", "x" * 11)]
+        batches = list(
+            iter_embedding_batches(
+                iter(records),
+                limits,
+                on_skip=lambda r, why: skipped.append((r, why)),
+                estimate=_by_char,
+            )
+        )
+        assert [r["metadata"]["doc_id"] for b in batches for r in b] == [
+            "d/at"
+        ]
+        assert [r["metadata"]["doc_id"] for r, _ in skipped] == ["d/over"]
 
 
 class TestNonzeroVector:

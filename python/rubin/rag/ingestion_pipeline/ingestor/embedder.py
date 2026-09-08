@@ -69,27 +69,38 @@ class EmbeddingLimits:
     max_tokens_per_item : int
         Per-input context limit. A single chunk over this is rejected
         before embedding (it cannot be split by the batcher).
-    max_items_per_batch : int
-        Maximum number of inputs per embedding API call.
+    max_items_per_batch : int or None
+        Maximum number of inputs per embedding API call. ``None`` means the
+        provider documents no per-call item cap, so only the total-token
+        cap is enforced.
     max_tokens_per_batch : int or None
         Maximum total tokens per API call. ``None`` means the provider
         imposes no separate total-token cap, so only the item count is
         enforced.
+
+    At least one of ``max_items_per_batch`` / ``max_tokens_per_batch`` should
+    bound a batch. If both are ``None`` the batcher falls back to a default
+    item cap (see ``iter_embedding_batches``) rather than building an
+    unbounded batch.
     """
 
     max_tokens_per_item: int
-    max_items_per_batch: int
+    max_items_per_batch: int | None
     max_tokens_per_batch: int | None
 
 
-# Facts about each (provider, model) API. Values seeded from the example
-# configs; TODO: confirm against provider docs and cite the source per row
-# (see memo/investigate_weaviate_20260701.md, 2026-08-10).
+# openai: https://platform.openai.com/docs/api-reference/embeddings/create
+# cohere: embed-english-v3.0 has a 512-token context (model overview
+# table, https://docs.cohere.com/docs/cohere-embed) and a hard 96-texts/
+# call cap (https://docs.cohere.com/reference/embed). Cohere publishes no
+# total-token cap (it truncates per input); 49152 = 512*96 is a derived,
+# non-binding upper bound.
+# voyageai: https://docs.voyageai.com/docs/embeddings
 _LIMITS: dict[tuple[str, str], EmbeddingLimits] = {
-    ("openai", "text-embedding-3-small"): EmbeddingLimits(8192, 500, 250000),
-    ("openai", "text-embedding-3-large"): EmbeddingLimits(8192, 500, 250000),
+    ("openai", "text-embedding-3-small"): EmbeddingLimits(8192, None, 300000),
+    ("openai", "text-embedding-3-large"): EmbeddingLimits(8192, None, 300000),
     ("cohere", "embed-english-v3.0"): EmbeddingLimits(512, 96, 49152),
-    ("voyageai", "voyage-3"): EmbeddingLimits(8192, 128, 320000),
+    ("voyageai", "voyage-3"): EmbeddingLimits(32000, 1000, 320000),
 }
 
 # Conservative default for a model not yet in the table: small batch, and

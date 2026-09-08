@@ -17,7 +17,7 @@ from rubin.rag.ingestion_pipeline.ingestor.embedder import (
 class TestLookupLimits:
     def test_known_pair_returns_table_entry(self) -> None:
         limits = _lookup_limits("openai", "text-embedding-3-small")
-        assert limits == EmbeddingLimits(8192, 500, 250000)
+        assert limits == EmbeddingLimits(8192, None, 300000)
 
     def test_unknown_pair_returns_fallback(self) -> None:
         assert _lookup_limits("nobody", "nothing") is _FALLBACK_LIMITS

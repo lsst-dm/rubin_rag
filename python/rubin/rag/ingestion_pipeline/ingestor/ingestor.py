@@ -81,9 +81,14 @@ class IngestStatus(Enum):
     FAILED = "failed"  # nothing written
 
 
-# Fraction of each provider's token limit we actually fill, to absorb the
-# gap between our cl100k_base estimate and the provider's own tokenizer.
+# Fraction of a provider's per-request (batch) token budget we actually fill,
+# to absorb the gap between our cl100k_base estimate and the provider's own
+# tokenizer. Applies only to the batch cap, not the per-item reject.
 _TOKEN_SAFETY = 0.9
+
+# Backstop item cap applied only when a model's limits set neither an item
+# cap nor a token cap, so a batch is always bounded rather than unbounded.
+_DEFAULT_MAX_ITEMS_PER_BATCH = 96
 
 _ENCODING: tiktoken.Encoding | None = None
 
@@ -117,22 +122,31 @@ def iter_embedding_batches(
     """Group chunk records into batches that fit the embedding API limits.
 
     Batches stay within ``max_items_per_batch`` and, using ``estimate`` with
-    a safety buffer, ``max_tokens_per_batch``. Records that cannot be
-    embedded are dropped and reported via ``on_skip(record, reason)``:
+    a safety buffer, ``max_tokens_per_batch``. Either cap may be ``None`` (the
+    provider imposes only the other); if both are ``None`` a default item cap
+    (``_DEFAULT_MAX_ITEMS_PER_BATCH``) is applied so a batch is never
+    unbounded. Records that cannot be embedded are dropped and reported via
+    ``on_skip(record, reason)``:
 
     - empty ``text`` or missing ``doc_id`` (a scraper-contract violation);
     - a single chunk whose estimated tokens exceed ``max_tokens_per_item``
       (it cannot be split here, so it is skipped rather than aborting).
 
-    Token limits are compared against ``_TOKEN_SAFETY`` times their value to
-    absorb estimator imprecision (cl100k vs. the provider's own tokenizer).
+    The per-item reject uses the raw ``max_tokens_per_item`` — a hard cap,
+    not a fill target — so chunks are only dropped when genuinely over the
+    provider limit. Only the batch token budget applies the ``_TOKEN_SAFETY``
+    buffer, absorbing estimator imprecision (cl100k vs. the provider's own
+    tokenizer) where overflow merely defers a chunk to the next batch.
     """
-    item_cap = int(limits.max_tokens_per_item * _TOKEN_SAFETY)
+    item_cap = limits.max_tokens_per_item
     batch_cap = (
         int(limits.max_tokens_per_batch * _TOKEN_SAFETY)
         if limits.max_tokens_per_batch is not None
         else None
     )
+    n_item_cap = limits.max_items_per_batch
+    if n_item_cap is None and batch_cap is None:
+        n_item_cap = _DEFAULT_MAX_ITEMS_PER_BATCH
     batch: list[dict] = []
     tokens = 0
     for record in records:
@@ -147,7 +161,7 @@ def iter_embedding_batches(
             if on_skip is not None:
                 on_skip(record, "exceeds max_tokens_per_item")
             continue
-        over_items = len(batch) >= limits.max_items_per_batch
+        over_items = n_item_cap is not None and len(batch) >= n_item_cap
         over_tokens = batch_cap is not None and tokens + n_tokens > batch_cap
         if batch and (over_items or over_tokens):
             yield batch
@@ -229,12 +243,12 @@ class Ingestor:
         def on_skip(record: dict, reason: str) -> None:
             nonlocal skipped
             skipped += 1
-            metadata = record.get("metadata", {})
+            metadata = record.get("metadata") or {}
             _log.warning(
                 "Skipping chunk (%s): doc_id=%s chunk_index=%s",
                 reason,
-                metadata.get("doc_id"),
-                metadata.get("chunk_index"),
+                metadata.get("doc_id", "<missing>"),
+                metadata.get("chunk_index", "<missing>"),
             )
 
         client = connect(
