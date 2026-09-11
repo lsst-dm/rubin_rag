@@ -140,7 +140,7 @@ known-first-party = ["rubin.rag", "tests"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint]
-extend-ignore = ["FBT001", "CPY001"]
+extend-ignore = ["FBT001", "CPY001", "PLR0917"]
 
 [tool.scriv]
 categories = [

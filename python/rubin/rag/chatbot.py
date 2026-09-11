@@ -87,10 +87,19 @@ def configure_retriever() -> VectorStoreRetriever:
         client=configure_client(),
         index_name=_config["weaviate"]["collection"],
         text_key="page_content",
+        # NOTE (temporary): the query-side embedder is hardcoded to LangChain's
+        # OpenAIEmbeddings. Fine for now - we only use OpenAI and are just
+        # keeping LangChain current. A middle step before dropping LangChain:
+        # map config["embedding"]["provider"] to the matching LangChain class
+        # (OpenAIEmbeddings / CohereEmbeddings / ...), so the provider becomes
+        # config-driven rather than hardcoded. Eventually replaced entirely by
+        # the pipeline's provider-agnostic embedder
+        # (ingestion_pipeline/ingestor/embedder.py). Left as a comment for now.
         embedding=OpenAIEmbeddings(
             model=_config["embedding"]["model"],
             dimensions=_config["embedding"]["dimensions"],
         ),
+        embedding_config=_config["embedding"],
         attributes=["source", "source_key"],  # Metadata to fetch
     ).as_retriever(
         search_type="similarity",
