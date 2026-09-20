@@ -325,6 +325,25 @@ class CollectionManager:
         collection_name: str,
         vector_index: str,
     ) -> None:
+        """Create the data collection with a named, self-provided vector.
+
+        The collection is created with a single named vector slot whose name
+        comes from ``_vector_name(embedding_cfg)``
+        (``__{provider}__{model}[__{dimensions}]``). It is ``self_provided``
+        (no server-side vectorizer): the pipeline supplies every vector, and
+        the query side must embed with the same model and target this named
+        slot. The standard chunk schema (``_data_properties``) is attached.
+
+        Parameters
+        ----------
+        client : weaviate.WeaviateClient
+            An open Weaviate client.
+        collection_name : str
+            Name of the data collection to create.
+        vector_index : str
+            Vector index type for the named vector slot ("hfresh", "hnsw",
+            "flat", or "dynamic").
+        """
         embedding_cfg = self._config["embedding"]
         _index_builders: dict[str, Callable[..., _VectorIndexConfigCreate]] = {
             "hfresh": Configure.VectorIndex.hfresh,
