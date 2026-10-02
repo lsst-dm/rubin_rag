@@ -5,17 +5,25 @@ ads==0.12.7
 aiohappyeyeballs==2.6.1
     # via aiohttp
 aiohttp==3.13.5
-    # via langchain-community
+    # via
+    #   langchain-community
+    #   voyageai
+aiolimiter==1.2.1
+    # via voyageai
 aiosignal==1.4.0
     # via aiohttp
 altair==6.0.0
     # via streamlit
+annotated-doc==0.0.4
+    # via typer
 annotated-types==0.7.0
     # via pydantic
 anyio==4.13.0
     # via
     #   httpx
     #   openai
+atlassian-python-api==4.0.7
+    # via rubin-rag
 attrs==26.1.0
     # via
     #   aiohttp
@@ -24,7 +32,10 @@ attrs==26.1.0
 authlib==1.6.9
     # via weaviate-client
 beautifulsoup4==4.14.3
-    # via rubin-rag
+    # via
+    #   atlassian-python-api
+    #   markdownify
+    #   rubin-rag
 bibtexparser==1.4.4
     # via rubin-rag
 blinker==1.9.0
@@ -41,23 +52,27 @@ cffi==2.0.0 ; platform_python_implementation != 'PyPy'
 charset-normalizer==3.4.7
     # via requests
 click==8.3.2
-    # via streamlit
+    # via
+    #   streamlit
+    #   typer
 colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   click
     #   tqdm
 cryptography==46.0.7
     # via authlib
-dataclasses-json==0.6.7
-    # via langchain-community
-deprecation==2.1.0
-    # via weaviate-client
+deprecated==1.3.1
+    # via atlassian-python-api
 distro==1.9.0
     # via openai
+filelock==3.25.2
+    # via huggingface-hub
 frozenlist==1.8.0
     # via
     #   aiohttp
     #   aiosignal
+fsspec==2026.2.0
+    # via huggingface-hub
 gitdb==4.0.12
     # via gitpython
 gitpython==3.1.46
@@ -68,15 +83,22 @@ grpcio==1.78.0
     # via weaviate-client
 h11==0.16.0
     # via httpcore
+hf-xet==1.4.3 ; platform_machine == 'AMD64' or platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
+    # via huggingface-hub
 httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via
+    #   huggingface-hub
+    #   langchain-core
+    #   langgraph-sdk
     #   langsmith
     #   openai
     #   weaviate-client
 httpx-sse==0.4.3
     # via langchain-community
+huggingface-hub==1.10.1
+    # via tokenizers
 idna==3.11
     # via
     #   anyio
@@ -89,6 +111,8 @@ jinja2==3.1.6
     #   pydeck
 jiter==0.13.0
     # via openai
+jmespath==1.1.0
+    # via atlassian-python-api
 jsonpatch==1.33
     # via langchain-core
 jsonpointer==3.1.1
@@ -97,47 +121,71 @@ jsonschema==4.26.0
     # via altair
 jsonschema-specifications==2025.9.1
     # via jsonschema
-langchain==0.3.28
-    # via
-    #   langchain-community
-    #   rubin-rag
-langchain-community==0.3.31
+langchain==1.4.0
     # via rubin-rag
-langchain-core==0.3.84
+langchain-classic==1.0.8
+    # via langchain-community
+langchain-community==0.4.2
+    # via rubin-rag
+langchain-core==1.6.2
     # via
     #   langchain
+    #   langchain-classic
     #   langchain-community
     #   langchain-openai
     #   langchain-text-splitters
     #   langchain-weaviate
+    #   langgraph
+    #   langgraph-checkpoint
+    #   langgraph-prebuilt
+    #   langgraph-sdk
     #   rubin-rag
-langchain-openai==0.3.35
+langchain-openai==1.3.4
     # via rubin-rag
-langchain-text-splitters==0.3.11
+langchain-protocol==0.0.19
     # via
-    #   langchain
+    #   langchain-core
+    #   langgraph-sdk
+langchain-text-splitters==1.1.2
+    # via
+    #   langchain-classic
     #   rubin-rag
+    #   voyageai
 langchain-weaviate==0.0.6
     # via rubin-rag
+langgraph==1.2.11
+    # via langchain
+langgraph-checkpoint==4.2.0
+    # via
+    #   langgraph
+    #   langgraph-prebuilt
+langgraph-prebuilt==1.1.0
+    # via langgraph
+langgraph-sdk==0.4.4
+    # via langgraph
 langsmith==0.7.30
     # via
-    #   langchain
+    #   langchain-classic
     #   langchain-community
     #   langchain-core
+lxml==6.1.1
+    # via rubin-rag
+markdown-it-py==4.0.0
+    # via rich
+markdownify==1.2.2
+    # via rubin-rag
 markupsafe==3.0.3
     # via
     #   jinja2
     #   werkzeug
-marshmallow==3.26.2
-    # via dataclasses-json
+mdurl==0.1.2
+    # via markdown-it-py
 mock==5.2.0
     # via ads
 multidict==6.7.1
     # via
     #   aiohttp
     #   yarl
-mypy-extensions==1.1.0
-    # via typing-inspect
 narwhals==2.19.0
     # via altair
 numpy==2.4.4
@@ -147,19 +195,30 @@ numpy==2.4.4
     #   pandas
     #   pydeck
     #   streamlit
+    #   voyageai
+oauthlib==3.3.1
+    # via
+    #   atlassian-python-api
+    #   requests-oauthlib
 openai==2.31.0
-    # via langchain-openai
-orjson==3.11.8 ; platform_python_implementation != 'PyPy'
-    # via langsmith
+    # via
+    #   langchain-openai
+    #   rubin-rag
+orjson==3.11.8
+    # via
+    #   langgraph-sdk
+    #   langsmith
+ormsgpack==1.12.2
+    # via langgraph-checkpoint
 packaging==25.0
     # via
     #   altair
-    #   deprecation
+    #   huggingface-hub
     #   langchain-core
     #   langsmith
-    #   marshmallow
     #   pytesseract
     #   streamlit
+    #   weaviate-client
 pandas==3.0.2
     # via streamlit
 pdf2image==1.17.0
@@ -170,6 +229,7 @@ pillow==12.2.0
     #   pytesseract
     #   rubin-rag
     #   streamlit
+    #   voyageai
 propcache==0.4.1
     # via
     #   aiohttp
@@ -185,10 +245,13 @@ pycparser==3.0 ; implementation_name != 'PyPy' and platform_python_implementatio
 pydantic==2.12.5
     # via
     #   langchain
+    #   langchain-classic
     #   langchain-core
+    #   langgraph
     #   langsmith
     #   openai
     #   pydantic-settings
+    #   voyageai
     #   weaviate-client
 pydantic-core==2.41.5
     # via pydantic
@@ -196,6 +259,10 @@ pydantic-settings==2.13.1
     # via langchain-community
 pydeck==0.9.1
     # via streamlit
+pygments==2.20.0
+    # via rich
+pymupdf==1.27.2.3
+    # via rubin-rag
 pyparsing==3.3.2
     # via bibtexparser
 pytesseract==0.3.13
@@ -208,7 +275,8 @@ python-dotenv==1.2.2
     #   rubin-rag
 pyyaml==6.0.3
     # via
-    #   langchain
+    #   huggingface-hub
+    #   langchain-classic
     #   langchain-community
     #   langchain-core
     #   rubin-rag
@@ -221,24 +289,34 @@ regex==2026.4.4
 requests==2.33.1
     # via
     #   ads
-    #   langchain
+    #   atlassian-python-api
+    #   langchain-classic
     #   langchain-community
     #   langsmith
+    #   requests-oauthlib
     #   requests-toolbelt
     #   rubin-rag
     #   streamlit
     #   tiktoken
+    #   voyageai
+requests-oauthlib==2.0.0
+    # via atlassian-python-api
 requests-toolbelt==1.0.0
     # via langsmith
+rich==14.3.4
+    # via typer
 rpds-py==0.30.0
     # via
     #   jsonschema
     #   referencing
+shellingham==1.5.4
+    # via typer
 simsimd==6.5.16
     # via langchain-weaviate
 six==1.17.0
     # via
     #   ads
+    #   markdownify
     #   python-dateutil
 slack-sdk==3.41.0
     # via rubin-rag
@@ -250,7 +328,7 @@ soupsieve==2.8.3
     # via beautifulsoup4
 sqlalchemy==2.0.49
     # via
-    #   langchain
+    #   langchain-classic
     #   langchain-community
 streamlit==1.56.0
     # via rubin-rag
@@ -259,34 +337,41 @@ tenacity==9.1.4
     #   langchain-community
     #   langchain-core
     #   streamlit
+    #   voyageai
 tiktoken==0.12.0
     # via
     #   langchain-openai
     #   rubin-rag
+tokenizers==0.23.1
+    # via voyageai
 toml==0.10.2
     # via streamlit
 tornado==6.5.5
     # via streamlit
 tqdm==4.67.3
-    # via openai
+    # via
+    #   huggingface-hub
+    #   openai
+typer==0.24.1
+    # via huggingface-hub
 typing-extensions==4.15.0
     # via
     #   aiosignal
     #   altair
     #   anyio
+    #   atlassian-python-api
     #   beautifulsoup4
     #   grpcio
+    #   huggingface-hub
     #   langchain-core
+    #   langchain-protocol
     #   openai
     #   pydantic
     #   pydantic-core
     #   referencing
     #   sqlalchemy
     #   streamlit
-    #   typing-inspect
     #   typing-inspection
-typing-inspect==0.9.0
-    # via dataclasses-json
 typing-inspection==0.4.2
     # via
     #   pydantic
@@ -301,16 +386,24 @@ uuid-utils==0.14.1
     #   langsmith
 validators==0.35.0
     # via weaviate-client
+voyageai==0.5.0
+    # via rubin-rag
 watchdog==6.0.0 ; sys_platform != 'darwin'
     # via streamlit
-weaviate-client==4.16.10
+weaviate-client==4.22.0
     # via
     #   langchain-weaviate
     #   rubin-rag
+websockets==16.1.1
+    # via langgraph-sdk
 werkzeug==3.1.8
     # via ads
+wrapt==2.2.1
+    # via deprecated
 xxhash==3.6.0
-    # via langsmith
+    # via
+    #   langgraph
+    #   langsmith
 yarl==1.23.0
     # via aiohttp
 zstandard==0.25.0

@@ -27,25 +27,29 @@ GPT-4o-mini for answering user queries.
 import os
 
 import streamlit as st
-import weaviate
-from custom_weaviate_vector_store import CustomWeaviateVectorStore
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.prompts.chat import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    SystemMessagePromptTemplate,
-)
 from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
-from langchain_core.prompts import MessagesPlaceholder
+from langchain_core.documents import Document
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import (
+    ChatPromptTemplate,
+    HumanMessagePromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+)
+from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from streamlit_callback import get_streamlit_cb
-from weaviate.classes.init import Auth
 from weaviate.classes.query import Filter
 from weaviate.client import WeaviateClient
+
+from rubin.rag.custom_weaviate_vector_store import CustomWeaviateVectorStore
+from rubin.rag.ingestion_pipeline.ingestor.client import connect
+from rubin.rag.streamlit_callback import get_streamlit_cb
+from rubin.rag.utils import load_config
+
+_config = load_config()
 
 
 def submit_text() -> None:
@@ -55,32 +59,17 @@ def submit_text() -> None:
 
 @st.cache_resource(ttl="1h")
 def configure_client() -> WeaviateClient:
-    """Configure the Weaviate client."""
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    weaviate_api_key = os.getenv("WEAVIATE_API_KEY")
-    http_host = os.getenv("HTTP_HOST")
-    grpc_host = os.getenv("GRPC_HOST")
+    """Configure the Weaviate client.
 
+    Delegates to the ingestion pipeline's connector, which routes on
+    ``config["weaviate"]["connection_mode"]`` (custom / weaviate_cloud /
+    local) and applies ``WEAVIATE_API_KEY`` as each mode requires.
+    """
+    openai_api_key = os.getenv("OPENAI_API_KEY")
     if openai_api_key is None:
         raise ValueError("OPENAI_API_KEY environment variable is not set")
-    if weaviate_api_key is None:
-        raise ValueError("WEAVIATE_API_KEY environment variable is not set")
-    if http_host is None:
-        raise ValueError("HTTP_HOST environment variable is not set")
-    if grpc_host is None:
-        raise ValueError("GRPC_HOST environment variable is not set")
 
-    return weaviate.connect_to_custom(
-        http_host=http_host,
-        http_port=8080,  # Database on port 80 in USDF
-        http_secure=False,
-        grpc_host=grpc_host,
-        grpc_port=50051,
-        grpc_secure=False,
-        auth_credentials=Auth.api_key(weaviate_api_key),
-        headers={"X-OpenAI-Api-Key": openai_api_key},
-        skip_init_checks=True,
-    )
+    return connect(_config, headers={"X-OpenAI-Api-Key": openai_api_key})
 
 
 def configure_retriever() -> VectorStoreRetriever:
@@ -96,11 +85,21 @@ def configure_retriever() -> VectorStoreRetriever:
 
     return CustomWeaviateVectorStore(
         client=configure_client(),
-        index_name="Ingestion_20250610",
+        index_name=_config["weaviate"]["collection"],
         text_key="page_content",
+        # NOTE (temporary): the query-side embedder is hardcoded to LangChain's
+        # OpenAIEmbeddings. Fine for now - we only use OpenAI and are just
+        # keeping LangChain current. A middle step before dropping LangChain:
+        # map config["embedding"]["provider"] to the matching LangChain class
+        # (OpenAIEmbeddings / CohereEmbeddings / ...), so the provider becomes
+        # config-driven rather than hardcoded. Eventually replaced entirely by
+        # the pipeline's provider-agnostic embedder
+        # (ingestion_pipeline/ingestor/embedder.py). Left as a comment for now.
         embedding=OpenAIEmbeddings(
-            model="text-embedding-3-small", dimensions=1536
+            model=_config["embedding"]["model"],
+            dimensions=_config["embedding"]["dimensions"],
         ),
+        embedding_config=_config["embedding"],
         attributes=["source", "source_key"],  # Metadata to fetch
     ).as_retriever(
         search_type="similarity",
@@ -108,12 +107,19 @@ def configure_retriever() -> VectorStoreRetriever:
     )
 
 
+def _format_docs(docs: list[Document]) -> str:
+    """Concatenate retrieved documents into the prompt's {context} block."""
+    return "\n\n".join(doc.page_content for doc in docs)
+
+
 def create_qa_chain(
     retriever: VectorStoreRetriever,
-) -> ChatPromptTemplate:
+) -> Runnable:
     """Create a QA chain for the chatbot."""
     # Setup ChatOpenAI (Language Model)
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, streaming=True)
+    llm = ChatOpenAI(
+        model=_config["llm"]["model"], temperature=0, streaming=True
+    )
 
     # Define the system message template
     system_template = """You are Rubin AI Assistant, a helpful assistant at
@@ -136,13 +142,31 @@ def create_qa_chain(
         ]
     )
 
-    # Create the QA chain
-    question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-    return create_retrieval_chain(retriever, question_answer_chain)
+    # Answer sub-chain: build the prompt's input map from the payload —
+    # `context` is formatted to text here while the outer `context` document
+    # list is left untouched for the UI — then call the LLM and parse to text.
+    answer_chain: Runnable = (
+        {
+            "input": lambda x: x["input"],
+            "chat_history": lambda x: x["chat_history"],
+            "context": lambda x: _format_docs(x["context"]),
+        }
+        | qa_prompt
+        | llm
+        | StrOutputParser()
+    )
+
+    # Full chain: retrieve on `input`, keep the Document list in `context`,
+    # then attach the generated `answer`. Output mirrors the previous
+    # create_retrieval_chain shape:
+    # {"input", "chat_history", "context": list[Document], "answer": str}.
+    return RunnablePassthrough.assign(
+        context=lambda x: retriever.invoke(x["input"])
+    ) | RunnablePassthrough.assign(answer=answer_chain)
 
 
 def handle_user_input(
-    qa_chain: ChatPromptTemplate, msgs: StreamlitChatMessageHistory
+    qa_chain: Runnable, msgs: StreamlitChatMessageHistory
 ) -> None:
     """Handle user input and chat history."""
     # Check if the message history is empty or the user
@@ -181,13 +205,12 @@ def handle_user_input(
                 },
                 {"callbacks": [stream_handler]},
             )
-            msgs.add_ai_message(result["answer"])  # type: ignore[index]
+            msgs.add_ai_message(result["answer"])
 
             # Display source documents in an expander
             with st.expander("See sources"):
                 scores = [
-                    chunk.metadata["score"]
-                    for chunk in result["context"]  # type: ignore[index]
+                    chunk.metadata["score"] for chunk in result["context"]
                 ]
 
                 if scores:
@@ -197,7 +220,7 @@ def handle_user_input(
                     )  # Set threshold to 90% of the highest score
                     cited_sources = set()
 
-                    for chunk in result["context"]:  # type: ignore[index]
+                    for chunk in result["context"]:
                         score = chunk.metadata["score"]
 
                         # Only show sources with scores

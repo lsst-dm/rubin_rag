@@ -13,6 +13,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the current directory contents into the container at /app
 COPY . /app
 
+# Install the project itself. Use an editable install so the source bind mount
+# in docker-compose.yml remains the code imported by the application.
+RUN pip install --no-cache-dir --no-deps --editable .
+
 # Expose the port that the app will run on
 EXPOSE 8501
 
