@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.38.2
+    command:
+      - --host
+      - 0.0.0.0
+      - --port
+      - '8080'
+      - --scheme
+      - http
+    ports:
+      - "8080:8081"
+      - "50051:50051"
+    volumes:
+      - weaviate_data:/var/lib/weaviate
+    restart: unless-stopped
+    environment:
+      QUERY_DEFAULTS_LIMIT: 25
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: /var/lib/weaviate
+      CLUSTER_HOSTNAME: node1
+
+  rubin-rag:
+    build: .
+    depends_on:
+      - weaviate
+    ports:
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - WEAVIATE_COLLECTION=${WEAVIATE_COLLECTION:-Ingestion_20250610}
+      - WEAVIATE_HTTP_HOST=weaviate
+      - WEAVIATE_HTTP_PORT=8081
+      - WEAVIATE_HTTP_SECURE=false
+      - WEAVIATE_GRPC_HOST=weaviate
+      - WEAVIATE_GRPC_PORT=50051
+      - WEAVIATE_GRPC_SECURE=false
+    volumes:
+      - .:/app
+    restart: unless-stopped
+
+volumes:
+  weaviate_data:
