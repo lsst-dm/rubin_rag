@@ -27,7 +27,6 @@ GPT-4o-mini for answering user queries.
 import os
 
 import streamlit as st
-from custom_weaviate_vector_store import CustomWeaviateVectorStore
 from langchain_community.chat_message_histories import (
     StreamlitChatMessageHistory,
 )
@@ -42,12 +41,13 @@ from langchain_core.prompts import (
 from langchain_core.runnables import Runnable, RunnablePassthrough
 from langchain_core.vectorstores.base import VectorStoreRetriever
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from streamlit_callback import get_streamlit_cb
-from utils import load_config
 from weaviate.classes.query import Filter
 from weaviate.client import WeaviateClient
 
+from rubin.rag.custom_weaviate_vector_store import CustomWeaviateVectorStore
 from rubin.rag.ingestion_pipeline.ingestor.client import connect
+from rubin.rag.streamlit_callback import get_streamlit_cb
+from rubin.rag.utils import load_config
 
 _config = load_config()
 

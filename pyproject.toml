@@ -68,11 +68,12 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
+fallback_version = "0.0.0"
 
 [tool.setuptools.packages.find]
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 where = ["python"]
-include = ["rubin"]
+include = ["rubin*"]
 
 [tool.black]
 line-length = 79
