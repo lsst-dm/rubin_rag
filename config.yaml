@@ -4,16 +4,9 @@ embedding:
   dimensions: 1536
 
 weaviate:
-  connection_mode: custom   # custom | weaviate_cloud | local
-  collection: Ingestion_20250610
-
-  # custom (Kubernetes / self-hosted)
-  http_host: weaviate-headless.rubin-rag.svc.cluster.local
-  http_port: 8080
-  http_secure: false
-  grpc_host: weaviate-grpc.rubin-rag.svc.cluster.local
-  grpc_port: 50051
-  grpc_secure: false
+  connection_mode: weaviate_cloud   # custom | weaviate_cloud | local
+  collection: test_260714
+  cluster_url: htvb5ekyqfeapg1xoaik6g.c0.eu-central-1.aws.weaviate.cloud
 
 llm:
   provider: openai

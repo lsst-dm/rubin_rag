@@ -89,7 +89,7 @@ def get_streamlit_cb(parent_container: DeltaGenerator) -> BaseCallbackHandler:
             if prompts[0].startswith("Human"):
                 self.run_id_ignore_token = kwargs.get("run_id")
 
-        def on_llm_new_token(self, token: str, **kwargs: Any) -> None:
+        def on_llm_new_token(self, token: str, **kwargs: Any) -> None:  # type: ignore[override]
             """
             Trigger when a new token is
             received (e.g., from a language model).
